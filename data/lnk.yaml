@@ -1,0 +1,49 @@
+name: file_header
+aliases: [ShellLinkHeader]
+description: Windows Shortcut (LNK) file header
+byte_order: little-endian
+attributes:
+- name: file_header_size
+  aliases: [HeaderSize]
+  data_type: uint32
+  data: 76
+- name: class_identifier
+  aliases: [LinkCLSID]
+  data_type: guid
+  data: '00021401-0000-0000-c000-000000000046'
+- name: file_attributes
+  aliases: [FileAttributes]
+  data_type: uint32
+- name: creation_time
+  aliases: [CreationTime]
+  data_type: filetime
+- name: access_time
+  aliases: [AccessTime]
+  data_type: filetime
+- name: write_time
+  aliases: [WriteTime]
+  data_type: filetime
+- name: file_size
+  aliases: [FileSize]
+  data_type: uint32
+- name: icon_index
+  aliases: [IconIndex]
+  data_type: int32
+- name: show_window
+  aliases: [ShowCommand]
+  data_type: uint32
+- name: hot_key
+  aliases: [HotKey]
+  data_type: uint16
+- name: reserved1
+  aliases: [Reserved1]
+  data_type: uint16
+  data: 0
+- name: reserved2
+  aliases: [Reserved2]
+  data_type: uint32
+  data: 0
+- name: reserved3
+  aliases: [Reserved3]
+  data_type: uint32
+  data: 0
