@@ -9,6 +9,7 @@ import logging
 import os
 import sys
 
+from dtfabric import definitions
 from dtfabric import errors
 from dtfabric import reader
 from dtfabric import registry
@@ -20,7 +21,8 @@ class DefinitionsValidator(object):
   def __init__(self):
     """Initializes a dtFabric definitions validator."""
     super(DefinitionsValidator, self).__init__()
-    self._definitions_registry = registry.DefinitionsRegistry()
+    self._structure_definitions_registry = (
+        registry.StructureDefinitionsRegistry())
 
   def CheckDirectory(self, path, extension=u'yaml'):
     """Validates definition files in a directory.
@@ -59,13 +61,16 @@ class DefinitionsValidator(object):
 
     try:
       for definition_object in definitions_reader.ReadFile(path):
-        try:
-          self._definitions_registry.RegisterDefinition(definition_object)
+        if isinstance(definition_object, definitions.StructureDefinition):
+          try:
+            self._structure_definitions_registry.RegisterDefinition(
+                definition_object)
 
-        except KeyError:
-          logging.warning(u'Duplicate definition: {0:s} in file: {1:s}'.format(
-              definition_object.name, path))
-          result = False
+          except KeyError:
+            logging.warning(
+                u'Duplicate structure definition: {0:s} in file: {1:s}'.format(
+                    definition_object.name, path))
+            result = False
 
     except errors.FormatError as exception:
       logging.warning(
@@ -107,10 +112,18 @@ def Main():
   logging.basicConfig(
       level=logging.INFO, format=u'[%(levelname)s] %(message)s')
 
+
+  source_is_directory = os.path.isdir(options.source)
+
   validator = DefinitionsValidator()
 
-  print(u'Validating: {0:s}'.format(options.source))
-  if not os.path.isdir(options.source):
+  if source_is_directory:
+    source_description = os.path.join(options.source, u'*.yaml')
+  else:
+    source_description = options.source
+
+  print(u'Validating dtFabric definitions in: {0:s}'.format(source_description))
+  if source_is_directory:
     result = validator.CheckDirectory(options.source)
   else:
     result = validator.CheckFile(options.source)

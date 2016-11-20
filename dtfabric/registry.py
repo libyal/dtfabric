@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The structure definitions registry."""
+"""The definitions registry."""
 
 
 class StructureDefinitionsRegistry(object):
