@@ -16,7 +16,7 @@ from dtfabric import registry
 
 
 class DefinitionsValidator(object):
-  """Class to define a dtFabric definitions validator."""
+  """Class that defines a dtFabric definitions validator."""
 
   def __init__(self):
     """Initializes a dtFabric definitions validator."""
@@ -93,7 +93,8 @@ def Main():
   argument_parser.add_argument(
       u'source', nargs=u'?', action=u'store', metavar=u'PATH', default=None,
       help=(
-          u'path of the file containing the dtFabric format definitions.'))
+          u'path of the file or directory containing the dtFabric format '
+          u'definitions.'))
 
   options = argument_parser.parse_args()
 
