@@ -23,33 +23,6 @@ class SourceFileGenerator(object):
     """Initialize a source file generator."""
     super(SourceFileGenerator, self).__init__()
 
-  def _GenerateSection(
-      self, template_filename, template_mappings, output_writer,
-      output_filename, access_mode='wb'):
-    """Generates a section from template filename.
-
-    Args:
-      template_filename (str): name of the template file.
-      template_mappings (dict[str, str]): template mappings, where the key
-          maps to the name of a template variable.
-      output_writer (OutputWriter): output writer.
-      output_filename (str): name of the output file.
-      access_mode (Optional[str]): output file access mode.
-    """
-    template_string = self._ReadTemplateFile(template_filename)
-
-    try:
-      output_data = template_string.substitute(template_mappings)
-
-    except (KeyError, ValueError) as exception:
-      logging.error(
-          u'Unable to format template: {0:s} with error: {1:s}'.format(
-              template_filename, exception))
-      return
-
-    output_writer.WriteFile(
-        output_filename, output_data, access_mode=access_mode)
-
   def _ReadTemplateFile(self, filename):
     """Reads a template string from file.
 
@@ -64,9 +37,32 @@ class SourceFileGenerator(object):
     file_object.close()
     return string.Template(file_data)
 
+  def GenerateStructureDefinitionFile(
+      self, template_filename, template_mappings, output_writer):
+    """Generates a structure definition file.
+
+    Args:
+      template_filename (str): path of the template file.
+      template_mappings (dict[str, str]): template mappings, where the key
+          maps to the name of a template variable.
+      output_writer (OutputWriter): output writer.
+    """
+    template_string = self._ReadTemplateFile(template_filename)
+
+    try:
+      output_data = template_string.substitute(template_mappings)
+
+    except (KeyError, ValueError) as exception:
+      logging.error(
+          u'Unable to format template: {0:s} with error: {1:s}'.format(
+              template_filename, exception))
+      return
+
+    output_writer.WriteData(output_data)
+
 
 class SourceGenerator(object):
-  """Class generates source based on dtFabric format definitions."""
+  """Class that generates source based on dtFabric format definitions."""
 
   _DATA_TYPE_SIZES = {
       u'filetime': 8,
@@ -87,8 +83,8 @@ class SourceGenerator(object):
     self._structure_definitions_registry = (
         registry.StructureDefinitionsRegistry())
 
-  def _GenerateStruct(self, struct_definition, prefix):
-    """Generates a struct.
+  def _GenerateStructureMembers(self, struct_definition, prefix):
+    """Generates structure members.
 
     Args:
       prefix (str): prefix.
@@ -100,15 +96,7 @@ class SourceGenerator(object):
     Raises:
       RuntimeError: if the size of the data type is not defined.
     """
-    struct_name = struct_definition.name
-    if prefix:
-      struct_name = u'{0:s}_{1:s}'.format(prefix, struct_name)
-  
-    lines = [
-        u'typedef struct {0:s} {0:s}_t;'.format(struct_name),
-        u'',
-        u'struct {0:s}'.format(struct_name),
-        u'{']
+    lines = []
 
     last_index = len(struct_definition.attributes) - 1
     for index, struct_attribute_definition in enumerate(
@@ -142,8 +130,6 @@ class SourceGenerator(object):
       if index != last_index:
         lines.append(u'')
 
-    lines.append(u'};')
- 
     return lines
 
   def Generate(self, prefix):
@@ -152,12 +138,34 @@ class SourceGenerator(object):
     Args:
       prefix (str): prefix.
     """
+    if prefix and not prefix.endswith(u'_'):
+      prefix = u'{0:s}_'.format(prefix)
+    else:
+      prefix = prefix or u''
+
+    source_file_generator = SourceFileGenerator()
+
+    template_mappings = {
+        u'authors': u'Joachim Metz <joachim.metz@gmail.com>',
+        u'copyright': u'2016',
+        u'prefix': prefix,
+        u'prefix_upper_case': prefix.upper()}
+
+    template_filename = os.path.join(u'data', u'templates', u'structure.h')
+
+    output_writer = StdoutWriter()
+
     for struct_definition in (
         self._structure_definitions_registry.GetDefinitions()):
-      lines = self._GenerateStruct(struct_definition, prefix)
+      lines = self._GenerateStructureMembers(struct_definition, prefix)
 
-      lines.append(u'')
-      print(u'\n'.join(lines))
+      template_mappings[u'structure_description'] = struct_definition.description
+      template_mappings[u'structure_members'] = u'\n'.join(lines)
+      template_mappings[u'structure_name'] = struct_definition.name
+      template_mappings[u'structure_name_upper_case'] = struct_definition.name.upper()
+
+      source_file_generator.GenerateStructureDefinitionFile(
+        template_filename, template_mappings, output_writer)
 
   def ReadDefinitions(self, path):
     """Reads the definitions form file or directory.
@@ -173,6 +181,30 @@ class SourceGenerator(object):
     else:
       self._structure_definitions_registry.ReadFromFile(
           definitions_reader, path)
+
+
+class StdoutWriter(object):
+  """Class that defines a stdout output writer."""
+
+  def Open(self):
+    """Opens the output writer object.
+
+    Returns:
+      bool: True if successful or False if not.
+    """
+    return True
+
+  def Close(self):
+    """Closes the output writer object."""
+    pass
+
+  def WriteData(self, data):
+    """Writes data to stdout.
+
+    Args:
+      data (bytes): data to write.
+    """
+    print(data.encode(u'utf8'))
 
 
 def Main():
