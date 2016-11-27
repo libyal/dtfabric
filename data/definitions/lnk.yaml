@@ -1,8 +1,8 @@
 name: file_header
 aliases: [ShellLinkHeader]
+type: structure
 description: Windows Shortcut (LNK) file header
-byte_order: little-endian
-attributes:
+members:
 - name: file_header_size
   aliases: [HeaderSize]
   data_type: uint32

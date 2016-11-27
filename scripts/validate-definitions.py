@@ -22,7 +22,7 @@ class DefinitionsValidator(object):
     """Initializes a dtFabric definitions validator."""
     super(DefinitionsValidator, self).__init__()
     self._structure_definitions_registry = (
-        registry.StructureDefinitionsRegistry())
+        registry.DataTypeDefinitionsRegistry())
 
   def CheckDirectory(self, path, extension=u'yaml'):
     """Validates definition files in a directory.

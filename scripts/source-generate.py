@@ -81,7 +81,7 @@ class SourceGenerator(object):
     """Initializes a source generator."""
     super(SourceGenerator, self).__init__()
     self._structure_definitions_registry = (
-        registry.StructureDefinitionsRegistry())
+        registry.DataTypeDefinitionsRegistry())
 
   def _GenerateStructureMembers(self, struct_definition, prefix):
     """Generates structure members.
@@ -98,9 +98,9 @@ class SourceGenerator(object):
     """
     lines = []
 
-    last_index = len(struct_definition.attributes) - 1
+    last_index = len(struct_definition.members) - 1
     for index, struct_attribute_definition in enumerate(
-        struct_definition.attributes):
+        struct_definition.members):
 
       data_type = struct_attribute_definition.data_type
       data_type_size = self._DATA_TYPE_SIZES.get(data_type, None)

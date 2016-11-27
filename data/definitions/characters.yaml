@@ -1,0 +1,13 @@
+name: char
+aliases: [CHAR]
+type: character
+attributes:
+- size: 1
+  units: byte
+---
+name: wchar
+aliases: [WCHAR]
+type: character
+attributes:
+- size: [2, 4]
+  units: byte

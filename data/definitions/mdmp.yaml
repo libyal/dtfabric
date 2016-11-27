@@ -1,0 +1,136 @@
+# Minidump file format
+
+name: file_header
+aliases: [MINIDUMP_HEADER]
+type: structure
+description: Minidump file header
+urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680378(v=vs.85).aspx']
+members:
+- sequence:
+    name: signature
+    data_type: byte
+    number_of_items: 4
+    data: 'MDMP'
+- name: format_version
+  data_type: uint32
+- name: number_of_streams
+  data_type: uint32
+- name: stream_directory_rva
+  data_type: 
+- name: checksum
+  data_type: uint32
+- union:
+  members:
+  - name: reserved
+    data_type: uint32
+  - name: time_date_stamp
+    data_type: uint32
+- name: flags
+  data_type: uint64
+---
+name: directory_descriptor
+aliases: [MINIDUMP_DIRECTORY]
+type: structure
+description: Minidump file header
+urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680365(v=vs.85).aspx']
+members:
+- name: stream_type
+  data_type: uint32
+- name: stream_type
+  data_type: uint32
+---
+name: location_descriptor_32bit
+aliases: [MINIDUMP_LOCATION_DESCRIPTOR]
+type: structure
+description: Minidump 32-bit location descriptor
+urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680383(v=vs.85).aspx']
+members:
+- name: data_size
+  data_type: uint32
+- name: rva_32bit
+  data_type: uint32
+  description: |
+    32-bit Relative Virtual Address (RVA)
+
+    Contains a byte offset relative to the start of the minidump file.
+---
+name: location_descriptor_64bit
+aliases: [MINIDUMP_LOCATION_DESCRIPTOR64]
+type: structure
+description: Minidump 64-bit location descriptor
+urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680383(v=vs.85).aspx']
+members:
+- name: data_size
+  data_type: uint64
+- name: rva_64bit
+  data_type: uint64
+  description: |
+    64-bit Relative Virtual Address (RVA)
+
+    Contains a byte offset relative to the start of the minidump file.
+---
+name: stream_type
+aliases: [MINIDUMP_STREAM_TYPE]
+type: enumeration
+description: Minidump stream type
+urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680394(v=vs.85).aspx']
+members:
+- name: UnusedStream
+  value: 0
+  description: Reserved
+- name: ReservedStream0
+  value: 1
+  description: Reserved
+- name: ReservedStream1
+  value: 2
+  description: Reserved
+- name: ThreadListStream
+  value: 3
+  description: Thread information stream
+- name: ModuleListStream
+  value: 4
+  description: Module information stream
+- name: MemoryListStream
+  value: 5
+  description: 32-bit memory allocation stream
+- name: ExceptionStream
+  value: 6
+  description: Exception stream
+- name: SystemInfoStream
+  value: 7
+  description: System information stream
+- name: ThreadExListStream
+  value: 8
+  description: Extended thread information
+- name: Memory64ListStream
+  value: 9
+  description: 64-bit memory allocation stream
+- name: CommentStreamA
+  value: 10
+  description: Comment stream in extended ASCII
+- name: CommentStreamW
+  value: 11
+  description: Comment stream in Unicode
+- name: HandleDataStream
+  value: 12
+  description: Active operating system handle stream
+- name: FunctionTableStream
+  value: 13
+  description: Function table information
+- name: UnloadedModuleListStream
+  value: 14
+  description: Unloaded module information stream
+- name: MiscInfoStream
+  value: 15
+  description: Miscellaneous information stream
+- name: MemoryInfoListStream
+  value: 16
+  description: Memory region description information stream
+- name: ThreadInfoListStream
+  value: 17
+  description: Thread state information stream
+- name: HandleOperationListStream
+  value: 18
+  description: Operation list information stream
+- name: LastReservedStream
+  value: 0xffff
