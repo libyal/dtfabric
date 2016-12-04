@@ -56,7 +56,7 @@ class IntegerDefinition(DataTypeDefinition):
         name, aliases=aliases, description=description)
     self.format = None
     self.size = None
-    self.units = None
+    self.units = u'bytes'
 
   def GetByteSize(self):
     """Determines the byte size of the data type definition.
@@ -89,26 +89,23 @@ class StructureDefinition(DataTypeDefinition):
 
   Attributes:
     aliases (list[str]): aliases.
-    byte_order (str): byte_order.
     description (str): description.
     members (list[object]): members.
     name (str): name.
   """
 
-  def __init__(self, name, aliases=None, byte_order=None, description=None):
+  def __init__(self, name, aliases=None, description=None):
     """Initializes a data type definition.
 
     Args:
       name (str): name.
       aliases (Optional[list[str]]): aliases.
-      byte_order (Optional[str]): byte order.
       description (Optional[str]): description.
     """
     super(StructureDefinition, self).__init__(
         name, aliases=aliases, description=description)
     self._size = None
     self.aliases = aliases or []
-    self.byte_order = byte_order
     self.description = description
     self.name = name
     self.members = []

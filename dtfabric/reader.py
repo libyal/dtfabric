@@ -32,8 +32,59 @@ class DataTypeDefinitionsReader(object):
 class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
   """Class that defines the data type definitions file reader interface."""
 
-  def _ReadStructureMember(self, definition_values):
-    """Reads a structure member definition.
+  _DATA_TYPE_CALLBACKS = {
+      u'integer': u'_ReadIntegerDefinition',
+      u'structure': u'_ReadStructureDefinition',
+  }
+
+  def _ReadIntegerDefinition(self, definition_values, name):
+    """Reads an integer data type definition.
+
+    Args:
+      definition_values (dict[str, object]): definition values.
+      name (str): name of the definition.
+
+    Returns:
+      IntegerDefinition: integer data type definition.
+    """
+    aliases = definition_values.get(u'aliases', None)
+    description = definition_values.get(u'description', None)
+
+    definition_object = definitions.IntegerDefinition(
+        name, aliases=aliases, description=description)
+
+    attributes = definition_values.get(u'attributes')
+    if attributes:
+      definition_object.format = attributes.get(u'format', None)
+      definition_object.size = attributes.get(u'size', None)
+      definition_object.units = attributes.get(u'units', u'bytes')
+
+    return definition_object
+
+  def _ReadStructureDefinition(self, definition_values, name):
+    """Reads structure members definitions.
+
+    Args:
+      definition_values (dict[str, object]): definition values.
+      name (str): name of the definition.
+
+    Returns:
+      StructureDefinition: structure data type definition.
+    """
+    aliases = definition_values.get(u'aliases', None)
+    description = definition_values.get(u'description', None)
+
+    definition_object = definitions.StructureDefinition(
+        name, aliases=aliases, description=description)
+
+    members = definition_values.get(u'members')
+    if members:
+      self._ReadStructureDefinitionMembers(members, definition_object, name)
+
+    return definition_object
+
+  def _ReadStructureDefinitionMember(self, definition_values):
+    """Reads a structure definition member.
 
     Args:
       definition_values (dict[str, object]): definition values.
@@ -66,9 +117,9 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     return definitions.StructureMemberDefinition(
         name, aliases=aliases, data_type=data_type, description=description)
 
-  def _ReadStructureMembers(
+  def _ReadStructureDefinitionMembers(
       self, definition_values, definition_object, name):
-    """Reads structure members definitions.
+    """Reads structure definition members.
 
     Args:
       definition_values (dict[str, object]): definition values.
@@ -76,7 +127,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       name (str): name of the definition.
     """
     for attribute in definition_values:
-      structure_attribute = self._ReadStructureMember(attribute)
+      structure_attribute = self._ReadStructureDefinitionMember(attribute)
       definition_object.members.append(structure_attribute)
 
   def ReadDefinitionFromDict(self, definition_values):
@@ -103,18 +154,14 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     if not type_indicator:
       raise errors.FormatError(u'Invalid definition missing type.')
 
-    aliases = definition_values.get(u'aliases', None)
-    byte_order = definition_values.get(u'byte_order', None)
-    description = definition_values.get(u'description', None)
+    data_type_callback = self._DATA_TYPE_CALLBACKS.get(type_indicator, None)
+    if data_type_callback:
+      data_type_callback = getattr(self, data_type_callback, None)
+    if not data_type_callback:
+      raise errors.FormatError(
+          u'Unuspported data type definition: {0:s}.'.format(type_indicator))
 
-    definition_object = definitions.StructureDefinition(
-        name, aliases=aliases, byte_order=byte_order, description=description)
-
-    members = definition_values.get(u'members')
-    if members:
-      self._ReadStructureMembers(members, definition_object, name)
-
-    return definition_object
+    return data_type_callback(definition_values, name)
 
   def ReadDirectory(self, path, extension=None):
     """Reads data type definitions from a directory.
