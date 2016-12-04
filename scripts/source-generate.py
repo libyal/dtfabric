@@ -176,11 +176,11 @@ class SourceGenerator(object):
     definitions_reader = reader.YAMLDefinitionsFileReader()
 
     if os.path.isdir(path):
-      self._structure_definitions_registry.ReadFromDirectory(
-          definitions_reader, path)
+      definitions_reader.ReadDirectory(
+          self._structure_definitions_registry, path)
     else:
-      self._structure_definitions_registry.ReadFromFile(
-          definitions_reader, path)
+      definitions_reader.ReadFile(
+          self._structure_definitions_registry, path)
 
 
 class StdoutWriter(object):

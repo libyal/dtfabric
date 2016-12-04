@@ -39,8 +39,13 @@ class DataTypeDefinitionsRegistry(object):
     Returns:
       DataTypeDefinition: data type definition or None if not available.
     """
+    data_type_definition = None
     if name:
-      return self._definitions.get(name.lower(), None)
+      data_type_definition = self._definitions.get(name.lower(), None)
+
+    # TODO: query aliases.
+
+    return data_type_definition
 
   def GetDefinitions(self):
     """Retrieves the data type definitions.
@@ -76,41 +81,3 @@ class DataTypeDefinitionsRegistry(object):
 
     for alias in data_type_definition.aliases:
       self._aliases[alias] = name
-
-  def ReadFromDirectory(self, definitions_reader, path, extension=u'yaml'):
-    """Reads data type definitions into the registry from files in a directory.
-
-    This function does not recurse sub directories.
-
-    Args:
-      structures_reader (DefinitionsReader): definitions reader.
-      path (str): path of the directory to read from.
-      extension (Optional[str]): extension of the filenames to read from
-          the directory.
-
-    Raises:
-      KeyError: if a duplicate data type definition is encountered.
-    """
-    for data_type_definition in definitions_reader.ReadDirectory(
-        path, extension=extension):
-      self.RegisterDefinition(data_type_definition)
-
-  def ReadFromFile(self, definitions_reader, filename):
-    """Reads data type definitions into the registry from a file.
-
-    Args:
-      structures_reader (DefinitionsReader): definitions reader.
-      filename (str): path of the file to read from.
-    """
-    for data_type_definition in definitions_reader.ReadFile(filename):
-      self.RegisterDefinition(data_type_definition)
-
-  def ReadFileObject(self, definitions_reader, file_object):
-    """Reads data type definitions into the registry from a file-like object.
-
-    Args:
-      structures_reader (DefinitionsReader): definitions reader.
-      file_object (file): file-like object to read from.
-    """
-    for data_type_definition in definitions_reader.ReadFileObject(file_object):
-      self.RegisterDefinition(data_type_definition)

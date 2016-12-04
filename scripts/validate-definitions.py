@@ -57,26 +57,21 @@ class DefinitionsValidator(object):
       bool: True if the file contains valid definitions.
     """
     definitions_reader = reader.YAMLDefinitionsFileReader()
-    result = True
+    result = False
 
     try:
-      for definition_object in definitions_reader.ReadFile(path):
-        if isinstance(definition_object, definitions.StructureDefinition):
-          try:
-            self._structure_definitions_registry.RegisterDefinition(
-                definition_object)
+      definitions_reader.ReadFile(self._structure_definitions_registry, path)
+      result = True
 
-          except KeyError:
-            logging.warning(
-                u'Duplicate structure definition: {0:s} in file: {1:s}'.format(
-                    definition_object.name, path))
-            result = False
+    except KeyError as exception:
+      logging.warning((
+          u'Unable to register data type definition in file: {0:s} with '
+          u'error: {1:s}').format(path, exception))
 
     except errors.FormatError as exception:
       logging.warning(
           u'Unable to validate file: {0:s} with error: {1:s}'.format(
               path, exception))
-      result = False
 
     return result
 

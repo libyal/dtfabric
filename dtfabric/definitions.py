@@ -99,7 +99,7 @@ class IntegerDefinition(PrimitiveDataTypeDefinition):
     self.format = None
 
 
-class StructureDefinition(DataTypeDefinition):
+class StructureDataTypeDefinition(DataTypeDefinition):
   """Class that defines a structure data type definition.
 
   Attributes:
@@ -115,7 +115,7 @@ class StructureDefinition(DataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(StructureDefinition, self).__init__(
+    super(StructureDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self._size = None
     self.members = []
@@ -129,8 +129,8 @@ class StructureDefinition(DataTypeDefinition):
     if self._size is None:
       self._size = 0
       for struct_member in self.members:
-        struct_member_size = struct_member.GetSize()
-        if self._structure_definition is None:
+        struct_member_size = struct_member.GetByteSize()
+        if struct_member_size is None:
           self._size = None
           break
 
@@ -159,6 +159,7 @@ class StructureMemberDefinition(object):
       description (Optional[str]): description.
     """
     super(StructureMemberDefinition, self).__init__()
+    self._data_type_definitions_registry = None
     self.aliases = aliases or []
     self.data_type = data_type
     self.description = description
@@ -170,7 +171,22 @@ class StructureMemberDefinition(object):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    # TODO: implement size based on data type.
+    data_type_definition = (
+        self._data_type_definitions_registry.GetDefinitionByName(
+            self.data_type))
+    if not data_type_definition:
+      return
+
+    return data_type_definition.GetByteSize()
+
+  def SetDataTypeDefinitionsRegistry(self, data_type_definitions_registry):
+    """Sets the data type definitions registry.
+
+    Args:
+      data_type_definitions_registry (DataTypeDefinitionsRegistry): data type
+          definitions registry.
+    """
+    self._data_type_definitions_registry = data_type_definitions_registry
 
 
 class SequenceStructureMemberDefinition(StructureMemberDefinition):

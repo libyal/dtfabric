@@ -7,6 +7,7 @@ import unittest
 from dtfabric import definitions
 from dtfabric import errors
 from dtfabric import reader
+from dtfabric import registry
 
 
 # TODO: add tests for DataTypeDefinitionsFileReader.
@@ -17,7 +18,8 @@ class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
 
   def testReadFileObjectBoolean(self):
     """Tests the ReadFileObject function of a boolean data type."""
-    definition_reader = reader.YAMLDataTypeDefinitionsFileReader()
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     yaml_data = b'\n'.join([
         b'name: bool',
@@ -28,18 +30,48 @@ class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
 
     file_object = io.BytesIO(initial_bytes=yaml_data)
 
-    data_type_definitions = list(definition_reader.ReadFileObject(file_object))
-    self.assertEqual(len(data_type_definitions), 1)
+    definitions_reader.ReadFileObject(definitions_registry, file_object)
+    self.assertEqual(len(definitions_registry._definitions), 1)
 
-    data_type_definition = data_type_definitions[0]
+    data_type_definition = definitions_registry.GetDefinitionByName(u'bool')
     self.assertIsInstance(data_type_definition, definitions.BooleanDefinition)
     self.assertEqual(data_type_definition.name, u'bool')
     self.assertEqual(data_type_definition.size, 1)
     self.assertEqual(data_type_definition.units, u'bytes')
 
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 1)
+
+  def testReadFileObjectCharacter(self):
+    """Tests the ReadFileObject function of a character data type."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    yaml_data = b'\n'.join([
+        b'name: char',
+        b'type: character',
+        b'attributes:',
+        b'  size: 1',
+        b'  units: bytes'])
+
+    file_object = io.BytesIO(initial_bytes=yaml_data)
+
+    definitions_reader.ReadFileObject(definitions_registry, file_object)
+    self.assertEqual(len(definitions_registry._definitions), 1)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'char')
+    self.assertIsInstance(data_type_definition, definitions.CharacterDefinition)
+    self.assertEqual(data_type_definition.name, u'char')
+    self.assertEqual(data_type_definition.size, 1)
+    self.assertEqual(data_type_definition.units, u'bytes')
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 1)
+
   def testReadFileObjectInteger(self):
     """Tests the ReadFileObject function of an integer data type."""
-    definition_reader = reader.YAMLDataTypeDefinitionsFileReader()
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     yaml_data = b'\n'.join([
         b'name: int8',
@@ -51,19 +83,23 @@ class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
 
     file_object = io.BytesIO(initial_bytes=yaml_data)
 
-    data_type_definitions = list(definition_reader.ReadFileObject(file_object))
-    self.assertEqual(len(data_type_definitions), 1)
+    definitions_reader.ReadFileObject(definitions_registry, file_object)
+    self.assertEqual(len(definitions_registry._definitions), 1)
 
-    data_type_definition = data_type_definitions[0]
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int8')
     self.assertIsInstance(data_type_definition, definitions.IntegerDefinition)
     self.assertEqual(data_type_definition.name, u'int8')
     self.assertEqual(data_type_definition.format, u'signed')
     self.assertEqual(data_type_definition.size, 1)
     self.assertEqual(data_type_definition.units, u'bytes')
 
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 1)
+
   def testReadFileObjectMissingName(self):
     """Tests the ReadFileObject function with a missing name."""
-    definition_reader = reader.YAMLDataTypeDefinitionsFileReader()
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     yaml_data = b'\n'.join([
         b'type: integer',
@@ -75,11 +111,12 @@ class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
     file_object = io.BytesIO(initial_bytes=yaml_data)
 
     with self.assertRaises(errors.FormatError):
-      list(definition_reader.ReadFileObject(file_object))
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
 
   def testReadFileObjectMissingType(self):
     """Tests the ReadFileObject function with a missing type."""
-    definition_reader = reader.YAMLDataTypeDefinitionsFileReader()
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     yaml_data = b'\n'.join([
         b'name: int8',
@@ -91,17 +128,25 @@ class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
     file_object = io.BytesIO(initial_bytes=yaml_data)
 
     with self.assertRaises(errors.FormatError):
-      list(definition_reader.ReadFileObject(file_object))
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
 
   def testReadFileObjectStructure(self):
     """Tests the ReadFileObject function of a structure data type."""
-    definition_reader = reader.YAMLDataTypeDefinitionsFileReader()
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     url = (
         b'https://msdn.microsoft.com/en-us/library/windows/desktop/'
         b'ms680365(v=vs.85).aspx')
 
     yaml_data = b'\n'.join([
+        b'name: uint32',
+        b'type: integer',
+        b'attributes:',
+        b'  format: unsigned',
+        b'  size: 4',
+        b'  units: bytes',
+        b'---',
         b'name: directory_descriptor',
         b'aliases: [MINIDUMP_DIRECTORY]',
         b'type: structure',
@@ -117,11 +162,13 @@ class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
 
     file_object = io.BytesIO(initial_bytes=yaml_data)
 
-    data_type_definitions = list(definition_reader.ReadFileObject(file_object))
-    self.assertEqual(len(data_type_definitions), 1)
+    definitions_reader.ReadFileObject(definitions_registry, file_object)
+    self.assertEqual(len(definitions_registry._definitions), 2)
 
-    data_type_definition = data_type_definitions[0]
-    self.assertIsInstance(data_type_definition, definitions.StructureDefinition)
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'directory_descriptor')
+    self.assertIsInstance(
+        data_type_definition, definitions.StructureDataTypeDefinition)
     self.assertEqual(data_type_definition.name, u'directory_descriptor')
     self.assertEqual(data_type_definition.description, u'Minidump file header')
     self.assertEqual(data_type_definition.aliases, [u'MINIDUMP_DIRECTORY'])
@@ -136,9 +183,13 @@ class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
     self.assertEqual(structure_member_definition.aliases, [u'StreamType'])
     self.assertEqual(structure_member_definition.data_type, u'uint32')
 
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 8)
+
   def testReadFileObjectStructureWithSequence(self):
     """Tests the ReadFileObject function of a structure with a sequence."""
-    definition_reader = reader.YAMLDataTypeDefinitionsFileReader()
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     url = (
         b'https://msdn.microsoft.com/en-us/library/windows/desktop/'
@@ -162,11 +213,13 @@ class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
 
     file_object = io.BytesIO(initial_bytes=yaml_data)
 
-    data_type_definitions = list(definition_reader.ReadFileObject(file_object))
-    self.assertEqual(len(data_type_definitions), 1)
+    definitions_reader.ReadFileObject(definitions_registry, file_object)
+    self.assertEqual(len(definitions_registry._definitions), 1)
 
-    data_type_definition = data_type_definitions[0]
-    self.assertIsInstance(data_type_definition, definitions.StructureDefinition)
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'string')
+    self.assertIsInstance(
+        data_type_definition, definitions.StructureDataTypeDefinition)
     self.assertEqual(data_type_definition.name, u'string')
     self.assertEqual(
         data_type_definition.description, u'Minidump 64-bit memory descriptor')
@@ -182,6 +235,9 @@ class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
     self.assertEqual(structure_member_definition.name, u'data')
     self.assertEqual(structure_member_definition.aliases, [u'Buffer'])
     self.assertEqual(structure_member_definition.data_type, u'uint16')
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
 
 
 if __name__ == '__main__':

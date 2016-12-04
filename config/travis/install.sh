@@ -4,9 +4,9 @@
 
 COVERALL_DEPENDENCIES="python-coverage python-coveralls python-docopt";
 
-PYTHON2_DEPENDENCIES="";
+PYTHON2_DEPENDENCIES="python-yaml";
 
-PYTHON3_DEPENDENCIES="";
+PYTHON3_DEPENDENCIES="python3-yaml";
 
 # Exit on error.
 set -e;
