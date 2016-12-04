@@ -15,6 +15,28 @@ from dtfabric import reader
 class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
   """Class to test the YAML data type definitions reader."""
 
+  def testReadFileObjectBoolean(self):
+    """Tests the ReadFileObject function of a boolean data type."""
+    definition_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    yaml_data = b'\n'.join([
+        b'name: bool',
+        b'type: boolean',
+        b'attributes:',
+        b'  size: 1',
+        b'  units: bytes'])
+
+    file_object = io.BytesIO(initial_bytes=yaml_data)
+
+    data_type_definitions = list(definition_reader.ReadFileObject(file_object))
+    self.assertEqual(len(data_type_definitions), 1)
+
+    data_type_definition = data_type_definitions[0]
+    self.assertIsInstance(data_type_definition, definitions.BooleanDefinition)
+    self.assertEqual(data_type_definition.name, u'bool')
+    self.assertEqual(data_type_definition.size, 1)
+    self.assertEqual(data_type_definition.units, u'bytes')
+
   def testReadFileObjectInteger(self):
     """Tests the ReadFileObject function of an integer data type."""
     definition_reader = reader.YAMLDataTypeDefinitionsFileReader()
@@ -35,6 +57,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
     data_type_definition = data_type_definitions[0]
     self.assertIsInstance(data_type_definition, definitions.IntegerDefinition)
     self.assertEqual(data_type_definition.name, u'int8')
+    self.assertEqual(data_type_definition.format, u'signed')
     self.assertEqual(data_type_definition.size, 1)
     self.assertEqual(data_type_definition.units, u'bytes')
 
@@ -106,6 +129,13 @@ class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
 
     self.assertEqual(len(data_type_definition.members), 2)
 
+    structure_member_definition = data_type_definition.members[0]
+    self.assertIsInstance(
+        structure_member_definition, definitions.StructureMemberDefinition)
+    self.assertEqual(structure_member_definition.name, u'stream_type')
+    self.assertEqual(structure_member_definition.aliases, [u'StreamType'])
+    self.assertEqual(structure_member_definition.data_type, u'uint32')
+
   def testReadFileObjectStructureWithSequence(self):
     """Tests the ReadFileObject function of a structure with a sequence."""
     definition_reader = reader.YAMLDataTypeDefinitionsFileReader()
@@ -144,6 +174,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
     self.assertEqual(data_type_definition.urls, [url])
 
     self.assertEqual(len(data_type_definition.members), 2)
+
+    structure_member_definition = data_type_definition.members[1]
+    self.assertIsInstance(
+        structure_member_definition,
+        definitions.SequenceStructureMemberDefinition)
+    self.assertEqual(structure_member_definition.name, u'data')
+    self.assertEqual(structure_member_definition.aliases, [u'Buffer'])
+    self.assertEqual(structure_member_definition.data_type, u'uint16')
 
 
 if __name__ == '__main__':

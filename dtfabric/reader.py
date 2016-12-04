@@ -33,11 +33,65 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
   """Class that defines the data type definitions file reader interface."""
 
   _DATA_TYPE_CALLBACKS = {
-      u'integer': u'_ReadIntegerDefinition',
-      u'structure': u'_ReadStructureDefinition',
+      u'boolean': u'_ReadBooleanDataTypeDefinition',
+      u'character': u'_ReadCharacterDataTypeDefinition',
+      u'integer': u'_ReadIntegerDataTypeDefinition',
+      u'structure': u'_ReadStructureDataTypeDefinition',
   }
 
-  def _ReadIntegerDefinition(self, definition_values, name):
+  def _ReadPrimitiveDataTypeDefinition(
+      self, definition_values, data_type_definition_class, name):
+    """Reads a primitive data type definition.
+
+    Args:
+      definition_values (dict[str, object]): definition values.
+      data_type_definition_class (str): data type definition class.
+      name (str): name of the definition.
+
+    Returns:
+      PrimitiveDataTypeDefinition: primitive data type definition.
+    """
+    aliases = definition_values.get(u'aliases', None)
+    description = definition_values.get(u'description', None)
+    urls = definition_values.get(u'urls', None)
+
+    definition_object = data_type_definition_class(
+        name, aliases=aliases, description=description, urls=urls)
+
+    attributes = definition_values.get(u'attributes')
+    if attributes:
+      definition_object.size = attributes.get(u'size', None)
+      definition_object.units = attributes.get(u'units', u'bytes')
+
+    return definition_object
+
+  def _ReadBooleanDataTypeDefinition(self, definition_values, name):
+    """Reads a boolean data type definition.
+
+    Args:
+      definition_values (dict[str, object]): definition values.
+      name (str): name of the definition.
+
+    Returns:
+      BooleanDataTypeDefinition: boolean data type definition.
+    """
+    return self._ReadPrimitiveDataTypeDefinition(
+        definition_values, definitions.BooleanDefinition, name)
+
+  def _ReadCharacterDataTypeDefinition(self, definition_values, name):
+    """Reads a character data type definition.
+
+    Args:
+      definition_values (dict[str, object]): definition values.
+      name (str): name of the definition.
+
+    Returns:
+      CharacterDataTypeDefinition: character data type definition.
+    """
+    return self._ReadPrimitiveDataTypeDefinition(
+        definition_values, definitions.CharacterDefinition, name)
+
+  def _ReadIntegerDataTypeDefinition(self, definition_values, name):
     """Reads an integer data type definition.
 
     Args:
@@ -45,24 +99,18 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       name (str): name of the definition.
 
     Returns:
-      IntegerDefinition: integer data type definition.
+      IntegerDataTypeDefinition: integer data type definition.
     """
-    aliases = definition_values.get(u'aliases', None)
-    description = definition_values.get(u'description', None)
-    urls = definition_values.get(u'urls', None)
-
-    definition_object = definitions.IntegerDefinition(
-        name, aliases=aliases, description=description, urls=urls)
+    definition_object = self._ReadPrimitiveDataTypeDefinition(
+        definition_values, definitions.IntegerDefinition, name)
 
     attributes = definition_values.get(u'attributes')
     if attributes:
       definition_object.format = attributes.get(u'format', None)
-      definition_object.size = attributes.get(u'size', None)
-      definition_object.units = attributes.get(u'units', u'bytes')
 
     return definition_object
 
-  def _ReadStructureDefinition(self, definition_values, name):
+  def _ReadStructureDataTypeDefinition(self, definition_values, name):
     """Reads structure members definitions.
 
     Args:
@@ -70,7 +118,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       name (str): name of the definition.
 
     Returns:
-      StructureDefinition: structure data type definition.
+      StructureDataTypeDefinition: structure data type definition.
     """
     aliases = definition_values.get(u'aliases', None)
     description = definition_values.get(u'description', None)
@@ -112,12 +160,30 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
           u'Invalid structure attribute definition missing name, sequence or '
           u'union.')
 
-    aliases = definition_values.get(u'aliases', None)
-    data_type = definition_values.get(u'data_type', None)
-    description = definition_values.get(u'description', None)
+    if sequence:
+      name = sequence.get(u'name', None)
+      aliases = sequence.get(u'aliases', None)
+      data_type = sequence.get(u'data_type', None)
+      description = sequence.get(u'description', None)
 
-    return definitions.StructureMemberDefinition(
-        name, aliases=aliases, data_type=data_type, description=description)
+      definition_object = definitions.SequenceStructureMemberDefinition(
+          name, aliases=aliases, data_type=data_type, description=description)
+
+    elif union:
+      # TODO: implement.
+
+      definition_object = definitions.UnionStructureMemberDefinition(
+          name, aliases=aliases, data_type=data_type, description=description)
+
+    else:
+      aliases = definition_values.get(u'aliases', None)
+      data_type = definition_values.get(u'data_type', None)
+      description = definition_values.get(u'description', None)
+
+      definition_object = definitions.StructureMemberDefinition(
+          name, aliases=aliases, data_type=data_type, description=description)
+
+    return definition_object
 
   def _ReadStructureDefinitionMembers(
       self, definition_values, definition_object, name):
