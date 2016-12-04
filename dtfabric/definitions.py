@@ -11,20 +11,23 @@ class DataTypeDefinition(object):
     aliases (list[str]): aliases.
     description (str): description.
     name (str): name.
+    urls (list[str]): URLs.
   """
 
-  def __init__(self, name, aliases=None, description=None):
+  def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes a data type definition.
 
     Args:
       name (str): name.
       aliases (Optional[list[str]]): aliases.
       description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
     """
     super(DataTypeDefinition, self).__init__()
     self.aliases = aliases or []
     self.description = description
     self.name = name
+    self.urls = urls
 
   @abc.abstractmethod
   def GetByteSize(self):
@@ -44,16 +47,17 @@ class IntegerDefinition(DataTypeDefinition):
     units (str): units of the size of the data type.
   """
 
-  def __init__(self, name, aliases=None, description=None):
+  def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes a data type definition.
 
     Args:
       name (str): name.
       aliases (Optional[list[str]]): aliases.
       description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
     """
     super(IntegerDefinition, self).__init__(
-        name, aliases=aliases, description=description)
+        name, aliases=aliases, description=description, urls=urls)
     self.format = None
     self.size = None
     self.units = u'bytes'
@@ -64,7 +68,8 @@ class IntegerDefinition(DataTypeDefinition):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    return self.size
+    if self.units == u'bytes':
+      return self.size
 
 
 class SequenceDefinition(object):
@@ -88,26 +93,21 @@ class StructureDefinition(DataTypeDefinition):
   """Class that defines a structure data type definition.
 
   Attributes:
-    aliases (list[str]): aliases.
-    description (str): description.
     members (list[object]): members.
-    name (str): name.
   """
 
-  def __init__(self, name, aliases=None, description=None):
+  def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes a data type definition.
 
     Args:
       name (str): name.
       aliases (Optional[list[str]]): aliases.
       description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
     """
     super(StructureDefinition, self).__init__(
-        name, aliases=aliases, description=description)
+        name, aliases=aliases, description=description, urls=urls)
     self._size = None
-    self.aliases = aliases or []
-    self.description = description
-    self.name = name
     self.members = []
 
   def GetByteSize(self):

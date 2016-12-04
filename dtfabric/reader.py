@@ -49,9 +49,10 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     """
     aliases = definition_values.get(u'aliases', None)
     description = definition_values.get(u'description', None)
+    urls = definition_values.get(u'urls', None)
 
     definition_object = definitions.IntegerDefinition(
-        name, aliases=aliases, description=description)
+        name, aliases=aliases, description=description, urls=urls)
 
     attributes = definition_values.get(u'attributes')
     if attributes:
@@ -73,9 +74,10 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     """
     aliases = definition_values.get(u'aliases', None)
     description = definition_values.get(u'description', None)
+    urls = definition_values.get(u'urls', None)
 
     definition_object = definitions.StructureDefinition(
-        name, aliases=aliases, description=description)
+        name, aliases=aliases, description=description, urls=urls)
 
     members = definition_values.get(u'members')
     if members:
