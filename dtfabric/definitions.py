@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Structure and type definitions."""
 
+import abc
+
 
 class DataTypeDefinition(object):
   """Class that defines the data type definition interface.
@@ -23,6 +25,14 @@ class DataTypeDefinition(object):
     self.aliases = aliases or []
     self.description = description
     self.name = name
+
+  @abc.abstractmethod
+  def GetByteSize(self):
+    """Determines the byte size of the data type definition.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
 
 
 class IntegerDefinition(DataTypeDefinition):
@@ -47,6 +57,14 @@ class IntegerDefinition(DataTypeDefinition):
     self.format = None
     self.size = None
     self.units = None
+
+  def GetByteSize(self):
+    """Determines the byte size of the data type definition.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    return self.size
 
 
 class SequenceDefinition(object):
@@ -88,11 +106,30 @@ class StructureDefinition(DataTypeDefinition):
     """
     super(StructureDefinition, self).__init__(
         name, aliases=aliases, description=description)
+    self._size = None
     self.aliases = aliases or []
     self.byte_order = byte_order
     self.description = description
     self.name = name
     self.members = []
+
+  def GetByteSize(self):
+    """Determines the byte size of the data type definition.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    if self._size is None:
+      self._size = 0
+      for struct_member in self.members:
+        struct_member_size = struct_member.GetSize()
+        if self._structure_definition is None:
+          self._size = None
+          break
+
+        self._size += struct_member_size
+
+    return self._size
 
 
 class StructureMemberDefinition(object):

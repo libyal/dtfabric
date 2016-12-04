@@ -12,8 +12,8 @@ attributes:
   size: 2
   units: byte
 ---
-aliases: [LONG, LONG32]
 name: int32
+aliases: [LONG, LONG32]
 type: integer
 attributes:
 - format: signed

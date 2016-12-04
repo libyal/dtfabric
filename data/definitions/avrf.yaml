@@ -71,4 +71,4 @@ values:
   description: Close handle operation
 - name: OperationDbBADREF
   value: 3
-  description: INvalid handle operation
+  description: Invalid handle operation

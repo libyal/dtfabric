@@ -1,6 +1,6 @@
 name: mdmp
 type: format
-decription: Minidump file format
+description: Minidump file format
 urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680369(v=vs.85).aspx']
 layout:
 - file_header

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The definition reader objects."""
+"""The data type definition reader objects."""
 
 import abc
 import glob
