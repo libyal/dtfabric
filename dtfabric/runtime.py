@@ -60,3 +60,5 @@ class StructMap(object):
     struct_tuple = struct.unpack_from(format_string, byte_stream)
 
     for member in self._structure_definition.members:
+      # TODO: implement.
+      pass
