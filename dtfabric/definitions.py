@@ -78,6 +78,14 @@ class CharacterDefinition(PrimitiveDataTypeDefinition):
   """Class that defines a character data type definition."""
 
 
+class EnumerationDefinition(DataTypeDefinition):
+  """Class that defines an enumeration data type definition."""
+
+
+class FormatDefinition(DataTypeDefinition):
+  """Class that defines a format definition."""
+
+
 class IntegerDefinition(PrimitiveDataTypeDefinition):
   """Class that defines an integer data type definition.
 

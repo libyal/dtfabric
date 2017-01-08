@@ -173,7 +173,7 @@ class SourceGenerator(object):
     Args:
       path (str): path of the definition file or directory.
     """
-    definitions_reader = reader.YAMLDefinitionsFileReader()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     if os.path.isdir(path):
       definitions_reader.ReadDirectory(

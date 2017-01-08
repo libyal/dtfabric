@@ -35,6 +35,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
   _DATA_TYPE_CALLBACKS = {
       u'boolean': u'_ReadBooleanDataTypeDefinition',
+      u'enumeration': u'_ReadEnumerationDataTypeDefinition',
       u'character': u'_ReadCharacterDataTypeDefinition',
       u'integer': u'_ReadIntegerDataTypeDefinition',
       u'structure': u'_ReadStructureDataTypeDefinition',
@@ -95,6 +96,48 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     """
     return self._ReadPrimitiveDataTypeDefinition(
         registry, definition_values, definitions.CharacterDefinition, name)
+
+  def _ReadEnumerationDataTypeDefinition(self, registry, definition_values, name):
+    """Reads an enumeration data type definition.
+
+    Args:
+      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definition_values (dict[str, object]): definition values.
+      name (str): name of the definition.
+
+    Returns:
+      EnumerationDataTypeDefinition: enumeration data type definition.
+    """
+    aliases = definition_values.get(u'aliases', None)
+    description = definition_values.get(u'description', None)
+    urls = definition_values.get(u'urls', None)
+
+    definition_object = definitions.EnumerationDefinition(
+        name, aliases=aliases, description=description, urls=urls)
+
+    # TODO: implement.
+
+    return definition_object
+
+  def _ReadFormatDefinition(self, definition_values, name):
+    """Reads a format definition.
+
+    Args:
+      definition_values (dict[str, object]): definition values.
+      name (str): name of the definition.
+
+    Returns:
+      FormatDefinition: format definition.
+    """
+    description = definition_values.get(u'description', None)
+    urls = definition_values.get(u'urls', None)
+
+    definition_object = definitions.FormatDefinition(
+        name, description=description, urls=urls)
+
+    # TODO: implement.
+
+    return definition_object
 
   def _ReadIntegerDataTypeDefinition(self, registry, definition_values, name):
     """Reads an integer data type definition.
@@ -168,19 +211,22 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
           u'union.')
 
     if sequence:
-      name = sequence.get(u'name', None)
+      sequence_name = sequence.get(u'name', None)
       aliases = sequence.get(u'aliases', None)
       data_type = sequence.get(u'data_type', None)
       description = sequence.get(u'description', None)
 
       definition_object = definitions.SequenceStructureMemberDefinition(
-          name, aliases=aliases, data_type=data_type, description=description)
+          sequence_name, aliases=aliases, data_type=data_type,
+          description=description)
 
     elif union:
-      # TODO: implement.
+      union_name = union.get(u'name', None)
+      aliases = union.get(u'aliases', None)
+      description = union.get(u'description', None)
 
       definition_object = definitions.UnionStructureMemberDefinition(
-          name, aliases=aliases, data_type=data_type, description=description)
+          name, aliases=aliases, description=description)
 
     else:
       aliases = definition_values.get(u'aliases', None)
@@ -231,6 +277,9 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     type_indicator = definition_values.get(u'type', None)
     if not type_indicator:
       raise errors.FormatError(u'Invalid definition missing type.')
+
+    if type_indicator == u'format':
+      return self._ReadFormatDefinition(definition_values, name)
 
     data_type_callback = self._DATA_TYPE_CALLBACKS.get(type_indicator, None)
     if data_type_callback:
@@ -301,6 +350,10 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
     Args:
       registry (DataTypeDefinitionsRegistry): data type definition registry.
       file_object (file): file-like object to read from.
+
+    Raises:
+      FormatError: if the definitions values are missing or if the format is
+          incorrect.
     """
     yaml_generator = yaml.safe_load_all(file_object)
 
@@ -316,8 +369,17 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
         else:
           error_location = u'At start'
 
-        raise errors.FormatError(u'{0:s} {1:s}'.format(
+        raise errors.FormatError(u'{0:s}: {1:s}'.format(
             error_location, exception))
+
+      if not definition_object:
+        if last_definition_object:
+          error_location = u'After: {0:s}'.format(last_definition_object.name)
+        else:
+          error_location = u'At start'
+
+        raise errors.FormatError(u'{0:s}: Missing definition object.'.format(
+            error_location))
 
       registry.RegisterDefinition(definition_object)
       last_definition_object = definition_object

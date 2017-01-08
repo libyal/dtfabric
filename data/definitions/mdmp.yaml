@@ -147,13 +147,13 @@ members:
   aliases: [CheckSum]
   data_type: uint32
 - union:
-  members:
-  - name: unknown1
-    aliases: [Reserved]
-    data_type: uint32
-  - name: time_date_stamp
-    aliases: [TimeDateStamp]
-    data_type: uint32
+    members:
+    - name: unknown1
+      aliases: [Reserved]
+      data_type: uint32
+    - name: time_date_stamp
+      aliases: [TimeDateStamp]
+      data_type: uint32
 - name: flags
   aliases: [Flags]
   data_type: uint64
@@ -168,7 +168,7 @@ members:
 - sequence:
     name: native_descriptor
     data_type: byte
- ndle_operation_list_header   data_size: parent.native_descriptor_size
+    data_size: parent.native_descriptor_size
 - sequence:
     name: function_entries
     data_type: function_entry
