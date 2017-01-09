@@ -57,5 +57,5 @@ aliases: [DWORDLONG, DWORD64, ULONG64]
 type: integer
 attributes:
   format: unsigned
-  size: 4
+  size: 8
   units: bytes

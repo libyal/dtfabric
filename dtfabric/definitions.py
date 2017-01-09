@@ -37,6 +37,14 @@ class DataTypeDefinition(object):
       int: data type size in bytes or None if size cannot be determined.
     """
 
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+
 
 class PrimitiveDataTypeDefinition(DataTypeDefinition):
   """Class that defines a primitive data type definition.
@@ -45,6 +53,20 @@ class PrimitiveDataTypeDefinition(DataTypeDefinition):
     size (int|list[int]): size of the data type.
     units (str): units of the size of the data type.
   """
+
+  _FORMAT_STRINGS_SIGNED = {
+      1: u'b',
+      2: u'h',
+      4: u'l',
+      8: u'q',
+  }
+
+  _FORMAT_STRINGS_UNSIGNED = {
+      1: u'B',
+      2: u'H',
+      4: u'L',
+      8: u'Q',
+  }
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes a primitive data type definition.
@@ -68,6 +90,19 @@ class PrimitiveDataTypeDefinition(DataTypeDefinition):
     """
     if self.units == u'bytes':
       return self.size
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    format_attribute = getattr(self, u'format', None)
+    if format_attribute == u'unsigned':
+      return self._FORMAT_STRINGS_UNSIGNED.get(self.size, None)
+
+    return self._FORMAT_STRINGS_SIGNED.get(self.size, None)
 
 
 class BooleanDefinition(PrimitiveDataTypeDefinition):

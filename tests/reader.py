@@ -96,6 +96,9 @@ class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 1)
 
+    # TODO: test format error, for incorrect format attribute.
+    # TODO: test format error, for incorrect size attribute.
+
   def testReadFileObjectMissingName(self):
     """Tests the ReadFileObject function with a missing name."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()

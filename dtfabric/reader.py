@@ -54,6 +54,10 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     Returns:
       PrimitiveDataTypeDefinition: primitive data type definition.
+
+    Raises:
+      FormatError: if the definitions values are missing or if the format is
+          incorrect.
     """
     aliases = definition_values.get(u'aliases', None)
     description = definition_values.get(u'description', None)
@@ -149,13 +153,22 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     Returns:
       IntegerDataTypeDefinition: integer data type definition.
+
+    Raises:
+      FormatError: if the definitions values are missing or if the format is
+          incorrect.
     """
     definition_object = self._ReadPrimitiveDataTypeDefinition(
         registry, definition_values, definitions.IntegerDefinition, name)
 
     attributes = definition_values.get(u'attributes')
     if attributes:
-      definition_object.format = attributes.get(u'format', None)
+      format_attribute = attributes.get(u'format', None)
+      if format_attribute not in (u'signed', u'unsigned'):
+        raise errors.FormatError(
+            u'Unsupported format attribute: {0:s}'.format(format_attribute))
+
+      definition_object.format = format_attribute
 
     return definition_object
 
