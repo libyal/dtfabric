@@ -1,0 +1,8 @@
+environment:
+  matrix:
+    - PYTHON: "C:\\Python27"
+
+build: off
+
+test_script:
+  - "%PYTHON%\\python.exe run_tests.py"

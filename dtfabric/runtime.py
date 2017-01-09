@@ -50,6 +50,8 @@ class DataTypeMap(object):
       FormatError: if the definitions values are missing or if the format is
           incorrect.
     """
+    # TODO: get byte order format string.
+
     return data_type_definition.GetStructFormatString()
 
 

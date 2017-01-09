@@ -14,12 +14,13 @@ set -e;
 if test `uname -s` = "Darwin";
 then
 	# git clone https://github.com/log2timeline/l2tdevtools.git;
-	git clone -b tox https://github.com/joachimmetz/l2tdevtools.git
+	# 
+	# mv l2tdevtools ../;
+	# mkdir dependencies;
+	#
+	# PYTHONPATH=../l2tdevtools ../l2tdevtools/tools/update.py --download-directory=dependencies --preset=dtfabric;
 
-	mv l2tdevtools ../;
-	mkdir dependencies;
-
-	PYTHONPATH=../l2tdevtools ../l2tdevtools/tools/update.py --download-directory=dependencies --preset=dtfabric;
+	pip install -U tox;
 
 elif test `uname -s` = "Linux";
 then
