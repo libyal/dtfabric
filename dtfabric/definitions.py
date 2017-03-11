@@ -173,7 +173,7 @@ class StructureDataTypeDefinition(DataTypeDefinition):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if self._size is None:
+    if self._size is None and self.members:
       self._size = 0
       for struct_member in self.members:
         struct_member_size = struct_member.GetByteSize()

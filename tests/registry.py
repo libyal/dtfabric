@@ -25,6 +25,8 @@ class DataTypeDefinitionsRegistryTest(test_lib.BaseTestCase):
     with self.assertRaises(KeyError):
       definitions_registry.RegisterDefinition(data_type_definition)
 
+    # TODO: test raise KeyError on duplicated alias
+
     definitions_registry.DeregisterDefinition(data_type_definition)
 
     with self.assertRaises(KeyError):

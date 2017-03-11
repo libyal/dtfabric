@@ -28,7 +28,6 @@ class PrimitiveDataTypeDefinitionTest(test_lib.BaseTestCase):
     self.assertIsNone(byte_size)
 
     data_type_definition.size = 4
-
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
 
@@ -143,7 +142,42 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
         description=u'my structure type')
     self.assertIsNotNone(data_type_definition)
 
-  # TODO: add tests.
+  def testGetByteSize(self):
+    """Tests the GetByteSize function."""
+    data_type_definition = definitions.StructureDataTypeDefinition(
+        u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
+        description=u'my structure type')
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
+
+    # TODO: test struct with members.
+
+  # TODO: add SetDataTypeDefinitionsRegistry test.
+
+
+class StructureMemberDefinitionTest(test_lib.BaseTestCase):
+  """Class to test the structure member definition."""
+
+  def testInitialize(self):
+    """Tests the initialize function."""
+    member_definition = definitions.StructureMemberDefinition(
+        u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
+        data_type=u'int32', description=u'my sequence structure member')
+    self.assertIsNotNone(member_definition)
+
+  def testGetByteSize(self):
+    """Tests the GetByteSize function."""
+    member_definition = definitions.SequenceStructureMemberDefinition(
+        u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
+        data_type=u'int32', description=u'my sequence structure member')
+
+    byte_size = member_definition.GetByteSize()
+    self.assertIsNone(byte_size)
+
+    member_definition.data_size = 4
+    byte_size = member_definition.GetByteSize()
+    self.assertEqual(byte_size, 4)
 
 
 class SequenceStructureMemberDefinitionTest(test_lib.BaseTestCase):
@@ -153,10 +187,21 @@ class SequenceStructureMemberDefinitionTest(test_lib.BaseTestCase):
     """Tests the initialize function."""
     member_definition = definitions.SequenceStructureMemberDefinition(
         u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
-        description=u'my sequence structure member')
+        data_type=u'int32', description=u'my sequence structure member')
     self.assertIsNotNone(member_definition)
 
-  # TODO: add tests.
+  def testGetByteSize(self):
+    """Tests the GetByteSize function."""
+    member_definition = definitions.SequenceStructureMemberDefinition(
+        u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
+        data_type=u'int32', description=u'my sequence structure member')
+
+    byte_size = member_definition.GetByteSize()
+    self.assertIsNone(byte_size)
+
+    member_definition.data_size = 4
+    byte_size = member_definition.GetByteSize()
+    self.assertEqual(byte_size, 4)
 
 
 class UnionStructureMemberDefinitionTest(test_lib.BaseTestCase):
@@ -166,10 +211,19 @@ class UnionStructureMemberDefinitionTest(test_lib.BaseTestCase):
     """Tests the initialize function."""
     member_definition = definitions.UnionStructureMemberDefinition(
         u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
-        description=u'my union structure member')
+        data_type=u'int32', description=u'my union structure member')
     self.assertIsNotNone(member_definition)
 
-  # TODO: add tests.
+  def testGetByteSize(self):
+    """Tests the GetByteSize function."""
+    member_definition = definitions.UnionStructureMemberDefinition(
+        u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
+        data_type=u'int32', description=u'my union structure member')
+
+    byte_size = member_definition.GetByteSize()
+    self.assertIsNone(byte_size)
+
+    # TODO: change test when code is implemented
 
 
 if __name__ == '__main__':
