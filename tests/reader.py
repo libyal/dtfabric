@@ -9,12 +9,16 @@ from dtfabric import errors
 from dtfabric import reader
 from dtfabric import registry
 
+from tests import test_lib
+
 
 # TODO: add tests for DataTypeDefinitionsFileReader.
 
 
-class YAMLDataTypeDefinitionsFileReaderTest(unittest.TestCase):
+class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
   """Class to test the YAML data type definitions reader."""
+
+  # pylint: disable=protected-access
 
   def testReadFileObjectBoolean(self):
     """Tests the ReadFileObject function of a boolean data type."""

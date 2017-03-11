@@ -8,9 +8,13 @@ from dtfabric import reader
 from dtfabric import registry
 from dtfabric import runtime
 
+from tests import test_lib
 
-class DataTypeMapTest(unittest.TestCase):
+
+class DataTypeMapTest(test_lib.BaseTestCase):
   """Class to test the data type map."""
+
+  # pylint: disable=protected-access
 
   def test_GetStructFormatString(self):
     """Tests the _GetStructFormatString function."""

@@ -4,13 +4,11 @@
 
 from __future__ import print_function
 import argparse
-import glob
 import logging
 import os
 import string
 import sys
 
-from dtfabric import definitions
 from dtfabric import errors
 from dtfabric import reader
 from dtfabric import registry
@@ -159,13 +157,15 @@ class SourceGenerator(object):
         self._structure_definitions_registry.GetDefinitions()):
       lines = self._GenerateStructureMembers(struct_definition, prefix)
 
-      template_mappings[u'structure_description'] = struct_definition.description
+      template_mappings[u'structure_description'] = (
+          struct_definition.description)
       template_mappings[u'structure_members'] = u'\n'.join(lines)
       template_mappings[u'structure_name'] = struct_definition.name
-      template_mappings[u'structure_name_upper_case'] = struct_definition.name.upper()
+      template_mappings[u'structure_name_upper_case'] = (
+          struct_definition.name.upper())
 
       source_file_generator.GenerateStructureDefinitionFile(
-        template_filename, template_mappings, output_writer)
+          template_filename, template_mappings, output_writer)
 
   def ReadDefinitions(self, path):
     """Reads the definitions form file or directory.

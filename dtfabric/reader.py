@@ -101,7 +101,8 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     return self._ReadPrimitiveDataTypeDefinition(
         registry, definition_values, definitions.CharacterDefinition, name)
 
-  def _ReadEnumerationDataTypeDefinition(self, registry, definition_values, name):
+  def _ReadEnumerationDataTypeDefinition(
+      self, registry, definition_values, name):
     """Reads an enumeration data type definition.
 
     Args:

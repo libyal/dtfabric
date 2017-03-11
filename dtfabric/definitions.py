@@ -140,8 +140,7 @@ class IntegerDefinition(PrimitiveDataTypeDefinition):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    format_attribute = getattr(self, u'format', None)
-    if format_attribute == u'unsigned':
+    if self.format == u'unsigned':
       return self._FORMAT_STRINGS_UNSIGNED.get(self.size, None)
 
     return self._FORMAT_STRINGS_SIGNED.get(self.size, None)

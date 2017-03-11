@@ -9,7 +9,6 @@ import logging
 import os
 import sys
 
-from dtfabric import definitions
 from dtfabric import errors
 from dtfabric import reader
 from dtfabric import registry

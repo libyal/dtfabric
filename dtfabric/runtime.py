@@ -3,8 +3,6 @@
 
 import struct
 
-from dtfabric import definitions
-from dtfabric import errors
 from dtfabric import registry
 
 
