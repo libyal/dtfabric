@@ -104,7 +104,7 @@ class IntegerDefinitionTest(test_lib.BaseTestCase):
     data_type_definition.format = u'signed'
     data_type_definition.size = 4
     struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'l')
+    self.assertEqual(struct_format_string, u'i')
 
     data_type_definition.format = u'signed'
     data_type_definition.size = 8
@@ -124,7 +124,7 @@ class IntegerDefinitionTest(test_lib.BaseTestCase):
     data_type_definition.format = u'unsigned'
     data_type_definition.size = 4
     struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'L')
+    self.assertEqual(struct_format_string, u'I')
 
     data_type_definition.format = u'unsigned'
     data_type_definition.size = 8

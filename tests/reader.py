@@ -12,13 +12,112 @@ from dtfabric import registry
 from tests import test_lib
 
 
-# TODO: add tests for DataTypeDefinitionsFileReader.
+class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
+  """Class to test the data type definitions reader."""
+
+  # pylint: disable=protected-access
+
+  def testReadPrimitiveDataTypeDefinition(self):
+    """Tests the _ReadPrimitiveDataTypeDefinition function."""
+    definition_values = {
+        u'aliases': [u'LONG', u'LONG32'],
+        u'attributes': {
+            u'size': 4,
+        },
+        u'description': u'signed 32-bit integer',
+    }
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    data_type_definition = definitions_reader._ReadPrimitiveDataTypeDefinition(
+        definitions_registry, definition_values, definitions.IntegerDefinition,
+        u'int32')
+    self.assertIsNotNone(data_type_definition)
+
+  def testReadBooleanDataTypeDefinition(self):
+    """Tests the _ReadBooleanDataTypeDefinition function."""
+    definition_values = {
+        u'aliases': [u'BOOL'],
+        u'attributes': {
+            u'size': 4,
+        },
+        u'description': u'boolean',
+    }
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    data_type_definition = definitions_reader._ReadBooleanDataTypeDefinition(
+        definitions_registry, definition_values, u'bool')
+    self.assertIsNotNone(data_type_definition)
+
+  def testReadCharacterDataTypeDefinition(self):
+    """Tests the _ReadCharacterDataTypeDefinition function."""
+    definition_values = {
+        u'aliases': [u'CHAR'],
+        u'attributes': {
+            u'size': 1,
+        },
+        u'description': u'character',
+    }
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    data_type_definition = definitions_reader._ReadCharacterDataTypeDefinition(
+        definitions_registry, definition_values, u'char')
+    self.assertIsNotNone(data_type_definition)
+
+  def testReadEnumerationDataTypeDefinition(self):
+    """Tests the _ReadEnumerationDataTypeDefinition function."""
+
+    # TODO: implement.
+
+  def testReadFormatDefinition(self):
+    """Tests the _ReadFormatDefinition function."""
+
+    # TODO: implement.
+
+  def testReadIntegerDataTypeDefinition(self):
+    """Tests the _ReadIntegerDataTypeDefinition function."""
+    definition_values = {
+        u'aliases': [u'LONG', u'LONG32'],
+        u'attributes': {
+            u'format': u'signed',
+            u'size': 4,
+        },
+        u'description': u'signed 32-bit integer',
+    }
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    data_type_definition = definitions_reader._ReadIntegerDataTypeDefinition(
+        definitions_registry, definition_values, u'int32')
+    self.assertIsNotNone(data_type_definition)
+
+    definition_values[u'attributes'][u'format'] = u'bogus'
+    with self.assertRaises(errors.FormatError):
+      definitions_reader._ReadIntegerDataTypeDefinition(
+          definitions_registry, definition_values, u'int32')
+
+  def testReadStructureDataTypeDefinition(self):
+    """Tests the _ReadStructureDataTypeDefinition function."""
+
+  # TODO: add test for _ReadStructureDataTypeDefinitionMember
+  # TODO: add test for _ReadStructureDataTypeDefinitionMembers
+  # TODO: add test for ReadDefinitionFromDict
+  # TODO: add test for ReadDirectory
+  # TODO: add test for ReadFile
 
 
 class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
   """Class to test the YAML data type definitions reader."""
 
   # pylint: disable=protected-access
+
+  # TODO: add test for ReadDirectory
 
   def testReadFileObjectBoolean(self):
     """Tests the ReadFileObject function of a boolean data type."""

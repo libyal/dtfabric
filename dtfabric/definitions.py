@@ -30,6 +30,14 @@ class DataTypeDefinition(object):
     self.urls = urls
 
   @abc.abstractmethod
+  def GetAttributedNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+
+  @abc.abstractmethod
   def GetByteSize(self):
     """Determines the byte size of the data type definition.
 
@@ -69,6 +77,14 @@ class PrimitiveDataTypeDefinition(DataTypeDefinition):
     self.size = None
     self.units = u'bytes'
 
+  def GetAttributedNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+    return [u'value']
+
   def GetByteSize(self):
     """Determines the byte size of the data type definition.
 
@@ -106,17 +122,21 @@ class IntegerDefinition(PrimitiveDataTypeDefinition):
     format (str): format of the data type.
   """
 
+  # We use 'i' here instead of 'l' because 'l' behaves architecture dependent.
+
   _FORMAT_STRINGS_SIGNED = {
       1: u'b',
       2: u'h',
-      4: u'l',
+      4: u'i',
       8: u'q',
   }
+
+  # We use 'I' here instead of 'L' because 'L' behaves architecture dependent.
 
   _FORMAT_STRINGS_UNSIGNED = {
       1: u'B',
       2: u'H',
-      4: u'L',
+      4: u'I',
       8: u'Q',
   }
 
@@ -166,6 +186,14 @@ class StructureDataTypeDefinition(DataTypeDefinition):
         name, aliases=aliases, description=description, urls=urls)
     self._size = None
     self.members = []
+
+  def GetAttributedNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+    # TODO: implement.
 
   def GetByteSize(self):
     """Determines the byte size of the data type definition.
