@@ -35,8 +35,9 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
   _DATA_TYPE_CALLBACKS = {
       u'boolean': u'_ReadBooleanDataTypeDefinition',
-      u'enumeration': u'_ReadEnumerationDataTypeDefinition',
       u'character': u'_ReadCharacterDataTypeDefinition',
+      u'enumeration': u'_ReadEnumerationDataTypeDefinition',
+      u'floating-point': u'_ReadFloatingPointDataTypeDefinition',
       u'integer': u'_ReadIntegerDataTypeDefinition',
       u'structure': u'_ReadStructureDataTypeDefinition',
   }
@@ -102,7 +103,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
         registry, definition_values, definitions.CharacterDefinition, name)
 
   def _ReadEnumerationDataTypeDefinition(
-      self, registry, definition_values, name):
+      self, unused_registry, definition_values, name):
     """Reads an enumeration data type definition.
 
     Args:
@@ -123,6 +124,21 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     # TODO: implement.
 
     return definition_object
+
+  def _ReadFloatingPointDataTypeDefinition(
+      self, registry, definition_values, name):
+    """Reads a floating-point data type definition.
+
+    Args:
+      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definition_values (dict[str, object]): definition values.
+      name (str): name of the definition.
+
+    Returns:
+      FloatingPointDefinition floating-point data type definition.
+    """
+    return self._ReadPrimitiveDataTypeDefinition(
+        registry, definition_values, definitions.FloatingPointDefinition, name)
 
   def _ReadFormatDefinition(self, definition_values, name):
     """Reads a format definition.
@@ -240,7 +256,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       description = union.get(u'description', None)
 
       definition_object = definitions.UnionStructureMemberDefinition(
-          name, aliases=aliases, description=description)
+          union_name, aliases=aliases, description=description)
 
     else:
       aliases = definition_values.get(u'aliases', None)

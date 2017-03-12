@@ -35,6 +35,14 @@ def CreateDefinitionRegistryFromFile(path):
 class EmptytDataTypeDefinition(definitions.DataTypeDefinition):
   """Class that defines an empty data type definition for testing."""
 
+  def GetAttributedNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+    return [u'empty']
+
   def GetByteSize(self):
     """Determines the byte size of the data type definition.
 
@@ -56,8 +64,6 @@ class EmptytDataTypeDefinition(definitions.DataTypeDefinition):
 class DataTypeMapTest(test_lib.BaseTestCase):
   """Class to test the data type map."""
 
-  # pylint: disable=protected-access
-
   def testInitialize(self):
     """Tests the initialize function."""
     definitions_file = os.path.join(u'data', u'definitions', u'integers.yaml')
@@ -74,52 +80,72 @@ class DataTypeMapTest(test_lib.BaseTestCase):
       data_type_definition = EmptytDataTypeDefinition(u'empty')
       runtime.DataTypeMap(data_type_definition)
 
+
+class FloatingPointMap(test_lib.BaseTestCase):
+  """Class to test the floating-point map."""
+
+  def testMapByteStream(self):
+    """Tests the MapByteStream function."""
+    definitions_file = os.path.join(
+        u'data', u'definitions', u'floating-points.yaml')
+    definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'float32')
+    data_type_map = runtime.FloatingPointMap(data_type_definition)
+
+    float_value = data_type_map.MapByteStream(b'\xa4\x70\x45\x41')
+    self.assertEqual(float_value, 12.34000015258789)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'float64')
+    data_type_map = runtime.FloatingPointMap(data_type_definition)
+
+    float_value = data_type_map.MapByteStream(
+        b'\xae\x47\xe1\x7a\x14\xae\x28\x40')
+    self.assertEqual(float_value, 12.34)
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\xa4\x70\x45\x41')
+
+
+class IntegerMapTest(test_lib.BaseTestCase):
+  """Class to test the integer map."""
+
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
     definitions_file = os.path.join(u'data', u'definitions', u'integers.yaml')
     definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'uint8')
-    data_type_map = runtime.DataTypeMap(data_type_definition)
+    data_type_map = runtime.IntegerMap(data_type_definition)
 
-    named_tuple = data_type_map.MapByteStream(b'\x12')
-
-    self.assertIsNotNone(named_tuple)
-    self.assertEqual(named_tuple.value, 0x12)
+    integer_value = data_type_map.MapByteStream(b'\x12')
+    self.assertEqual(integer_value, 0x12)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'uint16')
-    data_type_map = runtime.DataTypeMap(data_type_definition)
+    data_type_map = runtime.IntegerMap(data_type_definition)
 
-    named_tuple = data_type_map.MapByteStream(b'\x12\x34')
-
-    self.assertIsNotNone(named_tuple)
-    self.assertEqual(named_tuple.value, 0x3412)
+    integer_value = data_type_map.MapByteStream(b'\x12\x34')
+    self.assertEqual(integer_value, 0x3412)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'uint32')
-    data_type_map = runtime.DataTypeMap(data_type_definition)
+    data_type_map = runtime.IntegerMap(data_type_definition)
 
-    named_tuple = data_type_map.MapByteStream(b'\x12\x34\x56\x78')
-
-    self.assertIsNotNone(named_tuple)
-    self.assertEqual(named_tuple.value, 0x78563412)
+    integer_value = data_type_map.MapByteStream(b'\x12\x34\x56\x78')
+    self.assertEqual(integer_value, 0x78563412)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'uint64')
-    data_type_map = runtime.DataTypeMap(data_type_definition)
+    data_type_map = runtime.IntegerMap(data_type_definition)
 
-    named_tuple = data_type_map.MapByteStream(
+    integer_value = data_type_map.MapByteStream(
         b'\x12\x34\x56\x78\x9a\xbc\xde\xf0')
-
-    self.assertIsNotNone(named_tuple)
-    self.assertEqual(named_tuple.value, 0xf0debc9a78563412)
+    self.assertEqual(integer_value, 0xf0debc9a78563412)
 
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(b'\x12\x34\x56\x78')
 
 
-class StrcutMapTest(test_lib.BaseTestCase):
+class StructMapTest(test_lib.BaseTestCase):
   """Class to test the struct map."""
-
-  # pylint: disable=protected-access
 
   @test_lib.skipUnlessHasTestFile([u'Notepad.lnk'])
   def testMapByteStream(self):
@@ -135,7 +161,8 @@ class StrcutMapTest(test_lib.BaseTestCase):
 
     # TODO: implement.
     with self.assertRaises(errors.FormatError):
-      data_type_map = runtime.DataTypeMap(data_type_definition)
+      data_type_map = runtime.StructMap(data_type_definition)
+      data_type_map.MapByteStream(byte_stream)
 
 
 if __name__ == '__main__':

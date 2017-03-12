@@ -18,6 +18,15 @@ class PrimitiveDataTypeDefinitionTest(test_lib.BaseTestCase):
         description=u'signed 32-bit integer')
     self.assertIsNotNone(data_type_definition)
 
+  def testGetAttributedNames(self):
+    """Tests the GetAttributedNames function."""
+    data_type_definition = definitions.PrimitiveDataTypeDefinition(
+        u'int32', aliases=[u'LONG', u'LONG32'],
+        description=u'signed 32-bit integer')
+
+    attribute_names = data_type_definition.GetAttributedNames()
+    self.assertEqual(attribute_names, [u'value'])
+
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
     data_type_definition = definitions.PrimitiveDataTypeDefinition(
@@ -41,6 +50,11 @@ class BooleanDefinitionTest(test_lib.BaseTestCase):
         u'bool', aliases=[u'BOOL'], description=u'boolean')
     self.assertIsNotNone(data_type_definition)
 
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+
+    # TODO: implement
+
 
 class CharacterDefinitionTest(test_lib.BaseTestCase):
   """Class to test the character data type definition."""
@@ -50,6 +64,11 @@ class CharacterDefinitionTest(test_lib.BaseTestCase):
     data_type_definition = definitions.CharacterDefinition(
         u'char', aliases=[u'CHAR'], description=u'character')
     self.assertIsNotNone(data_type_definition)
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+
+    # TODO: implement
 
 
 class EnumerationDefinitionTest(test_lib.BaseTestCase):
@@ -61,6 +80,11 @@ class EnumerationDefinitionTest(test_lib.BaseTestCase):
         u'enum', description=u'enumeration')
     self.assertIsNotNone(data_type_definition)
 
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+
+    # TODO: implement
+
 
 class FloatingPointDefinitionTest(test_lib.BaseTestCase):
   """Class to test the floating-point data type definition."""
@@ -68,8 +92,26 @@ class FloatingPointDefinitionTest(test_lib.BaseTestCase):
   def testInitialize(self):
     """Tests the initialize function."""
     data_type_definition = definitions.FloatingPointDefinition(
-        u'float', aliases=[u'FLOAT'], description=u'32-bit floating-point')
+        u'float32', aliases=[u'float', u'FLOAT'],
+        description=u'32-bit floating-point')
     self.assertIsNotNone(data_type_definition)
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    data_type_definition = definitions.FloatingPointDefinition(
+        u'float32', aliases=[u'float', u'FLOAT'],
+        description=u'32-bit floating-point')
+
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
+
+    data_type_definition.size = 4
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'f')
+
+    data_type_definition.size = 8
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'd')
 
 
 class IntegerDefinitionTest(test_lib.BaseTestCase):
@@ -142,6 +184,17 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
         description=u'my structure type')
     self.assertIsNotNone(data_type_definition)
 
+  def testGetAttributedNames(self):
+    """Tests the GetAttributedNames function."""
+    data_type_definition = definitions.StructureDataTypeDefinition(
+        u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
+        description=u'my structure type')
+
+    attribute_names = data_type_definition.GetAttributedNames()
+    self.assertEqual(attribute_names, [])
+
+    # TODO: test struct with members.
+
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
     data_type_definition = definitions.StructureDataTypeDefinition(
@@ -152,6 +205,11 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
     self.assertIsNone(byte_size)
 
     # TODO: test struct with members.
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+
+    # TODO: implement
 
   # TODO: add SetDataTypeDefinitionsRegistry test.
 

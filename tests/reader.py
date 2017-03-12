@@ -34,6 +34,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
         definitions_registry, definition_values, definitions.IntegerDefinition,
         u'int32')
     self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(data_type_definition, definitions.IntegerDefinition)
 
   def testReadBooleanDataTypeDefinition(self):
     """Tests the _ReadBooleanDataTypeDefinition function."""
@@ -51,6 +52,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     data_type_definition = definitions_reader._ReadBooleanDataTypeDefinition(
         definitions_registry, definition_values, u'bool')
     self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(data_type_definition, definitions.BooleanDefinition)
 
   def testReadCharacterDataTypeDefinition(self):
     """Tests the _ReadCharacterDataTypeDefinition function."""
@@ -68,11 +70,32 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     data_type_definition = definitions_reader._ReadCharacterDataTypeDefinition(
         definitions_registry, definition_values, u'char')
     self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(data_type_definition, definitions.CharacterDefinition)
 
   def testReadEnumerationDataTypeDefinition(self):
     """Tests the _ReadEnumerationDataTypeDefinition function."""
 
     # TODO: implement.
+
+  def testReadFloatingPointDataTypeDefinition(self):
+    """Tests the _ReadFloatingPointDataTypeDefinition function."""
+    definition_values = {
+        u'aliases': [u'float', u'FLOAT'],
+        u'attributes': {
+            u'size': 4,
+        },
+        u'description': u'32-bit floating-point',
+    }
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    data_type_definition = (
+        definitions_reader._ReadFloatingPointDataTypeDefinition(
+            definitions_registry, definition_values, u'float32'))
+    self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(
+        data_type_definition, definitions.FloatingPointDefinition)
 
   def testReadFormatDefinition(self):
     """Tests the _ReadFormatDefinition function."""
@@ -96,6 +119,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     data_type_definition = definitions_reader._ReadIntegerDataTypeDefinition(
         definitions_registry, definition_values, u'int32')
     self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(data_type_definition, definitions.IntegerDefinition)
 
     definition_values[u'attributes'][u'format'] = u'bogus'
     with self.assertRaises(errors.FormatError):

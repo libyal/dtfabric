@@ -94,25 +94,83 @@ class PrimitiveDataTypeDefinition(DataTypeDefinition):
     if self.units == u'bytes':
       return self.size
 
+  @abc.abstractmethod
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+
 
 class BooleanDefinition(PrimitiveDataTypeDefinition):
   """Class that defines a boolean data type definition."""
 
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return
 
 class CharacterDefinition(PrimitiveDataTypeDefinition):
   """Class that defines a character data type definition."""
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return
 
 
 class EnumerationDefinition(DataTypeDefinition):
   """Class that defines an enumeration data type definition."""
 
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return
+
 
 class FloatingPointDefinition(PrimitiveDataTypeDefinition):
   """Class that defines a floating point data type definition."""
 
+  _FORMAT_STRINGS = {
+      4: u'f',
+      8: u'd',
+  }
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return self._FORMAT_STRINGS.get(self.size, None)
+
 
 class FormatDefinition(DataTypeDefinition):
-  """Class that defines a format definition."""
+  """Class that defines a data format definition."""
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return
 
 
 class IntegerDefinition(PrimitiveDataTypeDefinition):
@@ -184,6 +242,7 @@ class StructureDataTypeDefinition(DataTypeDefinition):
     """
     super(StructureDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
+    self._attribute_names = None
     self._size = None
     self.members = []
 
@@ -193,7 +252,12 @@ class StructureDataTypeDefinition(DataTypeDefinition):
     Returns:
       list[str]: attribute names.
     """
-    # TODO: implement.
+    if self._attribute_names is None:
+      self._attribute_names = []
+      for struct_member in self.members:
+        self._attribute_names.append(struct_member.name)
+
+    return self._attribute_names
 
   def GetByteSize(self):
     """Determines the byte size of the data type definition.
@@ -212,6 +276,15 @@ class StructureDataTypeDefinition(DataTypeDefinition):
         self._size += struct_member_size
 
     return self._size
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return
 
 
 class StructureMemberDefinition(object):
