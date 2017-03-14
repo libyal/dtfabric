@@ -32,7 +32,7 @@ def CreateDefinitionRegistryFromFile(path):
   return definitions_registry
 
 
-class EmptytDataTypeDefinition(definitions.DataTypeDefinition):
+class EmptyDataTypeDefinition(definitions.DataTypeDefinition):
   """Class that defines an empty data type definition for testing."""
 
   def GetAttributedNames(self):
@@ -77,8 +77,65 @@ class DataTypeMapTest(test_lib.BaseTestCase):
       runtime.DataTypeMap(None)
 
     with self.assertRaises(errors.FormatError):
-      data_type_definition = EmptytDataTypeDefinition(u'empty')
+      data_type_definition = EmptyDataTypeDefinition(u'empty')
       runtime.DataTypeMap(data_type_definition)
+
+
+class BooleanMap(test_lib.BaseTestCase):
+  """Class to test the boolean map."""
+
+  def testInitialize(self):
+    """Tests the initialize function."""
+    definitions_file = os.path.join(u'data', u'definitions', u'boolean.yaml')
+    definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'bool32')
+
+    data_type_definition.false_value = None
+    data_type_definition.true_value = None
+    with self.assertRaises(errors.FormatError):
+      runtime.BooleanMap(data_type_definition)
+
+  def testMapByteStream(self):
+    """Tests the MapByteStream function."""
+    definitions_file = os.path.join(u'data', u'definitions', u'boolean.yaml')
+    definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'bool8')
+    data_type_map = runtime.BooleanMap(data_type_definition)
+    data_type_definition.true_value = 1
+
+    bool_value = data_type_map.MapByteStream(b'\x00')
+    self.assertFalse(bool_value)
+
+    bool_value = data_type_map.MapByteStream(b'\x01')
+    self.assertTrue(bool_value)
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\xff')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'bool16')
+    data_type_definition.false_value = None
+    data_type_definition.true_value = 1
+    data_type_map = runtime.BooleanMap(data_type_definition)
+
+    bool_value = data_type_map.MapByteStream(b'\xff\xff')
+    self.assertFalse(bool_value)
+
+    bool_value = data_type_map.MapByteStream(b'\x01\x00')
+    self.assertTrue(bool_value)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'bool32')
+    data_type_definition.true_value = None
+    data_type_map = runtime.BooleanMap(data_type_definition)
+
+    bool_value = data_type_map.MapByteStream(b'\x00\x00\x00\x00')
+    self.assertFalse(bool_value)
+
+    bool_value = data_type_map.MapByteStream(b'\xff\xff\xff\xff')
+    self.assertTrue(bool_value)
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\x01\x00')
 
 
 class FloatingPointMap(test_lib.BaseTestCase):

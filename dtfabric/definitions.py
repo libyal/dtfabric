@@ -105,7 +105,37 @@ class PrimitiveDataTypeDefinition(DataTypeDefinition):
 
 
 class BooleanDefinition(PrimitiveDataTypeDefinition):
-  """Class that defines a boolean data type definition."""
+  """Class that defines a boolean data type definition.
+
+  Attributes:
+    false_value (int): value of False, None represents any value except that
+      defined by true_value.
+    true_value (int): value of True, None represents any value except that
+      defined by false_value.
+  """
+
+  # We use 'I' here instead of 'L' because 'L' behaves architecture dependent.
+
+  _FORMAT_STRINGS_UNSIGNED = {
+      1: u'B',
+      2: u'H',
+      4: u'I',
+      8: u'Q',
+  }
+
+  def __init__(self, name, aliases=None, description=None, urls=None):
+    """Initializes an integer data type definition.
+
+    Args:
+      name (str): name.
+      aliases (Optional[list[str]]): aliases.
+      description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
+    """
+    super(BooleanDefinition, self).__init__(
+        name, aliases=aliases, description=description, urls=urls)
+    self.false_value = 0
+    self.true_value = None
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -114,7 +144,8 @@ class BooleanDefinition(PrimitiveDataTypeDefinition):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    return
+    return self._FORMAT_STRINGS_UNSIGNED.get(self.size, None)
+
 
 class CharacterDefinition(PrimitiveDataTypeDefinition):
   """Class that defines a character data type definition."""

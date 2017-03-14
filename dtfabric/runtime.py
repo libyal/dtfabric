@@ -9,6 +9,11 @@ from dtfabric import errors
 from dtfabric import registry
 
 
+# TODO: add BooleanMap.
+# TODO: add CharacterMap.
+# TODO: add EnumerationMap.
+# TODO: add FormatMap.
+
 class DataTypeMap(object):
   """Class that defines a data type map."""
 
@@ -48,6 +53,61 @@ class DataTypeMap(object):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
+
+
+class BooleanMap(DataTypeMap):
+  """Class that defines a boolen map."""
+
+  def __init__(self, data_type_definition):
+    """Initializes a data type map.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Raises:
+      FormatError: if struct format string cannot be determed from
+          the data type definition.
+    """
+    if (data_type_definition.false_value is None and
+        data_type_definition.true_value is None):
+      raise errors.FormatError(
+          u'Boolean data type has no True or False values.')
+
+    super(BooleanMap, self).__init__(data_type_definition)
+
+  def MapByteStream(self, byte_stream):
+    """Maps the data type on top of a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+
+    Returns:
+      bool: mapped value.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+    try:
+      struct_tuple = self._struct.unpack_from(byte_stream)
+      integer_value = int(*struct_tuple)
+
+    except Exception as exception:
+      raise errors.MappingError(exception)
+
+    if self._data_type_definition.false_value == integer_value:
+      return False
+
+    if self._data_type_definition.true_value == integer_value:
+      return True
+
+    if self._data_type_definition.false_value is None:
+      return False
+
+    if self._data_type_definition.true_value is None:
+      return True
+
+    raise errors.MappingError(u'No matching True and False values')
 
 
 class FloatingPointMap(DataTypeMap):

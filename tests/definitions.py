@@ -47,13 +47,33 @@ class BooleanDefinitionTest(test_lib.BaseTestCase):
   def testInitialize(self):
     """Tests the initialize function."""
     data_type_definition = definitions.BooleanDefinition(
-        u'bool', aliases=[u'BOOL'], description=u'boolean')
+        u'bool32', aliases=[u'BOOL'], description=u'boolean')
     self.assertIsNotNone(data_type_definition)
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
+    data_type_definition = definitions.BooleanDefinition(
+        u'bool32', aliases=[u'BOOL'], description=u'boolean')
+    self.assertIsNotNone(data_type_definition)
 
-    # TODO: implement
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
+
+    data_type_definition.size = 1
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'B')
+
+    data_type_definition.size = 2
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'H')
+
+    data_type_definition.size = 4
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'I')
+
+    data_type_definition.size = 8
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'Q')
 
 
 class CharacterDefinitionTest(test_lib.BaseTestCase):
