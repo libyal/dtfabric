@@ -131,9 +131,57 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
   # TODO: add test for _ReadStructureDataTypeDefinitionMember
   # TODO: add test for _ReadStructureDataTypeDefinitionMembers
-  # TODO: add test for ReadDefinitionFromDict
-  # TODO: add test for ReadDirectory
-  # TODO: add test for ReadFile
+
+  def testReadDefinitionFromDict(self):
+    """Tests the ReadDefinitionFromDict function."""
+    definition_values = {
+        u'aliases': [u'LONG', u'LONG32'],
+        u'attributes': {
+            u'format': u'signed',
+            u'size': 4,
+        },
+        u'description': u'signed 32-bit integer',
+        u'name': u'int32',
+        u'type': u'integer',
+    }
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    data_type_definition = definitions_reader.ReadDefinitionFromDict(
+        definitions_registry, definition_values)
+    self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(data_type_definition, definitions.IntegerDefinition)
+
+    with self.assertRaises(errors.FormatError):
+      definitions_reader.ReadDefinitionFromDict(definitions_registry, None)
+
+    definition_values[u'type'] = u'bogus'
+    with self.assertRaises(errors.FormatError):
+      definitions_reader.ReadDefinitionFromDict(
+          definitions_registry, definition_values)
+
+  def testReadDirectory(self):
+    """Tests the ReadDirectory function."""
+    definitions_directory = self._GetTestFilePath([u'definitions'])
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    definitions_reader.ReadDirectory(
+        definitions_registry, definitions_directory)
+
+    definitions_reader.ReadDirectory(
+        definitions_registry, definitions_directory, extension=u'yaml')
+
+  def testReadFile(self):
+    """Tests the ReadFile function."""
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    definitions_reader.ReadFile(definitions_registry, definitions_file)
 
 
 class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
@@ -141,7 +189,15 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
-  # TODO: add test for ReadDirectory
+  def testReadDirectory(self):
+    """Tests the ReadDirectory function."""
+    definitions_directory = self._GetTestFilePath([u'definitions'])
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_reader.ReadDirectory(
+        definitions_registry, definitions_directory)
 
   def testReadFileObjectBoolean(self):
     """Tests the ReadFileObject function of a boolean data type."""

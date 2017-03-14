@@ -1,0 +1,15 @@
+name: float32
+aliases: [float, FLOAT]
+type: floating-point
+description: 32-bit single precision floating-point type
+attributes:
+  size: 4
+  units: bytes
+---
+name: float64
+aliases: [double, DOUBLE]
+type: floating-point
+description: 64-bit double precision floating-point type
+attributes:
+  size: 8
+  units: bytes

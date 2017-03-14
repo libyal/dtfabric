@@ -1,0 +1,69 @@
+name: int8
+type: integer
+description: 8-bit signed integer type
+attributes:
+  format: signed
+  size: 1
+  units: bytes
+---
+name: int16
+type: integer
+description: 16-bit signed integer type
+attributes:
+  format: signed
+  size: 2
+  units: bytes
+---
+name: int32
+aliases: [LONG, LONG32]
+type: integer
+description: 32-bit signed integer type
+attributes:
+  format: signed
+  size: 4
+  units: bytes
+---
+name: int64
+aliases: [LONG64]
+type: integer
+description: 64-bit signed integer type
+attributes:
+  format: signed
+  size: 8
+  units: bytes
+---
+name: uint8
+aliases: [BYTE]
+type: integer
+description: 8-bit unsigned integer type
+attributes:
+  format: unsigned
+  size: 1
+  units: bytes
+---
+name: uint16
+aliases: [WORD]
+type: integer
+description: 16-bit unsigned integer type
+attributes:
+  format: unsigned
+  size: 2
+  units: bytes
+---
+name: uint32
+aliases: [DWORD, DWORD32, ULONG, ULONG32]
+type: integer
+description: 32-bit unsigned integer type
+attributes:
+  format: unsigned
+  size: 4
+  units: bytes
+---
+name: uint64
+aliases: [DWORDLONG, DWORD64, ULONG64]
+type: integer
+description: 64-bit unsigned integer type
+attributes:
+  format: unsigned
+  size: 8
+  units: bytes

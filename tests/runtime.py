@@ -66,7 +66,7 @@ class DataTypeMapTest(test_lib.BaseTestCase):
 
   def testInitialize(self):
     """Tests the initialize function."""
-    definitions_file = os.path.join(u'data', u'definitions', u'integers.yaml')
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
     definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
 
@@ -86,7 +86,7 @@ class BooleanMap(test_lib.BaseTestCase):
 
   def testInitialize(self):
     """Tests the initialize function."""
-    definitions_file = os.path.join(u'data', u'definitions', u'boolean.yaml')
+    definitions_file = self._GetTestFilePath([u'definitions', u'booleans.yaml'])
     definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
     data_type_definition = definitions_registry.GetDefinitionByName(u'bool32')
 
@@ -97,7 +97,7 @@ class BooleanMap(test_lib.BaseTestCase):
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
-    definitions_file = os.path.join(u'data', u'definitions', u'boolean.yaml')
+    definitions_file = self._GetTestFilePath([u'definitions', u'booleans.yaml'])
     definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'bool8')
@@ -143,7 +143,8 @@ class CharacterMapTest(test_lib.BaseTestCase):
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
-    definitions_file = os.path.join(u'data', u'definitions', u'characters.yaml')
+    definitions_file = self._GetTestFilePath([
+        u'definitions', u'characters.yaml'])
     definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'char')
@@ -173,8 +174,8 @@ class FloatingPointMap(test_lib.BaseTestCase):
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
-    definitions_file = os.path.join(
-        u'data', u'definitions', u'floating-points.yaml')
+    definitions_file = self._GetTestFilePath([
+        u'definitions', u'floating-points.yaml'])
     definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'float32')
@@ -199,7 +200,7 @@ class IntegerMapTest(test_lib.BaseTestCase):
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
-    definitions_file = os.path.join(u'data', u'definitions', u'integers.yaml')
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
     definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'uint8')

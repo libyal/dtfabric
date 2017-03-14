@@ -1,0 +1,28 @@
+name: bool8
+aliases: [BOOLEAN]
+type: boolean
+description: 8-bit boolean type
+attributes:
+  size: 1
+  units: bytes
+  false_value: 0
+  true_value: 1
+---
+name: bool16
+type: boolean
+description: 16-bit boolean type
+attributes:
+  size: 2
+  units: bytes
+  false_value: 0
+  true_value: 1
+---
+name: bool32
+aliases: [BOOL]
+type: boolean
+description: 32-bit boolean type
+attributes:
+  size: 4
+  units: bytes
+  false_value: 0
+  true_value: 1
