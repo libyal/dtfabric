@@ -120,7 +120,6 @@ class BooleanDefinition(PrimitiveDataTypeDefinition):
       1: u'B',
       2: u'H',
       4: u'I',
-      8: u'Q',
   }
 
   def __init__(self, name, aliases=None, description=None, urls=None):
@@ -150,6 +149,14 @@ class BooleanDefinition(PrimitiveDataTypeDefinition):
 class CharacterDefinition(PrimitiveDataTypeDefinition):
   """Class that defines a character data type definition."""
 
+  # We use 'i' here instead of 'l' because 'l' behaves architecture dependent.
+
+  _FORMAT_STRINGS = {
+      1: u'b',
+      2: u'h',
+      4: u'i',
+  }
+
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
 
@@ -157,7 +164,7 @@ class CharacterDefinition(PrimitiveDataTypeDefinition):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    return
+    return self._FORMAT_STRINGS.get(self.size, None)
 
 
 class EnumerationDefinition(DataTypeDefinition):

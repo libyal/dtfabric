@@ -138,6 +138,36 @@ class BooleanMap(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\x01\x00')
 
 
+class CharacterMapTest(test_lib.BaseTestCase):
+  """Class to test the character map."""
+
+  def testMapByteStream(self):
+    """Tests the MapByteStream function."""
+    definitions_file = os.path.join(u'data', u'definitions', u'characters.yaml')
+    definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'char')
+    data_type_map = runtime.CharacterMap(data_type_definition)
+
+    string_value = data_type_map.MapByteStream(b'\x41')
+    self.assertEqual(string_value, u'A')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'wchar16')
+    data_type_map = runtime.CharacterMap(data_type_definition)
+
+    string_value = data_type_map.MapByteStream(b'\xb6\x24')
+    self.assertEqual(string_value, u'\u24b6')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'wchar32')
+    data_type_map = runtime.CharacterMap(data_type_definition)
+
+    string_value = data_type_map.MapByteStream(b'\xb6\x24\x00\x00')
+    self.assertEqual(string_value, u'\u24b6')
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\xb6\x24')
+
+
 class FloatingPointMap(test_lib.BaseTestCase):
   """Class to test the floating-point map."""
 

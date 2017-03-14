@@ -6,11 +6,10 @@ import collections
 import struct
 
 from dtfabric import errors
+from dtfabric import py2to3
 from dtfabric import registry
 
 
-# TODO: add BooleanMap.
-# TODO: add CharacterMap.
 # TODO: add EnumerationMap.
 # TODO: add FormatMap.
 
@@ -108,6 +107,30 @@ class BooleanMap(DataTypeMap):
       return True
 
     raise errors.MappingError(u'No matching True and False values')
+
+
+class CharacterMap(DataTypeMap):
+  """Class that defines a character map."""
+
+  def MapByteStream(self, byte_stream):
+    """Maps the data type on top of a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+
+    Returns:
+      str: mapped value.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+    try:
+      struct_tuple = self._struct.unpack_from(byte_stream)
+      return py2to3.UNICHR(*struct_tuple)
+
+    except Exception as exception:
+      raise errors.MappingError(exception)
 
 
 class FloatingPointMap(DataTypeMap):

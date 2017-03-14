@@ -1,13 +1,22 @@
 name: char
 aliases: [CHAR]
 type: character
+description: 8-bit narrow character type
 attributes:
   size: 1
   units: bytes
 ---
-name: wchar
+name: wchar16
 aliases: [WCHAR]
 type: character
+description: 16-bit wide character type
 attributes:
-  size: [2, 4]
+  size: 2
+  units: bytes
+---
+name: wchar32
+type: character
+description: 32-bit wide character type
+attributes:
+  size: 4
   units: bytes

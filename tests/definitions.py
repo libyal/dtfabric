@@ -71,24 +71,30 @@ class BooleanDefinitionTest(test_lib.BaseTestCase):
     struct_format_string = data_type_definition.GetStructFormatString()
     self.assertEqual(struct_format_string, u'I')
 
-    data_type_definition.size = 8
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'Q')
-
 
 class CharacterDefinitionTest(test_lib.BaseTestCase):
   """Class to test the character data type definition."""
 
-  def testInitialize(self):
-    """Tests the initialize function."""
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
     data_type_definition = definitions.CharacterDefinition(
         u'char', aliases=[u'CHAR'], description=u'character')
     self.assertIsNotNone(data_type_definition)
 
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
 
-    # TODO: implement
+    data_type_definition.size = 1
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'b')
+
+    data_type_definition.size = 2
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'h')
+
+    data_type_definition.size = 4
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'i')
 
 
 class EnumerationDefinitionTest(test_lib.BaseTestCase):
