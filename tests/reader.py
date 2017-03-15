@@ -17,20 +17,20 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
-  def testReadPrimitiveDataTypeDefinition(self):
-    """Tests the _ReadPrimitiveDataTypeDefinition function."""
+  def testReadFixedSizeDataTypeDefinition(self):
+    """Tests the _ReadFixedSizeDataTypeDefinition function."""
     definition_values = {
         u'aliases': [u'LONG', u'LONG32'],
         u'attributes': {
             u'size': 4,
         },
-        u'description': u'signed 32-bit integer',
+        u'description': u'signed 32-bit integer type',
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.DataTypeDefinitionsFileReader()
 
-    data_type_definition = definitions_reader._ReadPrimitiveDataTypeDefinition(
+    data_type_definition = definitions_reader._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values, definitions.IntegerDefinition,
         u'int32')
     self.assertIsNotNone(data_type_definition)
@@ -43,7 +43,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
         u'attributes': {
             u'size': 4,
         },
-        u'description': u'boolean',
+        u'description': u'32-bit boolean type',
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
@@ -61,7 +61,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
         u'attributes': {
             u'size': 1,
         },
-        u'description': u'character',
+        u'description': u'8-bit character type',
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
@@ -84,7 +84,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
         u'attributes': {
             u'size': 4,
         },
-        u'description': u'32-bit floating-point',
+        u'description': u'32-bit floating-point type',
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
@@ -99,8 +99,20 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
   def testReadFormatDefinition(self):
     """Tests the _ReadFormatDefinition function."""
+    definition_values = {
+        u'description': u'Windows Shortcut (LNK) file format',
+        u'type': u'format',
+    }
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
 
     # TODO: implement.
+
+    data_type_definition = definitions_reader._ReadFormatDefinition(
+        definition_values, u'lnk')
+    self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(data_type_definition, definitions.FormatDefinition)
 
   def testReadIntegerDataTypeDefinition(self):
     """Tests the _ReadIntegerDataTypeDefinition function."""
@@ -110,7 +122,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
             u'format': u'signed',
             u'size': 4,
         },
-        u'description': u'signed 32-bit integer',
+        u'description': u'signed 32-bit integer type',
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
@@ -129,8 +141,26 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
   def testReadStructureDataTypeDefinition(self):
     """Tests the _ReadStructureDataTypeDefinition function."""
 
+    # TODO: implement.
+
   # TODO: add test for _ReadStructureDataTypeDefinitionMember
   # TODO: add test for _ReadStructureDataTypeDefinitionMembers
+
+  def testReadUUIDDataTypeDefinition(self):
+    """Tests the _ReadUUIDDataTypeDefinition function."""
+    definition_values = {
+        u'aliases': [u'guid', u'GUID', u'UUID'],
+        u'description': (
+            u'Globally or Universal unique identifier (GUID or UUID) type'),
+    }
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    data_type_definition = definitions_reader._ReadCharacterDataTypeDefinition(
+        definitions_registry, definition_values, u'char')
+    self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(data_type_definition, definitions.CharacterDefinition)
 
   def testReadDefinitionFromDict(self):
     """Tests the ReadDefinitionFromDict function."""
@@ -140,7 +170,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
             u'format': u'signed',
             u'size': 4,
         },
-        u'description': u'signed 32-bit integer',
+        u'description': u'signed 32-bit integer type',
         u'name': u'int32',
         u'type': u'integer',
     }
@@ -316,6 +346,25 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.FormatError):
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
+    yaml_data = b'\n'.join([
+        b'name: int8',
+        b'type: integer',
+        b'attributes:',
+        b'  format: signed',
+        b'  size: 1',
+        b'  units: bytes',
+        b'---',
+        b'name: int16',
+        b'attributes:',
+        b'  format: signed',
+        b'  size: 2',
+        b'  units: bytes'])
+
+    file_object = io.BytesIO(initial_bytes=yaml_data)
+
+    with self.assertRaises(errors.FormatError):
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
   def testReadFileObjectStructure(self):
     """Tests the ReadFileObject function of a structure data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
@@ -374,7 +423,11 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
   def testReadFileObjectStructureWithSequence(self):
     """Tests the ReadFileObject function of a structure with a sequence."""
-    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    self.assertEqual(len(definitions_registry._definitions), 8)
+
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     url = (
@@ -400,7 +453,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     file_object = io.BytesIO(initial_bytes=yaml_data)
 
     definitions_reader.ReadFileObject(definitions_registry, file_object)
-    self.assertEqual(len(definitions_registry._definitions), 1)
+    self.assertEqual(len(definitions_registry._definitions), 9)
 
     data_type_definition = definitions_registry.GetDefinitionByName(
         u'string')

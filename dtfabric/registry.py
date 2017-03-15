@@ -39,13 +39,11 @@ class DataTypeDefinitionsRegistry(object):
     Returns:
       DataTypeDefinition: data type definition or None if not available.
     """
-    data_type_definition = None
-    if name:
-      data_type_definition = self._definitions.get(name.lower(), None)
+    lookup_name = name.lower()
+    if lookup_name not in self._definitions:
+      lookup_name = self._aliases.get(name, None)
 
-    # TODO: query aliases.
-
-    return data_type_definition
+    return self._definitions.get(lookup_name, None)
 
   def GetDefinitions(self):
     """Retrieves the data type definitions.

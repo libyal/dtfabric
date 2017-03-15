@@ -14,11 +14,12 @@ class DataTypeDefinitionsReader(object):
   """Class that defines the data type definitions reader interface."""
 
   @abc.abstractmethod
-  def ReadDefinitionFromDict(self, registry, definition_values):
+  def ReadDefinitionFromDict(self, definitions_registry, definition_values):
     """Reads a data type definition from a dictionary.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       definition_values (dict[str, object]): definition values.
 
     Returns:
@@ -40,21 +41,23 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       u'floating-point': u'_ReadFloatingPointDataTypeDefinition',
       u'integer': u'_ReadIntegerDataTypeDefinition',
       u'structure': u'_ReadStructureDataTypeDefinition',
+      u'uuid': u'_ReadUUIDDataTypeDefinition',
   }
 
-  def _ReadPrimitiveDataTypeDefinition(
-      self, unused_registry, definition_values, data_type_definition_class,
-      name):
-    """Reads a primitive data type definition.
+  def _ReadFixedSizeDataTypeDefinition(
+      self, unused_definitions_registry, definition_values,
+      data_type_definition_class, name):
+    """Reads a fixed-size data type definition.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       definition_values (dict[str, object]): definition values.
       data_type_definition_class (str): data type definition class.
       name (str): name of the definition.
 
     Returns:
-      PrimitiveDataTypeDefinition: primitive data type definition.
+      FixedSizeDataTypeDefinition: fixed-size data type definition.
 
     Raises:
       FormatError: if the definitions values are missing or if the format is
@@ -74,40 +77,47 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     return definition_object
 
-  def _ReadBooleanDataTypeDefinition(self, registry, definition_values, name):
+  def _ReadBooleanDataTypeDefinition(
+      self, definitions_registry, definition_values, name):
     """Reads a boolean data type definition.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       definition_values (dict[str, object]): definition values.
       name (str): name of the definition.
 
     Returns:
       BooleanDataTypeDefinition: boolean data type definition.
     """
-    return self._ReadPrimitiveDataTypeDefinition(
-        registry, definition_values, definitions.BooleanDefinition, name)
+    return self._ReadFixedSizeDataTypeDefinition(
+        definitions_registry, definition_values,
+        definitions.BooleanDefinition, name)
 
-  def _ReadCharacterDataTypeDefinition(self, registry, definition_values, name):
+  def _ReadCharacterDataTypeDefinition(
+      self, definitions_registry, definition_values, name):
     """Reads a character data type definition.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       definition_values (dict[str, object]): definition values.
       name (str): name of the definition.
 
     Returns:
       CharacterDataTypeDefinition: character data type definition.
     """
-    return self._ReadPrimitiveDataTypeDefinition(
-        registry, definition_values, definitions.CharacterDefinition, name)
+    return self._ReadFixedSizeDataTypeDefinition(
+        definitions_registry, definition_values,
+        definitions.CharacterDefinition, name)
 
   def _ReadEnumerationDataTypeDefinition(
-      self, unused_registry, definition_values, name):
+      self, unused_definitions_registry, definition_values, name):
     """Reads an enumeration data type definition.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       definition_values (dict[str, object]): definition values.
       name (str): name of the definition.
 
@@ -126,19 +136,21 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     return definition_object
 
   def _ReadFloatingPointDataTypeDefinition(
-      self, registry, definition_values, name):
+      self, definitions_registry, definition_values, name):
     """Reads a floating-point data type definition.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       definition_values (dict[str, object]): definition values.
       name (str): name of the definition.
 
     Returns:
       FloatingPointDefinition floating-point data type definition.
     """
-    return self._ReadPrimitiveDataTypeDefinition(
-        registry, definition_values, definitions.FloatingPointDefinition, name)
+    return self._ReadFixedSizeDataTypeDefinition(
+        definitions_registry, definition_values,
+        definitions.FloatingPointDefinition, name)
 
   def _ReadFormatDefinition(self, definition_values, name):
     """Reads a format definition.
@@ -160,11 +172,13 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     return definition_object
 
-  def _ReadIntegerDataTypeDefinition(self, registry, definition_values, name):
+  def _ReadIntegerDataTypeDefinition(
+      self, definitions_registry, definition_values, name):
     """Reads an integer data type definition.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       definition_values (dict[str, object]): definition values.
       name (str): name of the definition.
 
@@ -175,8 +189,9 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       FormatError: if the definitions values are missing or if the format is
           incorrect.
     """
-    definition_object = self._ReadPrimitiveDataTypeDefinition(
-        registry, definition_values, definitions.IntegerDefinition, name)
+    definition_object = self._ReadFixedSizeDataTypeDefinition(
+        definitions_registry, definition_values,
+        definitions.IntegerDefinition, name)
 
     attributes = definition_values.get(u'attributes')
     if attributes:
@@ -189,11 +204,13 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     return definition_object
 
-  def _ReadStructureDataTypeDefinition(self, registry, definition_values, name):
+  def _ReadStructureDataTypeDefinition(
+      self, definitions_registry, definition_values, name):
     """Reads structure members definitions.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       definition_values (dict[str, object]): definition values.
       name (str): name of the definition.
 
@@ -210,15 +227,17 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     members = definition_values.get(u'members')
     if members:
       self._ReadStructureDataTypeDefinitionMembers(
-          registry, members, definition_object)
+          definitions_registry, members, definition_object)
 
     return definition_object
 
-  def _ReadStructureDataTypeDefinitionMember(self, registry, definition_values):
+  def _ReadStructureDataTypeDefinitionMember(
+      self, definitions_registry, definition_values):
     """Reads a structure data type definition member.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       definition_values (dict[str, object]): definition values.
 
     Returns:
@@ -263,31 +282,55 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       data_type = definition_values.get(u'data_type', None)
       description = definition_values.get(u'description', None)
 
-      definition_object = definitions.StructureMemberDefinition(
-          name, aliases=aliases, data_type=data_type, description=description)
+      data_type_definition = definitions_registry.GetDefinitionByName(data_type)
+      if not data_type_definition:
+        raise errors.FormatError(
+            u'Undefined data type: {0:s}.'.format(data_type))
 
-    definition_object.SetDataTypeDefinitionsRegistry(registry)
+      definition_object = definitions.StructureMemberDefinition(
+          data_type_definition, name, aliases=aliases, data_type=data_type,
+          description=description)
+
     return definition_object
 
   def _ReadStructureDataTypeDefinitionMembers(
-      self, registry, definition_values, definition_object):
+      self, definitions_registry, definition_values, definition_object):
     """Reads structure data type definition members.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       definition_values (dict[str, object]): definition values.
       definition_object (DataTypeDefinition): data type definition.
     """
     for attribute in definition_values:
       structure_attribute = self._ReadStructureDataTypeDefinitionMember(
-          registry, attribute)
+          definitions_registry, attribute)
       definition_object.members.append(structure_attribute)
 
-  def ReadDefinitionFromDict(self, registry, definition_values):
+  def _ReadUUIDDataTypeDefinition(
+      self, definitions_registry, definition_values, name):
+    """Reads an UUID data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      name (str): name of the definition.
+
+    Returns:
+      UUIDDataTypeDefinition: UUID data type definition.
+    """
+    return self._ReadFixedSizeDataTypeDefinition(
+        definitions_registry, definition_values,
+        definitions.UUIDDefinition, name)
+
+  def ReadDefinitionFromDict(self, definitions_registry, definition_values):
     """Reads a data type definition from a dictionary.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       definition_values (dict[str, object]): definition values.
 
     Returns:
@@ -318,15 +361,16 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       raise errors.FormatError(
           u'Unuspported data type definition: {0:s}.'.format(type_indicator))
 
-    return data_type_callback(registry, definition_values, name)
+    return data_type_callback(definitions_registry, definition_values, name)
 
-  def ReadDirectory(self, registry, path, extension=None):
+  def ReadDirectory(self, definitions_registry, path, extension=None):
     """Reads data type definitions from a directory.
 
     This function does not recurse sub directories into the registry.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       path (str): path of the directory to read from.
       extension (Optional[str]): extension of the filenames to read.
     """
@@ -336,24 +380,26 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       glob_spec = os.path.join(path, u'*')
 
     for definition_file in glob.glob(glob_spec):
-      self.ReadFile(registry, definition_file)
+      self.ReadFile(definitions_registry, definition_file)
 
-  def ReadFile(self, registry, path):
+  def ReadFile(self, definitions_registry, path):
     """Reads data type definitions from a file into the registry.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       path (str): path of the file to read from.
     """
     with open(path, 'r') as file_object:
-      self.ReadFileObject(registry, file_object)
+      self.ReadFileObject(definitions_registry, file_object)
 
   @abc.abstractmethod
-  def ReadFileObject(self, registry, file_object):
+  def ReadFileObject(self, definitions_registry, file_object):
     """Reads data type definitions from a file-like object into the registry.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       file_object (file): file-like object to read from.
     """
 
@@ -361,24 +407,26 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
   """Class that implements the YAML data type definitions file reader."""
 
-  def ReadDirectory(self, registry, path, extension=u'yaml'):
+  def ReadDirectory(self, definitions_registry, path, extension=u'yaml'):
     """Reads data type definitions from a directory.
 
     This function does not recurse sub directories into the registry.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       path (str): path of the directory to read from.
       extension (Optional[str]): extension of the filenames to read.
     """
     super(YAMLDataTypeDefinitionsFileReader, self).ReadDirectory(
-        registry, path, extension=extension)
+        definitions_registry, path, extension=extension)
 
-  def ReadFileObject(self, registry, file_object):
+  def ReadFileObject(self, definitions_registry, file_object):
     """Reads data type definitions from a file-like object into the registry.
 
     Args:
-      registry (DataTypeDefinitionsRegistry): data type definition registry.
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       file_object (file): file-like object to read from.
 
     Raises:
@@ -388,19 +436,15 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
     yaml_generator = yaml.safe_load_all(file_object)
 
     last_definition_object = None
+    error_message = None
     for yaml_definition in yaml_generator:
       try:
         definition_object = self.ReadDefinitionFromDict(
-            registry, yaml_definition)
+            definitions_registry, yaml_definition)
 
       except errors.FormatError as exception:
-        if last_definition_object:
-          error_location = u'After: {0:s}'.format(last_definition_object.name)
-        else:
-          error_location = u'At start'
-
-        raise errors.FormatError(u'{0:s}: {1:s}'.format(
-            error_location, exception))
+        definition_object = None
+        error_message = u'{0!s}'.format(exception)
 
       if not definition_object:
         if last_definition_object:
@@ -408,8 +452,12 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
         else:
           error_location = u'At start'
 
-        raise errors.FormatError(u'{0:s}: Missing definition object.'.format(
-            error_location))
+        if not error_message:
+          error_message = u'Missing definition object.'
 
-      registry.RegisterDefinition(definition_object)
+        error_message = u'{0:s}: {1:s}'.format(error_location, error_message)
+
+        raise errors.FormatError(error_message)
+
+      definitions_registry.RegisterDefinition(definition_object)
       last_definition_object = definition_object

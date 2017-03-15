@@ -37,6 +37,7 @@ in the section entitled "GNU Free Documentation License".
 | Version | Author | Date | Comments
 | 0.0.1 | J.B. Metz | November 2016 | Initial version.
 | 0.0.2 | J.B. Metz | March 2017 | Moved documentation to asciidoc.
+| 0.0.3 | J.B. Metz | March 2017 | Worked on documentation.
 |===
 
 :numbered:
@@ -57,6 +58,7 @@ language to specify format and data types.
 See section: <<data_format_metadata,Data format metadata>>
 | integer | Integer data type
 | structure | Structure
+| uuid | UUID (or GUID) data type
 |===
 
 [yellow-background]*TODO: consider adding the following types*
@@ -128,7 +130,16 @@ attributes:
 
 ==== Floating-point
 
-[yellow-background]*TODO: add example*
+[source,yaml]
+----
+name: float64
+aliases: [double, DOUBLE]
+type: floating-point
+description: 64-bit double precision floating-point type
+attributes:
+  size: 8
+  units: bytes
+----
 
 ==== Integer
 
@@ -209,6 +220,10 @@ members:
 | condition | [yellow-background]*TODO: describe*
 | union | Union of structure members, the data size is that of the largest union member
 |===
+
+=== UUID
+
+[yellow-background]*TODO: add example*
 
 :numbered!:
 [appendix]

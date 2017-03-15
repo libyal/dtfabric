@@ -5,6 +5,9 @@ import os
 import sys
 import unittest
 
+from dtfabric import reader
+from dtfabric import registry
+
 
 def skipUnlessHasTestFile(path_segments):
   """Decorator to skip a test if the test file does not exist.
@@ -38,6 +41,36 @@ class BaseTestCase(unittest.TestCase):
   # Show full diff results, part of TestCase so does not follow our naming
   # conventions.
   maxDiff = None
+
+  def _CreateDefinitionRegistryFromFile(self, path):
+    """Creates a data type definition registry from a file.
+
+    Args:
+      path (str): path to the data definition file.
+
+    Returns:
+      DataTypeDefinitionsRegistry: data type definition registry or None
+          on error.
+    """
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+
+    self._FillDefinitionRegistryFromFile(definitions_registry, path)
+
+    return definitions_registry
+
+  def _FillDefinitionRegistryFromFile(self, definitions_registry, path):
+    """Fills a data type definition registry from a file.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      path (str): path to the data definition file.
+
+    """
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    with open(path, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
 
   def _GetTestFilePath(self, path_segments):
     """Retrieves the path of a test file in the test data directory.

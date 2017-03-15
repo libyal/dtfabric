@@ -6,30 +6,9 @@ import unittest
 
 from dtfabric import errors
 from dtfabric import definitions
-from dtfabric import reader
-from dtfabric import registry
 from dtfabric import runtime
 
 from tests import test_lib
-
-
-def CreateDefinitionRegistryFromFile(path):
-  """Creates a data type definition registry from a file.
-
-  Args:
-    path (str): path to the data definition file.
-
-  Returns:
-    DataTypeDefinitionsRegistry: data type definition registry or None
-        on error.
-  """
-  definitions_registry = registry.DataTypeDefinitionsRegistry()
-  definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
-
-  with open(path, 'rb') as file_object:
-    definitions_reader.ReadFileObject(definitions_registry, file_object)
-
-  return definitions_registry
 
 
 class EmptyDataTypeDefinition(definitions.DataTypeDefinition):
@@ -67,7 +46,8 @@ class DataTypeMapTest(test_lib.BaseTestCase):
   def testInitialize(self):
     """Tests the initialize function."""
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
-    definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
 
     data_type_map = runtime.DataTypeMap(data_type_definition)
@@ -87,7 +67,8 @@ class BooleanMap(test_lib.BaseTestCase):
   def testInitialize(self):
     """Tests the initialize function."""
     definitions_file = self._GetTestFilePath([u'definitions', u'booleans.yaml'])
-    definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
     data_type_definition = definitions_registry.GetDefinitionByName(u'bool32')
 
     data_type_definition.false_value = None
@@ -98,7 +79,8 @@ class BooleanMap(test_lib.BaseTestCase):
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
     definitions_file = self._GetTestFilePath([u'definitions', u'booleans.yaml'])
-    definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'bool8')
     data_type_map = runtime.BooleanMap(data_type_definition)
@@ -145,7 +127,8 @@ class CharacterMapTest(test_lib.BaseTestCase):
     """Tests the MapByteStream function."""
     definitions_file = self._GetTestFilePath([
         u'definitions', u'characters.yaml'])
-    definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'char')
     data_type_map = runtime.CharacterMap(data_type_definition)
@@ -176,7 +159,8 @@ class FloatingPointMap(test_lib.BaseTestCase):
     """Tests the MapByteStream function."""
     definitions_file = self._GetTestFilePath([
         u'definitions', u'floating-points.yaml'])
-    definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'float32')
     data_type_map = runtime.FloatingPointMap(data_type_definition)
@@ -201,7 +185,8 @@ class IntegerMapTest(test_lib.BaseTestCase):
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
-    definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'uint8')
     data_type_map = runtime.IntegerMap(data_type_definition)
@@ -238,8 +223,12 @@ class StructMapTest(test_lib.BaseTestCase):
   @test_lib.skipUnlessHasTestFile([u'Notepad.lnk'])
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
+    definitions_file = os.path.join(u'data', u'definitions', u'core.yaml')
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
     definitions_file = os.path.join(u'data', u'definitions', u'lnk.yaml')
-    definitions_registry = CreateDefinitionRegistryFromFile(definitions_file)
+    self._FillDefinitionRegistryFromFile(definitions_registry, definitions_file)
     data_type_definition = definitions_registry.GetDefinitionByName(
         u'file_header')
 
@@ -248,9 +237,41 @@ class StructMapTest(test_lib.BaseTestCase):
       byte_stream = file_object.read()
 
     # TODO: implement.
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(AttributeError):
       data_type_map = runtime.StructMap(data_type_definition)
       data_type_map.MapByteStream(byte_stream)
+
+
+class UUIDMapTest(test_lib.BaseTestCase):
+  """Class to test the UUID map."""
+
+  def testMapByteStream(self):
+    """Tests the MapByteStream function."""
+    definitions_file = self._GetTestFilePath([
+        u'definitions', u'characters.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'char')
+    data_type_map = runtime.CharacterMap(data_type_definition)
+
+    string_value = data_type_map.MapByteStream(b'\x41')
+    self.assertEqual(string_value, u'A')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'wchar16')
+    data_type_map = runtime.CharacterMap(data_type_definition)
+
+    string_value = data_type_map.MapByteStream(b'\xb6\x24')
+    self.assertEqual(string_value, u'\u24b6')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'wchar32')
+    data_type_map = runtime.CharacterMap(data_type_definition)
+
+    string_value = data_type_map.MapByteStream(b'\xb6\x24\x00\x00')
+    self.assertEqual(string_value, u'\u24b6')
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\xb6\x24')
 
 
 if __name__ == '__main__':

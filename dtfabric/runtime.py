@@ -4,6 +4,7 @@
 import abc
 import collections
 import struct
+import uuid
 
 from dtfabric import errors
 from dtfabric import py2to3
@@ -12,6 +13,7 @@ from dtfabric import registry
 
 # TODO: add EnumerationMap.
 # TODO: add FormatMap.
+# TODO: complete StructMap.
 
 class DataTypeMap(object):
   """Class that defines a data type map."""
@@ -29,9 +31,10 @@ class DataTypeMap(object):
     try:
       format_string = data_type_definition.GetStructFormatString()
       struct_object = struct.Struct(format_string)
-    except (AttributeError, TypeError):
-      raise errors.FormatError(
-          u'Unable to create struct object from data type definition.')
+    except (AttributeError, TypeError) as exception:
+      raise errors.FormatError((
+          u'Unable to create struct object from data type definition '
+          u'with error: {0!s}').format(exception))
 
     super(DataTypeMap, self).__init__()
     self._data_type_definition = data_type_definition
@@ -216,12 +219,12 @@ class StructMap(DataTypeMap):
     """
     format_string = []
 
-    for struct_member in self._structure_definition.members:
+    for struct_member in self._data_type_definition.members:
       member_format_string = self._GetStructureMemberFormatString(struct_member)
 
     struct_tuple = struct.unpack_from(format_string, byte_stream)
 
-    for member in self._structure_definition.members:
+    for member in self._data_type_definition.members:
       # TODO: implement.
       pass
 
@@ -229,6 +232,31 @@ class StructMap(DataTypeMap):
       struct_tuple = self._struct.unpack_from(byte_stream)
       # pylint: disable=protected-access
       return self._named_tuple._make(struct_tuple)
+
+    except Exception as exception:
+      raise errors.MappingError(exception)
+
+
+class UUIDMap(DataTypeMap):
+  """Class that defines an UUID map."""
+
+  def MapByteStream(self, byte_stream):
+    """Maps the data type on top of a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+
+    Returns:
+      uuid.UUID: mapped value.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+    try:
+      struct_tuple = self._struct.unpack_from(byte_stream)
+      uuid_string = u'{{{0:08x}-{1:04x}-{2:04x}-{3:04x}-{4:010x}}}'
+      return uuid.UUID(uuid_string)
 
     except Exception as exception:
       raise errors.MappingError(exception)

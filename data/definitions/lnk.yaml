@@ -1,3 +1,11 @@
+name: lnk
+type: format
+description: Windows Shortcut (LNK) file format
+urls: ['https://msdn.microsoft.com/en-us/library/dd871305.aspx']
+layout:
+- file_header
+- TODO
+---
 name: file_header
 aliases: [ShellLinkHeader]
 type: structure

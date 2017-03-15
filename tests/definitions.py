@@ -4,23 +4,29 @@
 import unittest
 
 from dtfabric import definitions
+from dtfabric import registry
 
 from tests import test_lib
 
 
-class PrimitiveDataTypeDefinitionTest(test_lib.BaseTestCase):
-  """Class to test the primitive data type definition."""
+# TODO: complete EnumerationDefinitionTest.
+# TODO: add FormatDefinitionTest.
+# TODO: complete StructureDataTypeDefinitionTest.
+# TODO: complete UnionStructureMemberDefinitionTest.
+
+class FixedSizeDataTypeDefinitionTest(test_lib.BaseTestCase):
+  """Class to test the fixed-size data type definition."""
 
   def testInitialize(self):
     """Tests the initialize function."""
-    data_type_definition = definitions.PrimitiveDataTypeDefinition(
+    data_type_definition = definitions.FixedSizeDataTypeDefinition(
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
     self.assertIsNotNone(data_type_definition)
 
   def testGetAttributedNames(self):
     """Tests the GetAttributedNames function."""
-    data_type_definition = definitions.PrimitiveDataTypeDefinition(
+    data_type_definition = definitions.FixedSizeDataTypeDefinition(
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
 
@@ -29,7 +35,7 @@ class PrimitiveDataTypeDefinitionTest(test_lib.BaseTestCase):
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
-    data_type_definition = definitions.PrimitiveDataTypeDefinition(
+    data_type_definition = definitions.FixedSizeDataTypeDefinition(
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
 
@@ -100,27 +106,17 @@ class CharacterDefinitionTest(test_lib.BaseTestCase):
 class EnumerationDefinitionTest(test_lib.BaseTestCase):
   """Class to test the enumeration data type definition."""
 
-  def testInitialize(self):
-    """Tests the initialize function."""
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
     data_type_definition = definitions.EnumerationDefinition(
         u'enum', description=u'enumeration')
     self.assertIsNotNone(data_type_definition)
-
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
 
     # TODO: implement
 
 
 class FloatingPointDefinitionTest(test_lib.BaseTestCase):
   """Class to test the floating-point data type definition."""
-
-  def testInitialize(self):
-    """Tests the initialize function."""
-    data_type_definition = definitions.FloatingPointDefinition(
-        u'float32', aliases=[u'float', u'FLOAT'],
-        description=u'32-bit floating-point')
-    self.assertIsNotNone(data_type_definition)
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
@@ -203,13 +199,6 @@ class IntegerDefinitionTest(test_lib.BaseTestCase):
 class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
   """Class to test the structure data type definition."""
 
-  def testInitialize(self):
-    """Tests the initialize function."""
-    data_type_definition = definitions.StructureDataTypeDefinition(
-        u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
-        description=u'my structure type')
-    self.assertIsNotNone(data_type_definition)
-
   def testGetAttributedNames(self):
     """Tests the GetAttributedNames function."""
     data_type_definition = definitions.StructureDataTypeDefinition(
@@ -219,7 +208,21 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
     attribute_names = data_type_definition.GetAttributedNames()
     self.assertEqual(attribute_names, [])
 
-    # TODO: test struct with members.
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    member_data_type_definition = definitions_registry.GetDefinitionByName(
+        u'int32')
+
+    structure_member_definition = definitions.StructureMemberDefinition(
+        member_data_type_definition, u'my_struct_member',
+        aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
+        description=u'my sequence structure member')
+
+    data_type_definition.AddMemberDefinition(structure_member_definition)
+
+    attribute_names = data_type_definition.GetAttributedNames()
+    self.assertEqual(attribute_names, [u'my_struct_member'])
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
@@ -230,12 +233,46 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
-    # TODO: test struct with members.
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    member_data_type_definition = definitions_registry.GetDefinitionByName(
+        u'int32')
+
+    structure_member_definition = definitions.StructureMemberDefinition(
+        member_data_type_definition, u'my_struct_member',
+        aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
+        description=u'my sequence structure member')
+
+    data_type_definition.AddMemberDefinition(structure_member_definition)
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 4)
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
+    data_type_definition = definitions.StructureDataTypeDefinition(
+        u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
+        description=u'my structure type')
 
-    # TODO: implement
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
+
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    member_data_type_definition = definitions_registry.GetDefinitionByName(
+        u'int32')
+
+    structure_member_definition = definitions.StructureMemberDefinition(
+        member_data_type_definition, u'my_struct_member',
+        aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
+        description=u'my sequence structure member')
+
+    data_type_definition.AddMemberDefinition(structure_member_definition)
+
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'i')
 
   # TODO: add SetDataTypeDefinitionsRegistry test.
 
@@ -245,23 +282,59 @@ class StructureMemberDefinitionTest(test_lib.BaseTestCase):
 
   def testInitialize(self):
     """Tests the initialize function."""
-    member_definition = definitions.StructureMemberDefinition(
-        u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
-        data_type=u'int32', description=u'my sequence structure member')
-    self.assertIsNotNone(member_definition)
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    member_data_type_definition = definitions_registry.GetDefinitionByName(
+        u'int32')
+
+    structure_member_definition = definitions.StructureMemberDefinition(
+        member_data_type_definition, u'my_struct_member',
+        aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
+        description=u'my sequence structure member')
+    self.assertIsNotNone(structure_member_definition)
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
-    member_definition = definitions.SequenceStructureMemberDefinition(
-        u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
-        data_type=u'int32', description=u'my sequence structure member')
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    member_data_type_definition = definitions_registry.GetDefinitionByName(
+        u'int32')
 
-    byte_size = member_definition.GetByteSize()
+    structure_member_definition = definitions.StructureMemberDefinition(
+        None, u'my_struct_member',
+        aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
+        description=u'my sequence structure member')
+
+    byte_size = structure_member_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
-    member_definition.data_size = 4
-    byte_size = member_definition.GetByteSize()
+    structure_member_definition._data_type_definition = (
+        member_data_type_definition)
+    byte_size = structure_member_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    member_data_type_definition = definitions_registry.GetDefinitionByName(
+        u'int32')
+
+    structure_member_definition = definitions.StructureMemberDefinition(
+        None, u'my_struct_member',
+        aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
+        description=u'my sequence structure member')
+
+    struct_format_string = structure_member_definition.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
+
+    structure_member_definition._data_type_definition = (
+        member_data_type_definition)
+    struct_format_string = structure_member_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'i')
 
 
 class SequenceStructureMemberDefinitionTest(test_lib.BaseTestCase):
@@ -269,22 +342,22 @@ class SequenceStructureMemberDefinitionTest(test_lib.BaseTestCase):
 
   def testInitialize(self):
     """Tests the initialize function."""
-    member_definition = definitions.SequenceStructureMemberDefinition(
+    structure_member_definition = definitions.SequenceStructureMemberDefinition(
         u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
         data_type=u'int32', description=u'my sequence structure member')
-    self.assertIsNotNone(member_definition)
+    self.assertIsNotNone(structure_member_definition)
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
-    member_definition = definitions.SequenceStructureMemberDefinition(
+    structure_member_definition = definitions.SequenceStructureMemberDefinition(
         u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
         data_type=u'int32', description=u'my sequence structure member')
 
-    byte_size = member_definition.GetByteSize()
+    byte_size = structure_member_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
-    member_definition.data_size = 4
-    byte_size = member_definition.GetByteSize()
+    structure_member_definition.data_size = 4
+    byte_size = structure_member_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
 
 
@@ -293,21 +366,40 @@ class UnionStructureMemberDefinitionTest(test_lib.BaseTestCase):
 
   def testInitialize(self):
     """Tests the initialize function."""
-    member_definition = definitions.UnionStructureMemberDefinition(
+    structure_member_definition = definitions.UnionStructureMemberDefinition(
         u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
         data_type=u'int32', description=u'my union structure member')
-    self.assertIsNotNone(member_definition)
+    self.assertIsNotNone(structure_member_definition)
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
-    member_definition = definitions.UnionStructureMemberDefinition(
+    structure_member_definition = definitions.UnionStructureMemberDefinition(
         u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
         data_type=u'int32', description=u'my union structure member')
 
-    byte_size = member_definition.GetByteSize()
+    byte_size = structure_member_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
     # TODO: change test when code is implemented
+
+
+class UUIDDefinitionTest(test_lib.BaseTestCase):
+  """Class to test the UUID data type definition."""
+
+  def testInitialize(self):
+    """Tests the initialize function."""
+    data_type_definition = definitions.UUIDDefinition(
+        u'guid', aliases=[u'GUID'], description=u'GUID')
+    self.assertIsNotNone(data_type_definition)
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    data_type_definition = definitions.UUIDDefinition(
+        u'guid', aliases=[u'GUID'], description=u'GUID')
+    self.assertIsNotNone(data_type_definition)
+
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'IHH2B6B')
 
 
 if __name__ == '__main__':
