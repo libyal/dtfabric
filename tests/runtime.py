@@ -40,8 +40,8 @@ class EmptyDataTypeDefinition(definitions.DataTypeDefinition):
     return
 
 
-class DataTypeMapTest(test_lib.BaseTestCase):
-  """Class to test the data type map."""
+class FixedSizeDataTypeMap(test_lib.BaseTestCase):
+  """Class to test the fixed-size data type map."""
 
   def testInitialize(self):
     """Tests the initialize function."""
@@ -50,15 +50,15 @@ class DataTypeMapTest(test_lib.BaseTestCase):
         definitions_file)
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
 
-    data_type_map = runtime.DataTypeMap(data_type_definition)
+    data_type_map = runtime.FixedSizeDataTypeMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
     with self.assertRaises(errors.FormatError):
-      runtime.DataTypeMap(None)
+      runtime.FixedSizeDataTypeMap(None)
 
     with self.assertRaises(errors.FormatError):
       data_type_definition = EmptyDataTypeDefinition(u'empty')
-      runtime.DataTypeMap(data_type_definition)
+      runtime.FixedSizeDataTypeMap(data_type_definition)
 
 
 class BooleanMap(test_lib.BaseTestCase):
@@ -220,6 +220,31 @@ class IntegerMapTest(test_lib.BaseTestCase):
 class StructMapTest(test_lib.BaseTestCase):
   """Class to test the struct map."""
 
+  # pylint: disable=protected-access
+
+  # TODO: test _GetStructFormatStringAndObject
+  # TODO: test _GetStructFormatStrings
+
+  def testGroupFormatStrings(self):
+    """Tests the _GroupFormatStrings function."""
+    data_type_definition = EmptyDataTypeDefinition(u'empty')
+    data_type_map = runtime.StructMap(data_type_definition)
+
+    format_strings = [u'a', u'b', None, u'c', None]
+    expected_grouped_format_strings = [u'ab', None, u'c', None]
+
+    grouped_format_strings = data_type_map._GroupFormatStrings(format_strings)
+    self.assertEqual(grouped_format_strings, expected_grouped_format_strings)
+
+    grouped_format_strings = data_type_map._GroupFormatStrings([])
+    self.assertEqual(grouped_format_strings, [])
+
+    grouped_format_strings = data_type_map._GroupFormatStrings([u'a'])
+    self.assertEqual(grouped_format_strings, [u'a'])
+
+    grouped_format_strings = data_type_map._GroupFormatStrings([None])
+    self.assertEqual(grouped_format_strings, [None])
+
   @test_lib.skipUnlessHasTestFile([u'Notepad.lnk'])
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
@@ -237,9 +262,8 @@ class StructMapTest(test_lib.BaseTestCase):
       byte_stream = file_object.read()
 
     # TODO: implement.
-    with self.assertRaises(AttributeError):
-      data_type_map = runtime.StructMap(data_type_definition)
-      data_type_map.MapByteStream(byte_stream)
+    # data_type_map = runtime.StructMap(data_type_definition)
+    # data_type_map.MapByteStream(byte_stream)
 
 
 class UUIDMapTest(test_lib.BaseTestCase):

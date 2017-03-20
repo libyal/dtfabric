@@ -23,23 +23,9 @@ class DataTypeMap(object):
 
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
-
-    Raises:
-      FormatError: if struct format string cannot be determed from
-          the data type definition.
     """
-    try:
-      format_string = data_type_definition.GetStructFormatString()
-      struct_object = struct.Struct(format_string)
-    except (AttributeError, TypeError) as exception:
-      raise errors.FormatError((
-          u'Unable to create struct object from data type definition '
-          u'with error: {0!s}').format(exception))
-
     super(DataTypeMap, self).__init__()
     self._data_type_definition = data_type_definition
-    self._struct = struct_object
-    self._struct_format_string = format_string
 
   @abc.abstractmethod
   def MapByteStream(self, byte_stream):
@@ -57,7 +43,67 @@ class DataTypeMap(object):
     """
 
 
-class BooleanMap(DataTypeMap):
+class FixedSizeDataTypeMap(DataTypeMap):
+  """Class that defines a fixed-size data type map."""
+
+  def __init__(self, data_type_definition):
+    """Initializes a data type map.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Raises:
+      FormatError: if struct format string cannot be determed from
+          the data type definition.
+    """
+    format_string, struct_object = self._GetStructFormatStringAndObject(
+        data_type_definition)
+
+    super(FixedSizeDataTypeMap, self).__init__(data_type_definition)
+    self._struct = struct_object
+    self._struct_format_string = format_string
+
+  def _GetStructFormatStringAndObject(self, data_type_definition):
+    """Retrieves the struct format string and object.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Returns:
+      tuple[str, struct.Struct]: format string as used by Python struct
+          and Python struct object.
+
+    Raises:
+      FormatError: if struct format string cannot be determed from
+          the data type definition.
+    """
+    try:
+      format_string = data_type_definition.GetStructFormatString()
+      struct_object = struct.Struct(format_string)
+    except (AttributeError, TypeError) as exception:
+      raise errors.FormatError((
+          u'Unable to create struct object from data type definition '
+          u'with error: {0!s}').format(exception))
+
+    return format_string, struct_object
+
+  @abc.abstractmethod
+  def MapByteStream(self, byte_stream):
+    """Maps the data type on top of a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+
+    Returns:
+      object: mapped value.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+
+
+class BooleanMap(FixedSizeDataTypeMap):
   """Class that defines a boolen map."""
 
   def __init__(self, data_type_definition):
@@ -112,7 +158,7 @@ class BooleanMap(DataTypeMap):
     raise errors.MappingError(u'No matching True and False values')
 
 
-class CharacterMap(DataTypeMap):
+class CharacterMap(FixedSizeDataTypeMap):
   """Class that defines a character map."""
 
   def MapByteStream(self, byte_stream):
@@ -136,7 +182,7 @@ class CharacterMap(DataTypeMap):
       raise errors.MappingError(exception)
 
 
-class FloatingPointMap(DataTypeMap):
+class FloatingPointMap(FixedSizeDataTypeMap):
   """Class that defines a floating-point map."""
 
   def MapByteStream(self, byte_stream):
@@ -160,7 +206,7 @@ class FloatingPointMap(DataTypeMap):
       raise errors.MappingError(exception)
 
 
-class IntegerMap(DataTypeMap):
+class IntegerMap(FixedSizeDataTypeMap):
   """Class that defines an integer map."""
 
   def MapByteStream(self, byte_stream):
@@ -204,6 +250,86 @@ class StructMap(DataTypeMap):
     super(StructMap, self).__init__(data_type_definition)
     self._named_tuple = named_tuple
 
+  def _GetStructFormatStringAndObject(self, data_type_definition):
+    """Retrieves the struct format string and object.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Returns:
+      tuple[str, struct.Struct]: format string as used by Python struct
+          and Python struct object.
+
+    Raises:
+      FormatError: if struct format string cannot be determed from
+          the data type definition.
+    """
+    format_strings = self._GetStructFormatStrings(data_type_definition)
+    grouped_format_strings = self._GroupFormatStrings(format_strings)
+
+    for format_string in grouped_format_strings:
+      if not format_string:
+        continue
+
+      try:
+        struct_object = struct.Struct(format_string)
+      except (AttributeError, TypeError) as exception:
+        raise errors.FormatError((
+            u'Unable to create struct object from format string: {0:s}'
+            u'with error: {1!s}').format(format_string, exception))
+
+  def _GetStructFormatStrings(self, data_type_definition):
+    """Retrieves the struct format strings.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Returns:
+      list[str]: format strings as used by Python struct, where None
+          represents that the struct member has no format string.
+    """
+    format_strings = []
+
+    for member in self._data_type_definition.members:
+      format_string = member.GetStructFormatString()
+      format_strings.append(format_string)
+
+    return format_strings
+
+  def _GroupFormatStrings(self, format_strings):
+    """Groups struct format strings.
+
+    Args:
+      format_strings (list[str]): format strings of the struct members,
+          where None represents that the struct member has no format string.
+
+    Returns:
+      list[str]: grouped format strings of the struct members,
+          where None represents that the struct member has no format string.
+    """
+    grouped_format_strings = []
+
+    group_index = None
+    for index, format_string in enumerate(format_strings):
+      if format_string:
+        if group_index is None:
+          group_index = index
+        continue
+
+      if group_index is not None:
+        format_string_group = u''.join(format_strings[group_index:index])
+        grouped_format_strings.append(format_string_group)
+        group_index = None
+
+      grouped_format_strings.append(None)
+
+    if group_index is not None:
+      index = len(format_strings)
+      format_string_group = u''.join(format_strings[group_index:index])
+      grouped_format_strings.append(format_string_group)
+
+    return grouped_format_strings
+
   def MapByteStream(self, byte_stream):
     """Maps the data type on top of a byte stream.
 
@@ -219,14 +345,7 @@ class StructMap(DataTypeMap):
     """
     format_string = []
 
-    for struct_member in self._data_type_definition.members:
-      member_format_string = self._GetStructureMemberFormatString(struct_member)
-
     struct_tuple = struct.unpack_from(format_string, byte_stream)
-
-    for member in self._data_type_definition.members:
-      # TODO: implement.
-      pass
 
     try:
       struct_tuple = self._struct.unpack_from(byte_stream)
@@ -237,7 +356,7 @@ class StructMap(DataTypeMap):
       raise errors.MappingError(exception)
 
 
-class UUIDMap(DataTypeMap):
+class UUIDMap(FixedSizeDataTypeMap):
   """Class that defines an UUID map."""
 
   def MapByteStream(self, byte_stream):
