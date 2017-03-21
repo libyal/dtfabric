@@ -268,15 +268,13 @@ class StructMap(DataTypeMap):
     grouped_format_strings = self._GroupFormatStrings(format_strings)
 
     for format_string in grouped_format_strings:
-      if not format_string:
-        continue
-
-      try:
-        struct_object = struct.Struct(format_string)
-      except (AttributeError, TypeError) as exception:
-        raise errors.FormatError((
-            u'Unable to create struct object from format string: {0:s}'
-            u'with error: {1!s}').format(format_string, exception))
+      if isinstance(format_string, py2to3.STRING_TYPES):
+        try:
+          struct_object = struct.Struct(format_string)
+        except (AttributeError, TypeError) as exception:
+          raise errors.FormatError((
+              u'Unable to create struct object from format string: {0:s}'
+              u'with error: {1!s}').format(format_string, exception))
 
   def _GetStructFormatStrings(self, data_type_definition):
     """Retrieves the struct format strings.
@@ -285,13 +283,17 @@ class StructMap(DataTypeMap):
       data_type_definition (DataTypeDefinition): data type definition.
 
     Returns:
-      list[str]: format strings as used by Python struct, where None
-          represents that the struct member has no format string.
+      list[str]: format strings as used by Python struct, where a instance of
+          StructureMemberDefinition represents that the struct member has no
+          format string.
     """
     format_strings = []
 
     for member in self._data_type_definition.members:
       format_string = member.GetStructFormatString()
+      if not format_string:
+        format_string = member
+
       format_strings.append(format_string)
 
     return format_strings
@@ -300,18 +302,20 @@ class StructMap(DataTypeMap):
     """Groups struct format strings.
 
     Args:
-      format_strings (list[str]): format strings of the struct members,
-          where None represents that the struct member has no format string.
+      format_strings (list[str]): format strings of the struct members, where
+          an instance of StructureMemberDefinition represents that the struct
+          member has no format string.
 
     Returns:
-      list[str]: grouped format strings of the struct members,
-          where None represents that the struct member has no format string.
+      list[str]: grouped format strings of the struct members, where an instance
+          of StructureMemberDefinition represents that the struct member has no
+          format string.
     """
     grouped_format_strings = []
 
     group_index = None
     for index, format_string in enumerate(format_strings):
-      if format_string:
+      if isinstance(format_string, py2to3.STRING_TYPES):
         if group_index is None:
           group_index = index
         continue
@@ -321,7 +325,7 @@ class StructMap(DataTypeMap):
         grouped_format_strings.append(format_string_group)
         group_index = None
 
-      grouped_format_strings.append(None)
+      grouped_format_strings.append(format_string)
 
     if group_index is not None:
       index = len(format_strings)

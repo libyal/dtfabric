@@ -55,3 +55,44 @@ members:
   aliases: [Reserved3]
   data_type: uint32
   data: 0
+---
+name: link_target_identifier
+aliases: [LinkTargetIDList]
+type: structure
+description: Link target identifier
+members:
+- name: data_size
+  aliases: [IDListSize]
+  data_type: uint16
+- sequence:
+    name: data
+    aliases: [IDList]
+    data_type: byte
+    data_size: link_target_identifier.data_size
+---
+name: location_information
+aliases: [LinkInfo]
+type: structure
+description: Location information
+members:
+- name: data_size
+  aliases: [LinkInfoSize]
+  data_type: uint32
+- name: header_size
+  aliases: [LinkInfoHeaderSize]
+  data_type: uint32
+- name: location_flags
+  aliases: [LinkInfoFlags]
+  data_type: uint32
+- name: volume_information_offset
+  aliases: [VolumeIDOffset]
+  data_type: uint32
+- name: local_path_offset
+  aliases: [LocalBasePathOffset]
+  data_type: uint32
+- name: network_share_information_offset
+  aliases: [CommonNetworkRelativeLinkOffset]
+  data_type: uint32
+- name: common_path_offset
+  aliases: [CommonPathSuffixOffset]
+  data_type: uint32
