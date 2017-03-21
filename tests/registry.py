@@ -25,7 +25,11 @@ class DataTypeDefinitionsRegistryTest(test_lib.BaseTestCase):
     with self.assertRaises(KeyError):
       definitions_registry.RegisterDefinition(data_type_definition)
 
-    # TODO: test raise KeyError on duplicated alias
+    test_definition = definitions.IntegerDefinition(
+        u'long', aliases=[u'LONG'], description=u'long integer')
+
+    with self.assertRaises(KeyError):
+      definitions_registry.DeregisterDefinition(test_definition)
 
     definitions_registry.DeregisterDefinition(data_type_definition)
 

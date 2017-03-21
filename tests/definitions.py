@@ -10,7 +10,7 @@ from tests import test_lib
 
 
 # TODO: complete EnumerationDefinitionTest.
-# TODO: add FormatDefinitionTest.
+# TODO: complete FormatDefinitionTest.
 # TODO: complete StructureDataTypeDefinitionTest.
 # TODO: complete UnionStructureMemberDefinitionTest.
 
@@ -111,6 +111,24 @@ class EnumerationDefinitionTest(test_lib.BaseTestCase):
     data_type_definition = definitions.EnumerationDefinition(
         u'enum', description=u'enumeration')
     self.assertIsNotNone(data_type_definition)
+
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
+
+    # TODO: implement
+
+
+class FormatDefinitionTest(test_lib.BaseTestCase):
+  """Class to test the data format definition."""
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    data_type_definition = definitions.FormatDefinition(
+        u'format', description=u'data format')
+    self.assertIsNotNone(data_type_definition)
+
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
 
     # TODO: implement
 
@@ -274,7 +292,7 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
     struct_format_string = data_type_definition.GetStructFormatString()
     self.assertEqual(struct_format_string, u'i')
 
-  # TODO: add SetDataTypeDefinitionsRegistry test.
+    # TODO: test with member without a struct format string.
 
 
 class StructureMemberDefinitionTest(test_lib.BaseTestCase):
