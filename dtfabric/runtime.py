@@ -15,6 +15,57 @@ from dtfabric import registry
 # TODO: add FormatMap.
 # TODO: complete StructMap.
 
+class ByteStreamOperation(object):
+  """Class that defines a byte stream operation."""
+
+  @abc.abstractmethod
+  def ReadFrom(self, byte_stream):
+    """Read values from a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+
+    Returns:
+      tuple[object, ]: values copies from the byte stream.
+    """
+
+
+class StructOperation(ByteStreamOperation):
+  """Class that defines a Python struct-base binary stream operation."""
+
+  def __init__(self, format_string):
+    """Initializes a Python struct-base binary stream operation.
+
+    Args:
+      format_string (str): format string as used by Python struct.
+
+    Raises:
+      FormatError: if struct format string cannot be determed from
+          the data type definition.
+    """
+    try:
+      struct_object = struct.Struct(format_string)
+    except (TypeError, struct.error) as exception:
+      raise errors.FormatError((
+          u'Unable to create struct object from data type definition '
+          u'with error: {0!s}').format(exception))
+
+    super(StructOperation, self).__init__()
+    self._struct = struct_object
+    self._struct_format_string = format_string
+
+  def ReadFrom(self, byte_stream):
+    """Read values from a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+
+    Returns:
+      tuple[object, ]: values copies from the byte stream.
+    """
+    return self._struct.unpack_from(byte_stream)
+
+
 class DataTypeMap(object):
   """Class that defines a data type map."""
 
@@ -56,36 +107,15 @@ class FixedSizeDataTypeMap(DataTypeMap):
       FormatError: if struct format string cannot be determed from
           the data type definition.
     """
-    format_string, struct_object = self._GetStructFormatStringAndObject(
-        data_type_definition)
-
-    super(FixedSizeDataTypeMap, self).__init__(data_type_definition)
-    self._struct = struct_object
-    self._struct_format_string = format_string
-
-  def _GetStructFormatStringAndObject(self, data_type_definition):
-    """Retrieves the struct format string and object.
-
-    Args:
-      data_type_definition (DataTypeDefinition): data type definition.
-
-    Returns:
-      tuple[str, struct.Struct]: format string as used by Python struct
-          and Python struct object.
-
-    Raises:
-      FormatError: if struct format string cannot be determed from
-          the data type definition.
-    """
     try:
       format_string = data_type_definition.GetStructFormatString()
-      struct_object = struct.Struct(format_string)
-    except (AttributeError, TypeError) as exception:
+    except AttributeError as exception:
       raise errors.FormatError((
           u'Unable to create struct object from data type definition '
           u'with error: {0!s}').format(exception))
 
-    return format_string, struct_object
+    super(FixedSizeDataTypeMap, self).__init__(data_type_definition)
+    self._operation = StructOperation(format_string)
 
   @abc.abstractmethod
   def MapByteStream(self, byte_stream):
@@ -137,7 +167,7 @@ class BooleanMap(FixedSizeDataTypeMap):
           the byte stream.
     """
     try:
-      struct_tuple = self._struct.unpack_from(byte_stream)
+      struct_tuple = self._operation.ReadFrom(byte_stream)
       integer_value = int(*struct_tuple)
 
     except Exception as exception:
@@ -175,7 +205,7 @@ class CharacterMap(FixedSizeDataTypeMap):
           the byte stream.
     """
     try:
-      struct_tuple = self._struct.unpack_from(byte_stream)
+      struct_tuple = self._operation.ReadFrom(byte_stream)
       return py2to3.UNICHR(*struct_tuple)
 
     except Exception as exception:
@@ -199,7 +229,7 @@ class FloatingPointMap(FixedSizeDataTypeMap):
           the byte stream.
     """
     try:
-      struct_tuple = self._struct.unpack_from(byte_stream)
+      struct_tuple = self._operation.ReadFrom(byte_stream)
       return float(*struct_tuple)
 
     except Exception as exception:
@@ -223,7 +253,7 @@ class IntegerMap(FixedSizeDataTypeMap):
           the byte stream.
     """
     try:
-      struct_tuple = self._struct.unpack_from(byte_stream)
+      struct_tuple = self._operation.ReadFrom(byte_stream)
       return int(*struct_tuple)
 
     except Exception as exception:
@@ -349,10 +379,8 @@ class StructMap(DataTypeMap):
     """
     format_string = []
 
-    struct_tuple = struct.unpack_from(format_string, byte_stream)
-
     try:
-      struct_tuple = self._struct.unpack_from(byte_stream)
+      struct_tuple = self._operation.ReadFrom(byte_stream)
       # pylint: disable=protected-access
       return self._named_tuple._make(struct_tuple)
 
@@ -377,7 +405,7 @@ class UUIDMap(FixedSizeDataTypeMap):
           the byte stream.
     """
     try:
-      struct_tuple = self._struct.unpack_from(byte_stream)
+      struct_tuple = self._operation.ReadFrom(byte_stream)
       uuid_string = u'{{{0:08x}-{1:04x}-{2:04x}-{3:04x}-{4:010x}}}'
       return uuid.UUID(uuid_string)
 

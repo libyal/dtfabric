@@ -2,6 +2,7 @@
 """Tests for the run-time object."""
 
 import os
+import struct
 import unittest
 
 from dtfabric import errors
@@ -40,7 +41,35 @@ class EmptyDataTypeDefinition(definitions.DataTypeDefinition):
     return
 
 
-class FixedSizeDataTypeMap(test_lib.BaseTestCase):
+class StructOperationTest(test_lib.BaseTestCase):
+  """Class to test the Python struct-base binary stream operation."""
+
+  def testInitialize(self):
+    """Tests the initialize function."""
+    byte_stream_operation = runtime.StructOperation(u'b')
+    self.assertIsNotNone(byte_stream_operation)
+
+    with self.assertRaises(errors.FormatError):
+      runtime.StructOperation(None)
+
+    with self.assertRaises(errors.FormatError):
+      runtime.StructOperation(u'z')
+
+  def testReadFrom(self):
+    """Tests the ReadFrom function."""
+    byte_stream_operation = runtime.StructOperation(u'i')
+
+    struct_tuple = byte_stream_operation.ReadFrom(b'\x12\x34\x56\x78')
+    self.assertEqual(struct_tuple, (0x78563412, ))
+
+    with self.assertRaises(struct.error):
+      byte_stream_operation.ReadFrom(None)
+
+    with self.assertRaises(struct.error):
+      byte_stream_operation.ReadFrom(b'\x12\x34\x56')
+
+
+class FixedSizeDataTypeMapTest(test_lib.BaseTestCase):
   """Class to test the fixed-size data type map."""
 
   def testInitialize(self):
@@ -61,7 +90,7 @@ class FixedSizeDataTypeMap(test_lib.BaseTestCase):
       runtime.FixedSizeDataTypeMap(data_type_definition)
 
 
-class BooleanMap(test_lib.BaseTestCase):
+class BooleanMapTest(test_lib.BaseTestCase):
   """Class to test the boolean map."""
 
   def testInitialize(self):
@@ -152,7 +181,7 @@ class CharacterMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\xb6\x24')
 
 
-class FloatingPointMap(test_lib.BaseTestCase):
+class FloatingPointMapTest(test_lib.BaseTestCase):
   """Class to test the floating-point map."""
 
   def testMapByteStream(self):
