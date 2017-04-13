@@ -108,6 +108,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_reader = reader.DataTypeDefinitionsFileReader()
 
     # TODO: implement.
+    _ = definitions_registry
 
     data_type_definition = definitions_reader._ReadFormatDefinition(
         definition_values, u'lnk')

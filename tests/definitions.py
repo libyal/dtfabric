@@ -4,7 +4,6 @@
 import unittest
 
 from dtfabric import definitions
-from dtfabric import registry
 
 from tests import test_lib
 
@@ -13,6 +12,35 @@ from tests import test_lib
 # TODO: complete FormatDefinitionTest.
 # TODO: complete StructureDataTypeDefinitionTest.
 # TODO: complete UnionStructureMemberDefinitionTest.
+
+class TestDataTypeDefinition(definitions.DataTypeDefinition):
+  """Data type definition for testing."""
+
+  def GetAttributedNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+    return [u'value']
+
+  def GetByteSize(self):
+    """Determines the byte size of the data type definition.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    return
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return
+
 
 class FixedSizeDataTypeDefinitionTest(test_lib.BaseTestCase):
   """Class to test the fixed-size data type definition."""
@@ -217,6 +245,8 @@ class IntegerDefinitionTest(test_lib.BaseTestCase):
 class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
   """Class to test the structure data type definition."""
 
+  # pylint: disable=protected-access
+
   def testGetAttributedNames(self):
     """Tests the GetAttributedNames function."""
     data_type_definition = definitions.StructureDataTypeDefinition(
@@ -235,7 +265,7 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
     structure_member_definition = definitions.StructureMemberDefinition(
         member_data_type_definition, u'my_struct_member',
         aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
-        description=u'my sequence structure member')
+        description=u'my structure member')
 
     data_type_definition.AddMemberDefinition(structure_member_definition)
 
@@ -260,7 +290,7 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
     structure_member_definition = definitions.StructureMemberDefinition(
         member_data_type_definition, u'my_struct_member',
         aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
-        description=u'my sequence structure member')
+        description=u'my structure member')
 
     data_type_definition.AddMemberDefinition(structure_member_definition)
 
@@ -285,18 +315,36 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
     structure_member_definition = definitions.StructureMemberDefinition(
         member_data_type_definition, u'my_struct_member',
         aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
-        description=u'my sequence structure member')
+        description=u'my structure member')
 
     data_type_definition.AddMemberDefinition(structure_member_definition)
 
     struct_format_string = data_type_definition.GetStructFormatString()
     self.assertEqual(struct_format_string, u'i')
 
-    # TODO: test with member without a struct format string.
+    # Test with member without a struct format string.
+
+    data_type_definition = definitions.StructureDataTypeDefinition(
+        u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
+        description=u'my structure type')
+
+    member_data_type_definition = TestDataTypeDefinition(u'test')
+
+    structure_member_definition = definitions.StructureMemberDefinition(
+        member_data_type_definition, u'my_struct_member',
+        aliases=[u'MY_STRUCT_MEMBER'], data_type=u'test',
+        description=u'my structure member')
+
+    data_type_definition.AddMemberDefinition(structure_member_definition)
+
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
 
 
 class StructureMemberDefinitionTest(test_lib.BaseTestCase):
   """Class to test the structure member definition."""
+
+  # pylint: disable=protected-access
 
   def testInitialize(self):
     """Tests the initialize function."""
@@ -309,7 +357,7 @@ class StructureMemberDefinitionTest(test_lib.BaseTestCase):
     structure_member_definition = definitions.StructureMemberDefinition(
         member_data_type_definition, u'my_struct_member',
         aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
-        description=u'my sequence structure member')
+        description=u'my structure member')
     self.assertIsNotNone(structure_member_definition)
 
   def testGetByteSize(self):
@@ -323,7 +371,7 @@ class StructureMemberDefinitionTest(test_lib.BaseTestCase):
     structure_member_definition = definitions.StructureMemberDefinition(
         None, u'my_struct_member',
         aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
-        description=u'my sequence structure member')
+        description=u'my structure member')
 
     byte_size = structure_member_definition.GetByteSize()
     self.assertIsNone(byte_size)
@@ -344,7 +392,7 @@ class StructureMemberDefinitionTest(test_lib.BaseTestCase):
     structure_member_definition = definitions.StructureMemberDefinition(
         None, u'my_struct_member',
         aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
-        description=u'my sequence structure member')
+        description=u'my structure member')
 
     struct_format_string = structure_member_definition.GetStructFormatString()
     self.assertIsNone(struct_format_string)

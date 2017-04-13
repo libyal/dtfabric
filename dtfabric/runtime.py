@@ -8,7 +8,6 @@ import uuid
 
 from dtfabric import errors
 from dtfabric import py2to3
-from dtfabric import registry
 
 
 # TODO: add EnumerationMap.
@@ -16,7 +15,7 @@ from dtfabric import registry
 # TODO: complete StructMap.
 
 class ByteStreamOperation(object):
-  """Class that defines a byte stream operation."""
+  """Byte stream operation."""
 
   @abc.abstractmethod
   def ReadFrom(self, byte_stream):
@@ -31,7 +30,7 @@ class ByteStreamOperation(object):
 
 
 class StructOperation(ByteStreamOperation):
-  """Class that defines a Python struct-base binary stream operation."""
+  """Python struct-base binary stream operation."""
 
   def __init__(self, format_string):
     """Initializes a Python struct-base binary stream operation.
@@ -67,7 +66,7 @@ class StructOperation(ByteStreamOperation):
 
 
 class DataTypeMap(object):
-  """Class that defines a data type map."""
+  """Data type map."""
 
   def __init__(self, data_type_definition):
     """Initializes a data type map.
@@ -95,7 +94,7 @@ class DataTypeMap(object):
 
 
 class FixedSizeDataTypeMap(DataTypeMap):
-  """Class that defines a fixed-size data type map."""
+  """Fixed-size data type map."""
 
   def __init__(self, data_type_definition):
     """Initializes a data type map.
@@ -134,7 +133,7 @@ class FixedSizeDataTypeMap(DataTypeMap):
 
 
 class BooleanMap(FixedSizeDataTypeMap):
-  """Class that defines a boolen map."""
+  """Boolen data type map."""
 
   def __init__(self, data_type_definition):
     """Initializes a data type map.
@@ -189,7 +188,7 @@ class BooleanMap(FixedSizeDataTypeMap):
 
 
 class CharacterMap(FixedSizeDataTypeMap):
-  """Class that defines a character map."""
+  """Character data type map."""
 
   def MapByteStream(self, byte_stream):
     """Maps the data type on top of a byte stream.
@@ -213,7 +212,7 @@ class CharacterMap(FixedSizeDataTypeMap):
 
 
 class FloatingPointMap(FixedSizeDataTypeMap):
-  """Class that defines a floating-point map."""
+  """Floating-point data type map."""
 
   def MapByteStream(self, byte_stream):
     """Maps the data type on top of a byte stream.
@@ -237,7 +236,7 @@ class FloatingPointMap(FixedSizeDataTypeMap):
 
 
 class IntegerMap(FixedSizeDataTypeMap):
-  """Class that defines an integer map."""
+  """Integer data type map."""
 
   def MapByteStream(self, byte_stream):
     """Maps the data type on top of a byte stream.
@@ -261,7 +260,7 @@ class IntegerMap(FixedSizeDataTypeMap):
 
 
 class StructMap(DataTypeMap):
-  """Class that defines a struct map."""
+  """Structure data type map."""
 
   def __init__(self, data_type_definition):
     """Initializes a data type map.
@@ -389,7 +388,7 @@ class StructMap(DataTypeMap):
 
 
 class UUIDMap(FixedSizeDataTypeMap):
-  """Class that defines an UUID map."""
+  """UUID (or GUID) data type map."""
 
   def MapByteStream(self, byte_stream):
     """Maps the data type on top of a byte stream.

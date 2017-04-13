@@ -3,7 +3,7 @@
 
 
 class DataTypeDefinitionsRegistry(object):
-  """Class that implements a data type definitions registry."""
+  """Data type definitions registry."""
 
   def __init__(self):
     """Initializes a data type definitions registry."""

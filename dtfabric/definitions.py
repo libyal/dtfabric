@@ -10,7 +10,7 @@ import abc
 # TODO: complete UnionStructureMemberDefinition.
 
 class DataTypeDefinition(object):
-  """Class that defines the data type definition interface.
+  """Data type definition interface.
 
   Attributes:
     aliases (list[str]): aliases.
@@ -61,7 +61,7 @@ class DataTypeDefinition(object):
 
 
 class FixedSizeDataTypeDefinition(DataTypeDefinition):
-  """Class that defines a fixed-size data type definition.
+  """Fixed-size data type definition.
 
   Attributes:
     size (int|list[int]): size of the data type.
@@ -110,7 +110,7 @@ class FixedSizeDataTypeDefinition(DataTypeDefinition):
 
 
 class BooleanDefinition(FixedSizeDataTypeDefinition):
-  """Class that defines a boolean data type definition.
+  """Boolean data type definition.
 
   Attributes:
     false_value (int): value of False, None represents any value except that
@@ -152,7 +152,7 @@ class BooleanDefinition(FixedSizeDataTypeDefinition):
 
 
 class CharacterDefinition(FixedSizeDataTypeDefinition):
-  """Class that defines a character data type definition."""
+  """Character data type definition."""
 
   # We use 'i' here instead of 'l' because 'l' behaves architecture dependent.
 
@@ -173,7 +173,7 @@ class CharacterDefinition(FixedSizeDataTypeDefinition):
 
 
 class EnumerationDefinition(FixedSizeDataTypeDefinition):
-  """Class that defines an enumeration data type definition."""
+  """Enumeration data type definition."""
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -186,7 +186,7 @@ class EnumerationDefinition(FixedSizeDataTypeDefinition):
 
 
 class FloatingPointDefinition(FixedSizeDataTypeDefinition):
-  """Class that defines a floating point data type definition."""
+  """Floating point data type definition."""
 
   _FORMAT_STRINGS = {
       4: u'f',
@@ -204,7 +204,7 @@ class FloatingPointDefinition(FixedSizeDataTypeDefinition):
 
 
 class FormatDefinition(DataTypeDefinition):
-  """Class that defines a data format definition."""
+  """Data format definition."""
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -217,7 +217,7 @@ class FormatDefinition(DataTypeDefinition):
 
 
 class IntegerDefinition(FixedSizeDataTypeDefinition):
-  """Class that defines an integer data type definition.
+  """Integer data type definition.
 
   Attributes:
     format (str): format of the data type.
@@ -268,7 +268,7 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
 
 
 class StructureDataTypeDefinition(DataTypeDefinition):
-  """Class that defines a structure data type definition.
+  """Structure data type definition.
 
   Attributes:
     members (list[object]): members.
@@ -345,7 +345,7 @@ class StructureDataTypeDefinition(DataTypeDefinition):
       for member_definition in self.members:
         member_format_string = member_definition.GetStructFormatString()
         if member_format_string is None:
-          break
+          return
 
         member_format_strings.append(member_format_string)
 
@@ -355,7 +355,7 @@ class StructureDataTypeDefinition(DataTypeDefinition):
 
 
 class StructureMemberDefinition(object):
-  """Class that defines a structure data type member definition.
+  """Structure data type member definition.
 
   Attributes:
     aliases (list[str]): aliases.
@@ -404,7 +404,7 @@ class StructureMemberDefinition(object):
 
 
 class SequenceStructureMemberDefinition(StructureMemberDefinition):
-  """Class that defines a sequence structure data type member definition.
+  """Sequence structure data type member definition.
 
   Attributes:
     data_size (int): data size.
@@ -441,7 +441,7 @@ class SequenceStructureMemberDefinition(StructureMemberDefinition):
 
 
 class UnionStructureMemberDefinition(StructureMemberDefinition):
-  """Class that defines an union structure data type member definition.
+  """Union structure data type member definition.
 
   Attributes:
     members (list[object]): members.
@@ -477,7 +477,7 @@ class UnionStructureMemberDefinition(StructureMemberDefinition):
 # TODO: revisit if this should this be a separate data type.
 
 class UUIDDefinition(FixedSizeDataTypeDefinition):
-  """Class that defines an UUID (or GUID) data type definition."""
+  """UUID (or GUID) data type definition."""
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes an integer data type definition.

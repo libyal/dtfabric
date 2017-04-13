@@ -11,7 +11,7 @@ from dtfabric import errors
 
 
 class DataTypeDefinitionsReader(object):
-  """Class that defines the data type definitions reader interface."""
+  """Data type definitions reader interface."""
 
   @abc.abstractmethod
   def ReadDefinitionFromDict(self, definitions_registry, definition_values):
@@ -32,7 +32,7 @@ class DataTypeDefinitionsReader(object):
 
 
 class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
-  """Class that defines the data type definitions file reader interface."""
+  """Data type definitions file reader interface."""
 
   _DATA_TYPE_CALLBACKS = {
       u'boolean': u'_ReadBooleanDataTypeDefinition',
@@ -405,7 +405,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
 
 class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
-  """Class that implements the YAML data type definitions file reader."""
+  """YAML data type definitions file reader."""
 
   def ReadDirectory(self, definitions_registry, path, extension=u'yaml'):
     """Reads data type definitions from a directory.

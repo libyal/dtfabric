@@ -6,7 +6,11 @@ COVERALL_DEPENDENCIES="python-coverage python-coveralls python-docopt";
 
 PYTHON2_DEPENDENCIES="python-yaml";
 
+PYTHON2_TEST_DEPENDENCIES="python-mock";
+
 PYTHON3_DEPENDENCIES="python3-yaml";
+
+PYTHON3_TEST_DEPENDENCIES="python3-mock";
 
 # Exit on error.
 set -e;
@@ -26,5 +30,5 @@ elif test `uname -s` = "Linux";
 then
 	sudo add-apt-repository ppa:gift/dev -y;
 	sudo apt-get update -q;
-	sudo apt-get install -y ${COVERALL_DEPENDENCIES} ${PYTHON2_DEPENDENCIES} ${PYTHON3_DEPENDENCIES};
+	sudo apt-get install -y ${COVERALL_DEPENDENCIES} ${PYTHON2_DEPENDENCIES} ${PYTHON2_DEPENDENCIES} ${PYTHON3_DEPENDENCIES} ${PYTHON3_TEST_DEPENDENCIES};
 fi
