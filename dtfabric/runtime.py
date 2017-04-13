@@ -85,6 +85,14 @@ class DataTypeMap(object):
     super(DataTypeMap, self).__init__()
     self._data_type_definition = data_type_definition
 
+  def GetByteSize(self):
+    """Determines the byte size of the data type map.
+
+    Returns:
+      int: data map size in bytes or None if size cannot be determined.
+    """
+    return self._data_type_definition.GetByteSize()
+
   @abc.abstractmethod
   def MapByteStream(self, byte_stream):
     """Maps the data type on top of a byte stream.
@@ -287,8 +295,15 @@ class StructureMap(DataTypeMap):
     named_tuple = collections.namedtuple(
         data_type_definition.name, attribute_names)
 
+    format_strings = self._GetStructFormatStrings(data_type_definition)
+    grouped_format_strings = self._GroupFormatStrings(format_strings)
+
     super(StructureMap, self).__init__(data_type_definition)
     self._named_tuple = named_tuple
+    self._operation = None
+
+    if len(grouped_format_strings) == 1:
+      self._operation = StructOperation(grouped_format_strings[0])
 
   def _GetStructFormatStringAndObject(self, data_type_definition):
     """Retrieves the struct format string and object.
@@ -329,7 +344,7 @@ class StructureMap(DataTypeMap):
     """
     format_strings = []
 
-    for member in self._data_type_definition.members:
+    for member in data_type_definition.members:
       format_string = member.GetStructFormatString()
       if not format_string:
         format_string = member
@@ -418,7 +433,10 @@ class UUIDMap(FixedSizeDataTypeMap):
     """
     try:
       struct_tuple = self._operation.ReadFrom(byte_stream)
-      uuid_string = u'{{{0:08x}-{1:04x}-{2:04x}-{3:04x}-{4:010x}}}'
+      uuid_string = (
+          u'{{{0:08x}-{1:04x}-{2:04x}-{3:02x}{4:02x}-'
+          u'{5:02x}{6:02x}{7:02x}{8:02x}{9:02x}{10:02x}}}').format(
+              *struct_tuple)
       return uuid.UUID(uuid_string)
 
     except Exception as exception:

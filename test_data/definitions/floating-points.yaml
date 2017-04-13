@@ -3,6 +3,7 @@ aliases: [float, FLOAT]
 type: floating-point
 description: 32-bit single precision floating-point type
 attributes:
+  byte_order: little-endian
   size: 4
   units: bytes
 ---
@@ -11,5 +12,6 @@ aliases: [double, DOUBLE]
 type: floating-point
 description: 64-bit double precision floating-point type
 attributes:
+  byte_order: little-endian
   size: 8
   units: bytes

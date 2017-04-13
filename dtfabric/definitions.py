@@ -564,4 +564,4 @@ class UUIDDefinition(FixedSizeDataTypeDefinition):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    return u'IHH2B6B'
+    return u'IHH8B'

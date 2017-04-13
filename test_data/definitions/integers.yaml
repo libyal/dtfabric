@@ -10,6 +10,7 @@ name: int16
 type: integer
 description: 16-bit signed integer type
 attributes:
+  byte_order: little-endian
   format: signed
   size: 2
   units: bytes
@@ -19,6 +20,7 @@ aliases: [LONG, LONG32]
 type: integer
 description: 32-bit signed integer type
 attributes:
+  byte_order: little-endian
   format: signed
   size: 4
   units: bytes
@@ -28,6 +30,7 @@ aliases: [LONG64]
 type: integer
 description: 64-bit signed integer type
 attributes:
+  byte_order: little-endian
   format: signed
   size: 8
   units: bytes
@@ -46,6 +49,7 @@ aliases: [WORD]
 type: integer
 description: 16-bit unsigned integer type
 attributes:
+  byte_order: little-endian
   format: unsigned
   size: 2
   units: bytes
@@ -55,6 +59,7 @@ aliases: [DWORD, DWORD32, ULONG, ULONG32]
 type: integer
 description: 32-bit unsigned integer type
 attributes:
+  byte_order: little-endian
   format: unsigned
   size: 4
   units: bytes
@@ -64,6 +69,7 @@ aliases: [DWORDLONG, DWORD64, ULONG64]
 type: integer
 description: 64-bit unsigned integer type
 attributes:
+  byte_order: little-endian
   format: unsigned
   size: 8
   units: bytes

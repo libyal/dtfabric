@@ -483,7 +483,7 @@ class UUIDDefinitionTest(test_lib.BaseTestCase):
     self.assertIsNotNone(data_type_definition)
 
     struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'IHH2B6B')
+    self.assertEqual(struct_format_string, u'IHH8B')
 
 
 if __name__ == '__main__':

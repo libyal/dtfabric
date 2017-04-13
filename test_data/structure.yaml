@@ -1,0 +1,31 @@
+name: int32
+type: integer
+description: 32-bit signed integer type
+attributes:
+  format: signed
+  size: 4
+  units: bytes
+---
+name: point3d
+type: structure
+description: Point in 3 dimentional space.
+attributes:
+  byte_order: little-endian
+members:
+- name: x
+  data_type: int32
+- name: y
+  data_type: int32
+- name: z
+  data_type: int32
+---
+name: triangle3d
+type: structure
+description: Triangle in 3 dimentional space.
+members:
+- name: a
+  data_type: point3d
+- name: b
+  data_type: point3d
+- name: c
+  data_type: point3d

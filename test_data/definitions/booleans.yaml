@@ -12,6 +12,7 @@ name: bool16
 type: boolean
 description: 16-bit boolean type
 attributes:
+  byte_order: little-endian
   size: 2
   units: bytes
   false_value: 0
@@ -22,6 +23,7 @@ aliases: [BOOL]
 type: boolean
 description: 32-bit boolean type
 attributes:
+  byte_order: little-endian
   size: 4
   units: bytes
   false_value: 0

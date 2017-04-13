@@ -3,6 +3,7 @@
 
 import os
 import unittest
+import uuid
 
 from dtfabric import errors
 from dtfabric import definitions
@@ -68,6 +69,25 @@ class StructOperationTest(test_lib.BaseTestCase):
       byte_stream_operation.ReadFrom(b'\x12\x34\x56')
 
 
+@test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
+class DataTypeMapTest(test_lib.BaseTestCase):
+  """Data type map tests."""
+
+  def testGetByteSize(self):
+    """Tests the GetByteSize function."""
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
+
+    data_type_map = runtime.DataTypeMap(data_type_definition)
+
+    byte_size = data_type_map.GetByteSize()
+    self.assertEqual(byte_size, 4)
+
+
+@test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
 class FixedSizeDataTypeMapTest(test_lib.BaseTestCase):
   """Fixed-size data type map tests."""
 
@@ -90,6 +110,7 @@ class FixedSizeDataTypeMapTest(test_lib.BaseTestCase):
       runtime.FixedSizeDataTypeMap(data_type_definition)
 
 
+@test_lib.skipUnlessHasTestFile([u'definitions', u'booleans.yaml'])
 class BooleanMapTest(test_lib.BaseTestCase):
   """Boolean map tests."""
 
@@ -153,6 +174,7 @@ class BooleanMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\x01\x00')
 
 
+@test_lib.skipUnlessHasTestFile([u'definitions', u'characters.yaml'])
 class CharacterMapTest(test_lib.BaseTestCase):
   """Character map tests."""
 
@@ -188,6 +210,7 @@ class CharacterMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\xb6\x24')
 
 
+@test_lib.skipUnlessHasTestFile([u'definitions', u'floating-points.yaml'])
 class FloatingPointMapTest(test_lib.BaseTestCase):
   """Floating-point map tests."""
 
@@ -217,6 +240,7 @@ class FloatingPointMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\xa4\x70\x45\x41')
 
 
+@test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
 class IntegerMapTest(test_lib.BaseTestCase):
   """Integer map tests."""
 
@@ -266,17 +290,49 @@ class IntegerMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\x12\x34\x56\x78')
 
 
+@test_lib.skipUnlessHasTestFile([u'structure.yaml'])
 class StructureMapTest(test_lib.BaseTestCase):
   """Structure map tests."""
 
   # pylint: disable=protected-access
 
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    definitions_file = self._GetTestFilePath([u'structure.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'point3d')
+    data_type_map = runtime.StructureMap(data_type_definition)
+    self.assertIsNotNone(data_type_map)
+
   # TODO: test _GetStructFormatStringAndObject
-  # TODO: test _GetStructFormatStrings
+
+  def testGetStructFormatStrings(self):
+    """Tests the _GetStructFormatStrings function."""
+    definitions_file = self._GetTestFilePath([u'structure.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'point3d')
+    data_type_map = runtime.StructureMap(data_type_definition)
+
+    format_strings = data_type_map._GetStructFormatStrings(data_type_definition)
+    self.assertEqual(format_strings, [u'i', u'i', u'i'])
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'triangle3d')
+    data_type_map = runtime.StructureMap(data_type_definition)
+
+    format_strings = data_type_map._GetStructFormatStrings(data_type_definition)
+    self.assertEqual(format_strings, [u'iii', u'iii', u'iii'])
 
   def testGroupFormatStrings(self):
     """Tests the _GroupFormatStrings function."""
-    data_type_definition = EmptyDataTypeDefinition(u'empty')
+    definitions_file = self._GetTestFilePath([u'structure.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'point3d')
     data_type_map = runtime.StructureMap(data_type_definition)
 
     format_strings = [u'a', u'b', None, u'c', None]
@@ -294,33 +350,41 @@ class StructureMapTest(test_lib.BaseTestCase):
     grouped_format_strings = data_type_map._GroupFormatStrings([None])
     self.assertEqual(grouped_format_strings, [None])
 
-  @test_lib.skipUnlessHasTestFile([u'Notepad.lnk'])
+  @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
-    definitions_file = os.path.join(u'data', u'definitions', u'core.yaml')
+    definitions_file = self._GetTestFilePath([u'structure.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
 
-    definitions_file = os.path.join(u'data', u'definitions', u'lnk.yaml')
-    self._FillDefinitionRegistryFromFile(definitions_registry, definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName(
-        u'file_header')
+    data_type_definition = definitions_registry.GetDefinitionByName(u'point3d')
+    data_type_map = runtime.StructureMap(data_type_definition)
 
-    path = self._GetTestFilePath([u'Notepad.lnk'])
-    with open(path, 'rb') as file_object:
-      byte_stream = file_object.read()
-
-    # TODO: implement.
-    # data_type_map = runtime.StructureMap(data_type_definition)
-    # data_type_map.MapByteStream(byte_stream)
+    named_tuple = data_type_map.MapByteStream(
+        b'\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00')
+    self.assertEqual(named_tuple.x, 1)
+    self.assertEqual(named_tuple.y, 2)
+    self.assertEqual(named_tuple.z, 3)
 
 
+@test_lib.skipUnlessHasTestFile([u'uuid.yaml'])
 class UUIDMapTest(test_lib.BaseTestCase):
   """UUID map tests."""
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
-    # TODO: implement.
+    definitions_file = self._GetTestFilePath([u'uuid.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'uuid')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
+    data_type_map = runtime.UUIDMap(data_type_definition)
+
+    expected_uuid_value = uuid.UUID(u'{00021401-0000-0000-c000-000000000046}')
+    uuid_value = data_type_map.MapByteStream(
+        b'\x01\x14\x02\x00\x00\x00\x00\x00\xc0\x00\x00\x00\x00\x00\x00\x46')
+    self.assertEqual(uuid_value, expected_uuid_value)
 
 
 class DataTypeMapFactoryTest(test_lib.BaseTestCase):
