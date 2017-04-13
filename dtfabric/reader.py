@@ -74,8 +74,12 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     attributes = definition_values.get(u'attributes')
     if attributes:
-      definition_object.byte_order = attributes.get(
-          u'byte_order', definitions.BYTE_ORDER_NATIVE)
+      byte_order = attributes.get(u'byte_order', definitions.BYTE_ORDER_NATIVE)
+      if byte_order not in definitions.BYTE_ORDERS:
+        raise errors.FormatError(
+            u'Unsupported byte-order attribute: {0:s}'.format(byte_order))
+
+      definition_object.byte_order = byte_order
       definition_object.size = attributes.get(u'size', None)
       definition_object.units = attributes.get(u'units', u'bytes')
 

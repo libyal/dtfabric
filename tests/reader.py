@@ -22,6 +22,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definition_values = {
         u'aliases': [u'LONG', u'LONG32'],
         u'attributes': {
+            u'byte_order': u'little-endian',
             u'size': 4,
         },
         u'description': u'signed 32-bit integer type',
@@ -35,6 +36,27 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
         u'int32')
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, definitions.IntegerDefinition)
+    self.assertEqual(
+        data_type_definition.byte_order, definitions.BYTE_ORDER_LITTLE_ENDIAN)
+    self.assertEqual(data_type_definition.size, 4)
+
+    # Test with incorrect byte-order.
+    definition_values = {
+        u'aliases': [u'LONG', u'LONG32'],
+        u'attributes': {
+            u'byte_order': u'bogus',
+            u'size': 4,
+        },
+        u'description': u'signed 32-bit integer type',
+    }
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    with self.assertRaises(errors.FormatError):
+      definitions_reader._ReadFixedSizeDataTypeDefinition(
+          definitions_registry, definition_values, definitions.IntegerDefinition,
+          u'int32')
 
   def testReadBooleanDataTypeDefinition(self):
     """Tests the _ReadBooleanDataTypeDefinition function."""
@@ -304,11 +326,12 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     yaml_data = u'\n'.join([
-        u'name: int8',
+        u'name: int32',
         u'type: integer',
         u'attributes:',
+        u'  byte_order: little-endian',
         u'  format: signed',
-        u'  size: 1',
+        u'  size: 4',
         u'  units: bytes']).encode(u'ascii')
 
     file_object = io.BytesIO(initial_bytes=yaml_data)
@@ -316,15 +339,17 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_reader.ReadFileObject(definitions_registry, file_object)
     self.assertEqual(len(definitions_registry._definitions), 1)
 
-    data_type_definition = definitions_registry.GetDefinitionByName(u'int8')
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
     self.assertIsInstance(data_type_definition, definitions.IntegerDefinition)
-    self.assertEqual(data_type_definition.name, u'int8')
+    self.assertEqual(data_type_definition.name, u'int32')
+    self.assertEqual(
+        data_type_definition.byte_order, definitions.BYTE_ORDER_LITTLE_ENDIAN)
     self.assertEqual(data_type_definition.format, u'signed')
-    self.assertEqual(data_type_definition.size, 1)
+    self.assertEqual(data_type_definition.size, 4)
     self.assertEqual(data_type_definition.units, u'bytes')
 
     byte_size = data_type_definition.GetByteSize()
-    self.assertEqual(byte_size, 1)
+    self.assertEqual(byte_size, 4)
 
     # TODO: test format error, for incorrect format attribute.
     # TODO: test format error, for incorrect size attribute.
