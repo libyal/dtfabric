@@ -125,12 +125,11 @@ class FixedSizeDataTypeMap(DataTypeMap):
     try:
       byte_order_string = data_type_definition.GetStructByteOrderString()
       format_string = data_type_definition.GetStructFormatString()
-    except AttributeError as exception:
+      format_string = u''.join([byte_order_string, format_string])
+    except (AttributeError, TypeError) as exception:
       raise errors.FormatError((
           u'Unable to create struct object from data type definition '
           u'with error: {0!s}').format(exception))
-
-    format_string = u''.join([byte_order_string, format_string])
 
     super(FixedSizeDataTypeMap, self).__init__(data_type_definition)
     self._operation = StructOperation(format_string)
@@ -342,7 +341,8 @@ class StructureMap(DataTypeMap):
           StructureMemberDefinition represents that the struct member has no
           format string.
     """
-    format_strings = []
+    byte_order_string = data_type_definition.GetStructByteOrderString()
+    format_strings = [byte_order_string]
 
     for member in data_type_definition.members:
       format_string = member.GetStructFormatString()

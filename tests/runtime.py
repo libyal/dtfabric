@@ -318,13 +318,13 @@ class StructureMapTest(test_lib.BaseTestCase):
     data_type_map = runtime.StructureMap(data_type_definition)
 
     format_strings = data_type_map._GetStructFormatStrings(data_type_definition)
-    self.assertEqual(format_strings, [u'i', u'i', u'i'])
+    self.assertEqual(format_strings, [u'=', u'i', u'i', u'i'])
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'triangle3d')
     data_type_map = runtime.StructureMap(data_type_definition)
 
     format_strings = data_type_map._GetStructFormatStrings(data_type_definition)
-    self.assertEqual(format_strings, [u'iii', u'iii', u'iii'])
+    self.assertEqual(format_strings, [u'=', u'iii', u'iii', u'iii'])
 
   def testGroupFormatStrings(self):
     """Tests the _GroupFormatStrings function."""

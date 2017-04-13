@@ -43,6 +43,27 @@ class TestDataTypeDefinition(definitions.DataTypeDefinition):
     return
 
 
+class DataTypeDefinitionTest(test_lib.BaseTestCase):
+  """Data type definition tests."""
+
+  def testGetStructByteOrderString(self):
+    """Tests the GetStructByteOrderString function."""
+    data_type_definition = definitions.DataTypeDefinition(
+        u'int32', aliases=[u'LONG', u'LONG32'],
+        description=u'signed 32-bit integer')
+
+    byte_order_string = data_type_definition.GetStructByteOrderString()
+    self.assertEqual(byte_order_string, u'=')
+
+    data_type_definition.byte_order = definitions.BYTE_ORDER_BIG_ENDIAN
+    byte_order_string = data_type_definition.GetStructByteOrderString()
+    self.assertEqual(byte_order_string, u'>')
+
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
+    byte_order_string = data_type_definition.GetStructByteOrderString()
+    self.assertEqual(byte_order_string, u'<')
+
+
 class FixedSizeDataTypeDefinitionTest(test_lib.BaseTestCase):
   """Fixed-size data type definition tests."""
 
@@ -74,23 +95,6 @@ class FixedSizeDataTypeDefinitionTest(test_lib.BaseTestCase):
     data_type_definition.size = 4
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
-
-  def testGetStructByteOrderString(self):
-    """Tests the GetStructByteOrderString function."""
-    data_type_definition = definitions.FixedSizeDataTypeDefinition(
-        u'int32', aliases=[u'LONG', u'LONG32'],
-        description=u'signed 32-bit integer')
-
-    byte_order_string = data_type_definition.GetStructByteOrderString()
-    self.assertEqual(byte_order_string, u'=')
-
-    data_type_definition.byte_order = definitions.BYTE_ORDER_BIG_ENDIAN
-    byte_order_string = data_type_definition.GetStructByteOrderString()
-    self.assertEqual(byte_order_string, u'>')
-
-    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
-    byte_order_string = data_type_definition.GetStructByteOrderString()
-    self.assertEqual(byte_order_string, u'<')
 
 
 class BooleanDefinitionTest(test_lib.BaseTestCase):

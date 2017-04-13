@@ -45,12 +45,18 @@ class DataTypeDefinition(object):
 
   Attributes:
     aliases (list[str]): aliases.
+    byte_order (str): byte-order the data type.
     description (str): description.
     name (str): name.
     urls (list[str]): URLs.
   """
 
   TYPE_INDICATOR = None
+
+  _BYTE_ORDER_STRINGS = {
+      BYTE_ORDER_BIG_ENDIAN: u'>',
+      BYTE_ORDER_LITTLE_ENDIAN: u'<',
+      BYTE_ORDER_NATIVE: u'='}
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes a data type definition.
@@ -63,6 +69,7 @@ class DataTypeDefinition(object):
     """
     super(DataTypeDefinition, self).__init__()
     self.aliases = aliases or []
+    self.byte_order = BYTE_ORDER_NATIVE
     self.description = description
     self.name = name
     self.urls = urls
@@ -83,6 +90,15 @@ class DataTypeDefinition(object):
       int: data type size in bytes or None if size cannot be determined.
     """
 
+  def GetStructByteOrderString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return self._BYTE_ORDER_STRINGS.get(self.byte_order, None)
+
   @abc.abstractmethod
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -97,15 +113,9 @@ class FixedSizeDataTypeDefinition(DataTypeDefinition):
   """Fixed-size data type definition.
 
   Attributes:
-    byte_order (str): byte-order the data type.
     size (int|list[int]): size of the data type.
     units (str): units of the size of the data type.
   """
-
-  _BYTE_ORDER_STRINGS = {
-      BYTE_ORDER_BIG_ENDIAN: u'>',
-      BYTE_ORDER_LITTLE_ENDIAN: u'<',
-      BYTE_ORDER_NATIVE: u'='}
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes a fixed-size data type definition.
@@ -118,7 +128,6 @@ class FixedSizeDataTypeDefinition(DataTypeDefinition):
     """
     super(FixedSizeDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.byte_order = BYTE_ORDER_NATIVE
     self.size = None
     self.units = u'bytes'
 
@@ -138,15 +147,6 @@ class FixedSizeDataTypeDefinition(DataTypeDefinition):
     """
     if self.units == u'bytes':
       return self.size
-
-  def GetStructByteOrderString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    return self._BYTE_ORDER_STRINGS.get(self.byte_order, None)
 
   @abc.abstractmethod
   def GetStructFormatString(self):
