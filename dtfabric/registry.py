@@ -65,17 +65,20 @@ class DataTypeDefinitionsRegistry(object):
       KeyError: if data type definition is already set for the corresponding
           name.
     """
-    name = data_type_definition.name.lower()
-    if name in self._definitions:
+    name_lower = data_type_definition.name.lower()
+    if name_lower in self._definitions:
       raise KeyError(u'Definition already set for name: {0:s}.'.format(
+          data_type_definition.name))
+
+    if data_type_definition.name in self._aliases:
+      raise KeyError(u'Alias already set for name: {0:s}.'.format(
           data_type_definition.name))
 
     for alias in data_type_definition.aliases:
       if alias in self._aliases:
         raise KeyError(u'Alias already set for name: {0:s}.'.format(alias))
 
-    self._definitions[name] = data_type_definition
-    self._aliases[data_type_definition.name] = name
+    self._definitions[name_lower] = data_type_definition
 
     for alias in data_type_definition.aliases:
-      self._aliases[alias] = name
+      self._aliases[alias] = name_lower

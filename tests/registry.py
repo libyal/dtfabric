@@ -26,7 +26,13 @@ class DataTypeDefinitionsRegistryTest(test_lib.BaseTestCase):
       definitions_registry.RegisterDefinition(data_type_definition)
 
     test_definition = definitions.IntegerDefinition(
-        u'long', aliases=[u'LONG'], description=u'long integer')
+        u'LONG', description=u'long integer')
+
+    with self.assertRaises(KeyError):
+      definitions_registry.DeregisterDefinition(test_definition)
+
+    test_definition = definitions.IntegerDefinition(
+        u'test', aliases=[u'LONG'], description=u'long integer')
 
     with self.assertRaises(KeyError):
       definitions_registry.DeregisterDefinition(test_definition)

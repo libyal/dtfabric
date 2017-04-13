@@ -74,8 +74,24 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
   def testReadEnumerationDataTypeDefinition(self):
     """Tests the _ReadEnumerationDataTypeDefinition function."""
+    definition_values = {
+        u'description': u'Minidump object information type',
+        u'members': {
+            u'description': u'No object-specific information available',
+            u'name': u'MiniHandleObjectInformationNone',
+            u'value': 0,
+        },
+    }
 
-    # TODO: implement.
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    data_type_definition = (
+        definitions_reader._ReadEnumerationDataTypeDefinition(
+            definitions_registry, definition_values, u'enum'))
+    self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(
+        data_type_definition, definitions.EnumerationDefinition)
 
   def testReadFloatingPointDataTypeDefinition(self):
     """Tests the _ReadFloatingPointDataTypeDefinition function."""
