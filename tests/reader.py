@@ -235,12 +235,12 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
-    yaml_data = b'\n'.join([
-        b'name: bool',
-        b'type: boolean',
-        b'attributes:',
-        b'  size: 1',
-        b'  units: bytes'])
+    yaml_data = u'\n'.join([
+        u'name: bool',
+        u'type: boolean',
+        u'attributes:',
+        u'  size: 1',
+        u'  units: bytes']).encode(u'ascii')
 
     file_object = io.BytesIO(initial_bytes=yaml_data)
 
@@ -261,12 +261,12 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
-    yaml_data = b'\n'.join([
-        b'name: char',
-        b'type: character',
-        b'attributes:',
-        b'  size: 1',
-        b'  units: bytes'])
+    yaml_data = u'\n'.join([
+        u'name: char',
+        u'type: character',
+        u'attributes:',
+        u'  size: 1',
+        u'  units: bytes']).encode(u'ascii')
 
     file_object = io.BytesIO(initial_bytes=yaml_data)
 
@@ -287,13 +287,13 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
-    yaml_data = b'\n'.join([
-        b'name: int8',
-        b'type: integer',
-        b'attributes:',
-        b'  format: signed',
-        b'  size: 1',
-        b'  units: bytes'])
+    yaml_data = u'\n'.join([
+        u'name: int8',
+        u'type: integer',
+        u'attributes:',
+        u'  format: signed',
+        u'  size: 1',
+        u'  units: bytes']).encode(u'ascii')
 
     file_object = io.BytesIO(initial_bytes=yaml_data)
 
@@ -318,12 +318,12 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
-    yaml_data = b'\n'.join([
-        b'type: integer',
-        b'attributes:',
-        b'  format: signed',
-        b'  size: 1',
-        b'  units: bytes'])
+    yaml_data = u'\n'.join([
+        u'type: integer',
+        u'attributes:',
+        u'  format: signed',
+        u'  size: 1',
+        u'  units: bytes']).encode(u'ascii')
 
     file_object = io.BytesIO(initial_bytes=yaml_data)
 
@@ -335,31 +335,31 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
-    yaml_data = b'\n'.join([
-        b'name: int8',
-        b'attributes:',
-        b'  format: signed',
-        b'  size: 1',
-        b'  units: bytes'])
+    yaml_data = u'\n'.join([
+        u'name: int8',
+        u'attributes:',
+        u'  format: signed',
+        u'  size: 1',
+        u'  units: bytes']).encode(u'ascii')
 
     file_object = io.BytesIO(initial_bytes=yaml_data)
 
     with self.assertRaises(errors.FormatError):
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
-    yaml_data = b'\n'.join([
-        b'name: int8',
-        b'type: integer',
-        b'attributes:',
-        b'  format: signed',
-        b'  size: 1',
-        b'  units: bytes',
-        b'---',
-        b'name: int16',
-        b'attributes:',
-        b'  format: signed',
-        b'  size: 2',
-        b'  units: bytes'])
+    yaml_data = u'\n'.join([
+        u'name: int8',
+        u'type: integer',
+        u'attributes:',
+        u'  format: signed',
+        u'  size: 1',
+        u'  units: bytes',
+        u'---',
+        u'name: int16',
+        u'attributes:',
+        u'  format: signed',
+        u'  size: 2',
+        u'  units: bytes']).encode(u'ascii')
 
     file_object = io.BytesIO(initial_bytes=yaml_data)
 
@@ -372,29 +372,29 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     url = (
-        b'https://msdn.microsoft.com/en-us/library/windows/desktop/'
-        b'ms680365(v=vs.85).aspx')
+        u'https://msdn.microsoft.com/en-us/library/windows/desktop/'
+        u'ms680365(v=vs.85).aspx')
 
-    yaml_data = b'\n'.join([
-        b'name: uint32',
-        b'type: integer',
-        b'attributes:',
-        b'  format: unsigned',
-        b'  size: 4',
-        b'  units: bytes',
-        b'---',
-        b'name: directory_descriptor',
-        b'aliases: [MINIDUMP_DIRECTORY]',
-        b'type: structure',
-        b'description: Minidump file header',
-        b'urls: [\'{0:s}\']'.format(url),
-        b'members:',
-        b'- name: stream_type',
-        b'  aliases: [StreamType]',
-        b'  data_type: uint32',
-        b'- name: location',
-        b'  aliases: [Location]',
-        b'  data_type: uint32'])
+    yaml_data = u'\n'.join([
+        u'name: uint32',
+        u'type: integer',
+        u'attributes:',
+        u'  format: unsigned',
+        u'  size: 4',
+        u'  units: bytes',
+        u'---',
+        u'name: directory_descriptor',
+        u'aliases: [MINIDUMP_DIRECTORY]',
+        u'type: structure',
+        u'description: Minidump file header',
+        u'urls: [\'{0:s}\']'.format(url),
+        u'members:',
+        u'- name: stream_type',
+        u'  aliases: [StreamType]',
+        u'  data_type: uint32',
+        u'- name: location',
+        u'  aliases: [Location]',
+        u'  data_type: uint32']).encode(u'ascii')
 
     file_object = io.BytesIO(initial_bytes=yaml_data)
 
@@ -432,24 +432,24 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     url = (
-        b'https://msdn.microsoft.com/en-us/library/windows/desktop/'
-        b'ms680384(v=vs.85).aspx')
+        u'https://msdn.microsoft.com/en-us/library/windows/desktop/'
+        u'ms680384(v=vs.85).aspx')
 
-    yaml_data = b'\n'.join([
-        b'name: string',
-        b'aliases: [MINIDUMP_STRING]',
-        b'type: structure',
-        b'description: Minidump 64-bit memory descriptor',
-        b'urls: [\'{0:s}\']'.format(url),
-        b'members:',
-        b'- name: data_size',
-        b'  aliases: [Length]',
-        b'  data_type: uint32',
-        b'- sequence:',
-        b'    name: data',
-        b'    aliases: [Buffer]',
-        b'    data_type: uint16',
-        b'    data_size: data_size'])
+    yaml_data = u'\n'.join([
+        u'name: string',
+        u'aliases: [MINIDUMP_STRING]',
+        u'type: structure',
+        u'description: Minidump 64-bit memory descriptor',
+        u'urls: [\'{0:s}\']'.format(url),
+        u'members:',
+        u'- name: data_size',
+        u'  aliases: [Length]',
+        u'  data_type: uint32',
+        u'- sequence:',
+        u'    name: data',
+        u'    aliases: [Buffer]',
+        u'    data_type: uint16',
+        u'    data_size: data_size']).encode(u'ascii')
 
     file_object = io.BytesIO(initial_bytes=yaml_data)
 

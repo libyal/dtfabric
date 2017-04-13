@@ -61,8 +61,15 @@ class StructOperation(ByteStreamOperation):
 
     Returns:
       tuple[object, ]: values copies from the byte stream.
+
+    Raises:
+      IOError: if byte stream cannot be read.
     """
-    return self._struct.unpack_from(byte_stream)
+    try:
+      return self._struct.unpack_from(byte_stream)
+    except (TypeError, struct.error) as exception:
+      raise IOError(u'Unable to read byte stream with error: {0!s}'.format(
+          exception))
 
 
 class DataTypeMap(object):

@@ -2,7 +2,6 @@
 """Tests for the run-time object."""
 
 import os
-import struct
 import unittest
 
 from dtfabric import errors
@@ -62,10 +61,10 @@ class StructOperationTest(test_lib.BaseTestCase):
     struct_tuple = byte_stream_operation.ReadFrom(b'\x12\x34\x56\x78')
     self.assertEqual(struct_tuple, (0x78563412, ))
 
-    with self.assertRaises(struct.error):
+    with self.assertRaises(IOError):
       byte_stream_operation.ReadFrom(None)
 
-    with self.assertRaises(struct.error):
+    with self.assertRaises(IOError):
       byte_stream_operation.ReadFrom(b'\x12\x34\x56')
 
 
