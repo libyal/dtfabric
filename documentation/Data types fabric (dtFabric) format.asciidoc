@@ -98,6 +98,16 @@ layout:
 
 === Primitive data types
 
+[cols="1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Description
+| byte-order | string | Optional byte-order of the data type +
+Valid options are: big-endian, little-endian, native +
+The default is native
+|===
+
+[NOTE] middle-endian is a valid byte-ordering but currently not supported.
+
 ==== Boolean
 
 [source,yaml]

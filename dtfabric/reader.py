@@ -35,13 +35,15 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
   """Data type definitions file reader interface."""
 
   _DATA_TYPE_CALLBACKS = {
-      u'boolean': u'_ReadBooleanDataTypeDefinition',
-      u'character': u'_ReadCharacterDataTypeDefinition',
-      u'enumeration': u'_ReadEnumerationDataTypeDefinition',
-      u'floating-point': u'_ReadFloatingPointDataTypeDefinition',
-      u'integer': u'_ReadIntegerDataTypeDefinition',
-      u'structure': u'_ReadStructureDataTypeDefinition',
-      u'uuid': u'_ReadUUIDDataTypeDefinition',
+      definitions.TYPE_INDICATOR_BOOLEAN: u'_ReadBooleanDataTypeDefinition',
+      definitions.TYPE_INDICATOR_CHARACTER: u'_ReadCharacterDataTypeDefinition',
+      definitions.TYPE_INDICATOR_ENUMERATION: (
+          u'_ReadEnumerationDataTypeDefinition'),
+      definitions.TYPE_INDICATOR_FLOATING_POINT: (
+          u'_ReadFloatingPointDataTypeDefinition'),
+      definitions.TYPE_INDICATOR_INTEGER: u'_ReadIntegerDataTypeDefinition',
+      definitions.TYPE_INDICATOR_STRUCTURE: u'_ReadStructureDataTypeDefinition',
+      definitions.TYPE_INDICATOR_UUID: u'_ReadUUIDDataTypeDefinition',
   }
 
   def _ReadFixedSizeDataTypeDefinition(
@@ -72,6 +74,8 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     attributes = definition_values.get(u'attributes')
     if attributes:
+      definition_object.byte_order = attributes.get(
+          u'byte-order', definitions.BYTE_ORDER_NATIVE)
       definition_object.size = attributes.get(u'size', None)
       definition_object.units = attributes.get(u'units', u'bytes')
 

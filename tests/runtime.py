@@ -12,7 +12,7 @@ from tests import test_lib
 
 
 class EmptyDataTypeDefinition(definitions.DataTypeDefinition):
-  """Class that defines an empty data type definition for testing."""
+  """Empty data type definition for testing."""
 
   def GetAttributedNames(self):
     """Determines the attribute (or field) names of the data type definition.
@@ -41,10 +41,10 @@ class EmptyDataTypeDefinition(definitions.DataTypeDefinition):
 
 
 class StructOperationTest(test_lib.BaseTestCase):
-  """Class to test the Python struct-base binary stream operation."""
+  """Python struct-base binary stream operationt tests."""
 
   def testInitialize(self):
-    """Tests the initialize function."""
+    """Tests the __init__ function."""
     byte_stream_operation = runtime.StructOperation(u'b')
     self.assertIsNotNone(byte_stream_operation)
 
@@ -69,10 +69,10 @@ class StructOperationTest(test_lib.BaseTestCase):
 
 
 class FixedSizeDataTypeMapTest(test_lib.BaseTestCase):
-  """Class to test the fixed-size data type map."""
+  """Fixed-size data type map tests."""
 
   def testInitialize(self):
-    """Tests the initialize function."""
+    """Tests the __init__ function."""
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
@@ -90,10 +90,10 @@ class FixedSizeDataTypeMapTest(test_lib.BaseTestCase):
 
 
 class BooleanMapTest(test_lib.BaseTestCase):
-  """Class to test the boolean map."""
+  """Boolean map tests."""
 
   def testInitialize(self):
-    """Tests the initialize function."""
+    """Tests the __init__ function."""
     definitions_file = self._GetTestFilePath([u'definitions', u'booleans.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
@@ -149,7 +149,7 @@ class BooleanMapTest(test_lib.BaseTestCase):
 
 
 class CharacterMapTest(test_lib.BaseTestCase):
-  """Class to test the character map."""
+  """Character map tests."""
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
@@ -181,7 +181,7 @@ class CharacterMapTest(test_lib.BaseTestCase):
 
 
 class FloatingPointMapTest(test_lib.BaseTestCase):
-  """Class to test the floating-point map."""
+  """Floating-point map tests."""
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
@@ -208,7 +208,7 @@ class FloatingPointMapTest(test_lib.BaseTestCase):
 
 
 class IntegerMapTest(test_lib.BaseTestCase):
-  """Class to test the integer map."""
+  """Integer map tests."""
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
@@ -245,8 +245,8 @@ class IntegerMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\x12\x34\x56\x78')
 
 
-class StructMapTest(test_lib.BaseTestCase):
-  """Class to test the struct map."""
+class StructureMapTest(test_lib.BaseTestCase):
+  """Structure map tests."""
 
   # pylint: disable=protected-access
 
@@ -256,7 +256,7 @@ class StructMapTest(test_lib.BaseTestCase):
   def testGroupFormatStrings(self):
     """Tests the _GroupFormatStrings function."""
     data_type_definition = EmptyDataTypeDefinition(u'empty')
-    data_type_map = runtime.StructMap(data_type_definition)
+    data_type_map = runtime.StructureMap(data_type_definition)
 
     format_strings = [u'a', u'b', None, u'c', None]
     expected_grouped_format_strings = [u'ab', None, u'c', None]
@@ -290,12 +290,12 @@ class StructMapTest(test_lib.BaseTestCase):
       byte_stream = file_object.read()
 
     # TODO: implement.
-    # data_type_map = runtime.StructMap(data_type_definition)
+    # data_type_map = runtime.StructureMap(data_type_definition)
     # data_type_map.MapByteStream(byte_stream)
 
 
 class UUIDMapTest(test_lib.BaseTestCase):
-  """Class to test the UUID map."""
+  """UUID map tests."""
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
@@ -324,6 +324,30 @@ class UUIDMapTest(test_lib.BaseTestCase):
 
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(b'\xb6\x24')
+
+
+class DataTypeMapFactoryTest(test_lib.BaseTestCase):
+  """Data type map factory tests."""
+
+  def testCreateDataTypeMap(self):
+    """Tests the CreateDataTypeMap function."""
+    definitions_file = os.path.join(u'data', u'definitions', u'core.yaml')
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = EmptyDataTypeDefinition(u'empty')
+    definitions_registry.RegisterDefinition(data_type_definition)
+
+    factory = runtime.DataTypeMapFactory(definitions_registry)
+
+    data_type_map = factory.CreateDataTypeMap(u'int32')
+    self.assertIsNotNone(data_type_map)
+
+    data_type_map = factory.CreateDataTypeMap(u'empty')
+    self.assertIsNone(data_type_map)
+
+    data_type_map = factory.CreateDataTypeMap(u'bogus')
+    self.assertIsNone(data_type_map)
 
 
 if __name__ == '__main__':

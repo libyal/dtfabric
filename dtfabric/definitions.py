@@ -9,6 +9,37 @@ import abc
 # TODO: complete SequenceStructureMemberDefinition.
 # TODO: complete UnionStructureMemberDefinition.
 
+
+BYTE_ORDER_BIG_ENDIAN = u'big-endian'
+BYTE_ORDER_LITTLE_ENDIAN = u'little-endian'
+BYTE_ORDER_MIDDLE_ENDIAN = u'middle-endian'
+BYTE_ORDER_NATIVE = u'native'
+
+BYTE_ORDERS = frozenset([
+    BYTE_ORDER_BIG_ENDIAN,
+    BYTE_ORDER_LITTLE_ENDIAN,
+    BYTE_ORDER_NATIVE])
+
+TYPE_INDICATOR_BOOLEAN = u'boolean'
+TYPE_INDICATOR_CHARACTER = u'character'
+TYPE_INDICATOR_ENUMERATION = u'enumeration'
+TYPE_INDICATOR_FLOATING_POINT = u'floating-point'
+TYPE_INDICATOR_FORMAT = u'format'
+TYPE_INDICATOR_INTEGER = u'integer'
+TYPE_INDICATOR_STRUCTURE = u'structure'
+TYPE_INDICATOR_UUID = u'uuid'
+
+TYPE_INDICATORS = frozenset([
+    TYPE_INDICATOR_BOOLEAN,
+    TYPE_INDICATOR_CHARACTER,
+    TYPE_INDICATOR_ENUMERATION,
+    TYPE_INDICATOR_FLOATING_POINT,
+    TYPE_INDICATOR_FORMAT,
+    TYPE_INDICATOR_INTEGER,
+    TYPE_INDICATOR_STRUCTURE,
+    TYPE_INDICATOR_UUID])
+
+
 class DataTypeDefinition(object):
   """Data type definition interface.
 
@@ -18,6 +49,8 @@ class DataTypeDefinition(object):
     name (str): name.
     urls (list[str]): URLs.
   """
+
+  TYPE_INDICATOR = None
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes a data type definition.
@@ -64,9 +97,15 @@ class FixedSizeDataTypeDefinition(DataTypeDefinition):
   """Fixed-size data type definition.
 
   Attributes:
+    byte_order (str): byte-order the data type.
     size (int|list[int]): size of the data type.
     units (str): units of the size of the data type.
   """
+
+  _BYTE_ORDER_STRINGS = {
+      BYTE_ORDER_BIG_ENDIAN: u'>',
+      BYTE_ORDER_LITTLE_ENDIAN: u'<',
+      BYTE_ORDER_NATIVE: u'='}
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes a fixed-size data type definition.
@@ -79,6 +118,7 @@ class FixedSizeDataTypeDefinition(DataTypeDefinition):
     """
     super(FixedSizeDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
+    self.byte_order = BYTE_ORDER_NATIVE
     self.size = None
     self.units = u'bytes'
 
@@ -99,6 +139,15 @@ class FixedSizeDataTypeDefinition(DataTypeDefinition):
     if self.units == u'bytes':
       return self.size
 
+  def GetStructByteOrderString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return self._BYTE_ORDER_STRINGS.get(self.byte_order, None)
+
   @abc.abstractmethod
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -118,6 +167,8 @@ class BooleanDefinition(FixedSizeDataTypeDefinition):
     true_value (int): value of True, None represents any value except that
       defined by false_value.
   """
+
+  TYPE_INDICATOR = TYPE_INDICATOR_BOOLEAN
 
   # We use 'I' here instead of 'L' because 'L' behaves architecture dependent.
 
@@ -154,6 +205,8 @@ class BooleanDefinition(FixedSizeDataTypeDefinition):
 class CharacterDefinition(FixedSizeDataTypeDefinition):
   """Character data type definition."""
 
+  TYPE_INDICATOR = TYPE_INDICATOR_CHARACTER
+
   # We use 'i' here instead of 'l' because 'l' behaves architecture dependent.
 
   _FORMAT_STRINGS = {
@@ -175,6 +228,8 @@ class CharacterDefinition(FixedSizeDataTypeDefinition):
 class EnumerationDefinition(FixedSizeDataTypeDefinition):
   """Enumeration data type definition."""
 
+  TYPE_INDICATOR = TYPE_INDICATOR_ENUMERATION
+
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
 
@@ -187,6 +242,8 @@ class EnumerationDefinition(FixedSizeDataTypeDefinition):
 
 class FloatingPointDefinition(FixedSizeDataTypeDefinition):
   """Floating point data type definition."""
+
+  TYPE_INDICATOR = TYPE_INDICATOR_FLOATING_POINT
 
   _FORMAT_STRINGS = {
       4: u'f',
@@ -206,6 +263,8 @@ class FloatingPointDefinition(FixedSizeDataTypeDefinition):
 class FormatDefinition(DataTypeDefinition):
   """Data format definition."""
 
+  TYPE_INDICATOR = TYPE_INDICATOR_FORMAT
+
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
 
@@ -222,6 +281,8 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
   Attributes:
     format (str): format of the data type.
   """
+
+  TYPE_INDICATOR = TYPE_INDICATOR_INTEGER
 
   # We use 'i' here instead of 'l' because 'l' behaves architecture dependent.
 
@@ -273,6 +334,8 @@ class StructureDataTypeDefinition(DataTypeDefinition):
   Attributes:
     members (list[object]): members.
   """
+
+  TYPE_INDICATOR = TYPE_INDICATOR_STRUCTURE
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes a data type definition.
@@ -478,6 +541,8 @@ class UnionStructureMemberDefinition(StructureMemberDefinition):
 
 class UUIDDefinition(FixedSizeDataTypeDefinition):
   """UUID (or GUID) data type definition."""
+
+  TYPE_INDICATOR = TYPE_INDICATOR_UUID
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes an integer data type definition.

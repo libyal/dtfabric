@@ -13,6 +13,7 @@ from tests import test_lib
 # TODO: complete StructureDataTypeDefinitionTest.
 # TODO: complete UnionStructureMemberDefinitionTest.
 
+
 class TestDataTypeDefinition(definitions.DataTypeDefinition):
   """Data type definition for testing."""
 
@@ -43,10 +44,10 @@ class TestDataTypeDefinition(definitions.DataTypeDefinition):
 
 
 class FixedSizeDataTypeDefinitionTest(test_lib.BaseTestCase):
-  """Class to test the fixed-size data type definition."""
+  """Fixed-size data type definition tests."""
 
   def testInitialize(self):
-    """Tests the initialize function."""
+    """Tests the __init__ function."""
     data_type_definition = definitions.FixedSizeDataTypeDefinition(
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
@@ -74,12 +75,29 @@ class FixedSizeDataTypeDefinitionTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
 
+  def testGetStructByteOrderString(self):
+    """Tests the GetStructByteOrderString function."""
+    data_type_definition = definitions.FixedSizeDataTypeDefinition(
+        u'int32', aliases=[u'LONG', u'LONG32'],
+        description=u'signed 32-bit integer')
+
+    byte_order_string = data_type_definition.GetStructByteOrderString()
+    self.assertEqual(byte_order_string, u'=')
+
+    data_type_definition.byte_order = definitions.BYTE_ORDER_BIG_ENDIAN
+    byte_order_string = data_type_definition.GetStructByteOrderString()
+    self.assertEqual(byte_order_string, u'>')
+
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
+    byte_order_string = data_type_definition.GetStructByteOrderString()
+    self.assertEqual(byte_order_string, u'<')
+
 
 class BooleanDefinitionTest(test_lib.BaseTestCase):
-  """Class to test the boolean data type definition."""
+  """Boolean data type definition tests."""
 
   def testInitialize(self):
-    """Tests the initialize function."""
+    """Tests the __init__ function."""
     data_type_definition = definitions.BooleanDefinition(
         u'bool32', aliases=[u'BOOL'], description=u'boolean')
     self.assertIsNotNone(data_type_definition)
@@ -107,7 +125,7 @@ class BooleanDefinitionTest(test_lib.BaseTestCase):
 
 
 class CharacterDefinitionTest(test_lib.BaseTestCase):
-  """Class to test the character data type definition."""
+  """character data type definition tests."""
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
@@ -132,7 +150,7 @@ class CharacterDefinitionTest(test_lib.BaseTestCase):
 
 
 class EnumerationDefinitionTest(test_lib.BaseTestCase):
-  """Class to test the enumeration data type definition."""
+  """Enumeration data type definition tests."""
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
@@ -147,7 +165,7 @@ class EnumerationDefinitionTest(test_lib.BaseTestCase):
 
 
 class FormatDefinitionTest(test_lib.BaseTestCase):
-  """Class to test the data format definition."""
+  """Data format definition tests."""
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
@@ -162,7 +180,7 @@ class FormatDefinitionTest(test_lib.BaseTestCase):
 
 
 class FloatingPointDefinitionTest(test_lib.BaseTestCase):
-  """Class to test the floating-point data type definition."""
+  """Floating-point data type definition tests."""
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
@@ -183,10 +201,10 @@ class FloatingPointDefinitionTest(test_lib.BaseTestCase):
 
 
 class IntegerDefinitionTest(test_lib.BaseTestCase):
-  """Class to test the integer data type definition."""
+  """Integer data type definition tests."""
 
   def testInitialize(self):
-    """Tests the initialize function."""
+    """Tests the __init__ function."""
     data_type_definition = definitions.IntegerDefinition(
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
@@ -243,7 +261,7 @@ class IntegerDefinitionTest(test_lib.BaseTestCase):
 
 
 class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
-  """Class to test the structure data type definition."""
+  """Structure data type definition tests."""
 
   # pylint: disable=protected-access
 
@@ -342,12 +360,12 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
 
 
 class StructureMemberDefinitionTest(test_lib.BaseTestCase):
-  """Class to test the structure member definition."""
+  """Structure member definition tests."""
 
   # pylint: disable=protected-access
 
   def testInitialize(self):
-    """Tests the initialize function."""
+    """Tests the __init__ function."""
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
@@ -404,10 +422,10 @@ class StructureMemberDefinitionTest(test_lib.BaseTestCase):
 
 
 class SequenceStructureMemberDefinitionTest(test_lib.BaseTestCase):
-  """Class to test the sequence structure member definition."""
+  """Sequence structure member definition tests."""
 
   def testInitialize(self):
-    """Tests the initialize function."""
+    """Tests the __init__ function."""
     structure_member_definition = definitions.SequenceStructureMemberDefinition(
         u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
         data_type=u'int32', description=u'my sequence structure member')
@@ -428,10 +446,10 @@ class SequenceStructureMemberDefinitionTest(test_lib.BaseTestCase):
 
 
 class UnionStructureMemberDefinitionTest(test_lib.BaseTestCase):
-  """Class to test the union structure member definition."""
+  """Union structure member definition tests."""
 
   def testInitialize(self):
-    """Tests the initialize function."""
+    """Tests the __init__ function."""
     structure_member_definition = definitions.UnionStructureMemberDefinition(
         u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
         data_type=u'int32', description=u'my union structure member')
@@ -450,10 +468,10 @@ class UnionStructureMemberDefinitionTest(test_lib.BaseTestCase):
 
 
 class UUIDDefinitionTest(test_lib.BaseTestCase):
-  """Class to test the UUID data type definition."""
+  """UUID data type definition tests."""
 
   def testInitialize(self):
-    """Tests the initialize function."""
+    """Tests the __init__ function."""
     data_type_definition = definitions.UUIDDefinition(
         u'guid', aliases=[u'GUID'], description=u'GUID')
     self.assertIsNotNone(data_type_definition)

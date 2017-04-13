@@ -13,7 +13,7 @@ from tests import test_lib
 
 
 class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
-  """Class to test the data type definitions reader."""
+  """Data type definitions reader tests."""
 
   # pylint: disable=protected-access
 
@@ -232,7 +232,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
 
 class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
-  """Class to test the YAML data type definitions reader."""
+  """YAML data type definitions reader tests."""
 
   # pylint: disable=protected-access
 

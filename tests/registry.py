@@ -10,7 +10,7 @@ from tests import test_lib
 
 
 class DataTypeDefinitionsRegistryTest(test_lib.BaseTestCase):
-  """Class to test the data type definitions registry."""
+  """Data type definitions registry tests."""
 
   def testRegistration(self):
     """Tests the RegisterDefinition and DeregisterDefinition functions."""
@@ -29,13 +29,13 @@ class DataTypeDefinitionsRegistryTest(test_lib.BaseTestCase):
         u'LONG', description=u'long integer')
 
     with self.assertRaises(KeyError):
-      definitions_registry.DeregisterDefinition(test_definition)
+      definitions_registry.RegisterDefinition(test_definition)
 
     test_definition = definitions.IntegerDefinition(
         u'test', aliases=[u'LONG'], description=u'long integer')
 
     with self.assertRaises(KeyError):
-      definitions_registry.DeregisterDefinition(test_definition)
+      definitions_registry.RegisterDefinition(test_definition)
 
     definitions_registry.DeregisterDefinition(data_type_definition)
 

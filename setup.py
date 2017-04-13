@@ -36,7 +36,7 @@ class BdistRPMCommand(bdist_rpm):
     """Generates the text of an RPM spec file.
 
     Returns:
-      A list of strings containing the lines of text.
+      list[str]: lines of the RPM spec file.
     """
     # Note that bdist_rpm can be an old style class.
     if issubclass(BdistRPMCommand, object):

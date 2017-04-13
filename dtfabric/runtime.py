@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
-"""The dtFabric run-time objects."""
+"""Run-time objects."""
 
 import abc
 import collections
 import struct
 import uuid
 
+from dtfabric import definitions
 from dtfabric import errors
 from dtfabric import py2to3
 
 
 # TODO: add EnumerationMap.
 # TODO: add FormatMap.
-# TODO: complete StructMap.
+# TODO: complete StructureMap.
 
 class ByteStreamOperation(object):
   """Byte stream operation."""
@@ -114,11 +115,14 @@ class FixedSizeDataTypeMap(DataTypeMap):
           the data type definition.
     """
     try:
+      byte_order_string = data_type_definition.GetStructByteOrderString()
       format_string = data_type_definition.GetStructFormatString()
     except AttributeError as exception:
       raise errors.FormatError((
           u'Unable to create struct object from data type definition '
           u'with error: {0!s}').format(exception))
+
+    format_string = u''.join([byte_order_string, format_string])
 
     super(FixedSizeDataTypeMap, self).__init__(data_type_definition)
     self._operation = StructOperation(format_string)
@@ -266,7 +270,7 @@ class IntegerMap(FixedSizeDataTypeMap):
       raise errors.MappingError(exception)
 
 
-class StructMap(DataTypeMap):
+class StructureMap(DataTypeMap):
   """Structure data type map."""
 
   def __init__(self, data_type_definition):
@@ -283,7 +287,7 @@ class StructMap(DataTypeMap):
     named_tuple = collections.namedtuple(
         data_type_definition.name, attribute_names)
 
-    super(StructMap, self).__init__(data_type_definition)
+    super(StructureMap, self).__init__(data_type_definition)
     self._named_tuple = named_tuple
 
   def _GetStructFormatStringAndObject(self, data_type_definition):
@@ -347,6 +351,8 @@ class StructMap(DataTypeMap):
           of StructureMemberDefinition represents that the struct member has no
           format string.
     """
+    # TODO: handle byte order, since struct only allows a single byte order
+    # definition for each format string.
     grouped_format_strings = []
 
     group_index = None
@@ -417,3 +423,50 @@ class UUIDMap(FixedSizeDataTypeMap):
 
     except Exception as exception:
       raise errors.MappingError(exception)
+
+
+class DataTypeMapFactory(object):
+  """Factory for data type maps."""
+
+  # TODO: add support for definitions.TYPE_INDICATOR_ENUMERATION
+  # TODO: add support for definitions.TYPE_INDICATOR_FORMAT
+
+  _MAP_PER_DEFINITION = {
+      definitions.TYPE_INDICATOR_BOOLEAN: BooleanMap,
+      definitions.TYPE_INDICATOR_CHARACTER: CharacterMap,
+      definitions.TYPE_INDICATOR_FLOATING_POINT: FloatingPointMap,
+      definitions.TYPE_INDICATOR_INTEGER: IntegerMap,
+      definitions.TYPE_INDICATOR_STRUCTURE: StructureMap,
+      definitions.TYPE_INDICATOR_UUID: UUIDMap}
+
+  def __init__(self, definitions_registry):
+    """Initializes a data type maps factory.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+    """
+    super(DataTypeMapFactory, self).__init__()
+    self._definitions_registry = definitions_registry
+
+  def CreateDataTypeMap(self, definition_name):
+    """Creates a specific data type map by name.
+
+    Args:
+      definition_name (str): name of the data type definition.
+
+    Returns:
+      DataTypeMape: data type map or None if the date type definition
+          is not available.
+    """
+    data_type_definition = self._definitions_registry.GetDefinitionByName(
+        definition_name)
+    if not data_type_definition:
+      return
+
+    data_type_map = self._MAP_PER_DEFINITION.get(
+        data_type_definition.TYPE_INDICATOR, None)
+    if not data_type_map:
+      return
+
+    return data_type_map(data_type_definition)
