@@ -101,7 +101,7 @@ layout:
 [cols="1,1,5",options="header"]
 |===
 | Attribute name | Attribute type | Description
-| byte-order | string | Optional byte-order of the data type +
+| byte_order | string | Optional byte-order of the data type +
 Valid options are: big-endian, little-endian, native +
 The default is native
 |===

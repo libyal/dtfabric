@@ -75,7 +75,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     attributes = definition_values.get(u'attributes')
     if attributes:
       definition_object.byte_order = attributes.get(
-          u'byte-order', definitions.BYTE_ORDER_NATIVE)
+          u'byte_order', definitions.BYTE_ORDER_NATIVE)
       definition_object.size = attributes.get(u'size', None)
       definition_object.units = attributes.get(u'units', u'bytes')
 

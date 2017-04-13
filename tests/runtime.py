@@ -77,6 +77,7 @@ class FixedSizeDataTypeMapTest(test_lib.BaseTestCase):
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
 
     data_type_map = runtime.FixedSizeDataTypeMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
@@ -98,6 +99,7 @@ class BooleanMapTest(test_lib.BaseTestCase):
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
     data_type_definition = definitions_registry.GetDefinitionByName(u'bool32')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
 
     data_type_definition.false_value = None
     data_type_definition.true_value = None
@@ -111,6 +113,7 @@ class BooleanMapTest(test_lib.BaseTestCase):
         definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'bool8')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
     data_type_map = runtime.BooleanMap(data_type_definition)
     data_type_definition.true_value = 1
 
@@ -124,6 +127,7 @@ class BooleanMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\xff')
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'bool16')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
     data_type_definition.false_value = None
     data_type_definition.true_value = 1
     data_type_map = runtime.BooleanMap(data_type_definition)
@@ -135,6 +139,7 @@ class BooleanMapTest(test_lib.BaseTestCase):
     self.assertTrue(bool_value)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'bool32')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
     data_type_definition.true_value = None
     data_type_map = runtime.BooleanMap(data_type_definition)
 
@@ -159,18 +164,21 @@ class CharacterMapTest(test_lib.BaseTestCase):
         definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'char')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
     data_type_map = runtime.CharacterMap(data_type_definition)
 
     string_value = data_type_map.MapByteStream(b'\x41')
     self.assertEqual(string_value, u'A')
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'wchar16')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
     data_type_map = runtime.CharacterMap(data_type_definition)
 
     string_value = data_type_map.MapByteStream(b'\xb6\x24')
     self.assertEqual(string_value, u'\u24b6')
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'wchar32')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
     data_type_map = runtime.CharacterMap(data_type_definition)
 
     string_value = data_type_map.MapByteStream(b'\xb6\x24\x00\x00')
@@ -191,12 +199,14 @@ class FloatingPointMapTest(test_lib.BaseTestCase):
         definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'float32')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
     data_type_map = runtime.FloatingPointMap(data_type_definition)
 
     float_value = data_type_map.MapByteStream(b'\xa4\x70\x45\x41')
     self.assertEqual(float_value, 12.34000015258789)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'float64')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
     data_type_map = runtime.FloatingPointMap(data_type_definition)
 
     float_value = data_type_map.MapByteStream(
@@ -217,24 +227,35 @@ class IntegerMapTest(test_lib.BaseTestCase):
         definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'uint8')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
     data_type_map = runtime.IntegerMap(data_type_definition)
 
     integer_value = data_type_map.MapByteStream(b'\x12')
     self.assertEqual(integer_value, 0x12)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'uint16')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
     data_type_map = runtime.IntegerMap(data_type_definition)
 
     integer_value = data_type_map.MapByteStream(b'\x12\x34')
     self.assertEqual(integer_value, 0x3412)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'uint32')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
     data_type_map = runtime.IntegerMap(data_type_definition)
 
     integer_value = data_type_map.MapByteStream(b'\x12\x34\x56\x78')
     self.assertEqual(integer_value, 0x78563412)
 
+    data_type_definition = definitions_registry.GetDefinitionByName(u'uint32')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_BIG_ENDIAN
+    data_type_map = runtime.IntegerMap(data_type_definition)
+
+    integer_value = data_type_map.MapByteStream(b'\x12\x34\x56\x78')
+    self.assertEqual(integer_value, 0x12345678)
+
     data_type_definition = definitions_registry.GetDefinitionByName(u'uint64')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
     data_type_map = runtime.IntegerMap(data_type_definition)
 
     integer_value = data_type_map.MapByteStream(
@@ -299,31 +320,7 @@ class UUIDMapTest(test_lib.BaseTestCase):
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
-    definitions_file = self._GetTestFilePath([
-        u'definitions', u'characters.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-
-    data_type_definition = definitions_registry.GetDefinitionByName(u'char')
-    data_type_map = runtime.CharacterMap(data_type_definition)
-
-    string_value = data_type_map.MapByteStream(b'\x41')
-    self.assertEqual(string_value, u'A')
-
-    data_type_definition = definitions_registry.GetDefinitionByName(u'wchar16')
-    data_type_map = runtime.CharacterMap(data_type_definition)
-
-    string_value = data_type_map.MapByteStream(b'\xb6\x24')
-    self.assertEqual(string_value, u'\u24b6')
-
-    data_type_definition = definitions_registry.GetDefinitionByName(u'wchar32')
-    data_type_map = runtime.CharacterMap(data_type_definition)
-
-    string_value = data_type_map.MapByteStream(b'\xb6\x24\x00\x00')
-    self.assertEqual(string_value, u'\u24b6')
-
-    with self.assertRaises(errors.MappingError):
-      data_type_map.MapByteStream(b'\xb6\x24')
+    # TODO: implement.
 
 
 class DataTypeMapFactoryTest(test_lib.BaseTestCase):
