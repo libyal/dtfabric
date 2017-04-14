@@ -44,13 +44,15 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       definitions.TYPE_INDICATOR_FLOATING_POINT: (
           u'_ReadFloatingPointDataTypeDefinition'),
       definitions.TYPE_INDICATOR_INTEGER: u'_ReadIntegerDataTypeDefinition',
+      definitions.TYPE_INDICATOR_SEQUENCE: u'_ReadSequenceDataTypeDefinition',
       definitions.TYPE_INDICATOR_STRUCTURE: u'_ReadStructureDataTypeDefinition',
       definitions.TYPE_INDICATOR_UUID: u'_ReadUUIDDataTypeDefinition',
   }
 
   def _ReadFixedSizeDataTypeDefinition(
       self, unused_definitions_registry, definition_values,
-      data_type_definition_class, name):
+      data_type_definition_class, name, default_size=None,
+      default_units=u'bytes'):
     """Reads a fixed-size data type definition.
 
     Args:
@@ -59,6 +61,8 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       definition_values (dict[str, object]): definition values.
       data_type_definition_class (str): data type definition class.
       name (str): name of the definition.
+      default_size (Optional[int]): default size.
+      default_units (Optional[str]): default units.
 
     Returns:
       FixedSizeDataTypeDefinition: fixed-size data type definition.
@@ -82,8 +86,8 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
             u'Unsupported byte-order attribute: {0:s}'.format(byte_order))
 
       definition_object.byte_order = byte_order
-      definition_object.size = attributes.get(u'size', None)
-      definition_object.units = attributes.get(u'units', u'bytes')
+      definition_object.size = attributes.get(u'size', default_size)
+      definition_object.units = attributes.get(u'units', default_units)
 
     return definition_object
 
@@ -133,15 +137,22 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     Returns:
       ConstantDataTypeDefinition: constant data type definition.
+
+    Raises:
+      FormatError: if the definitions values are missing or if the format is
+          incorrect.
     """
     aliases = definition_values.get(u'aliases', None)
     description = definition_values.get(u'description', None)
     urls = definition_values.get(u'urls', None)
+    value = definition_values.get(u'value', None)
+
+    if value is None:
+      raise errors.FormatError(u'Missing value')
 
     definition_object = data_types.ConstantDefinition(
         name, aliases=aliases, description=description, urls=urls)
-
-    # TODO: implement.
+    definition_object.value = value
 
     return definition_object
 
@@ -162,13 +173,13 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       FormatError: if the definitions values are missing or if the format is
           incorrect.
     """
-    definition_object = self._ReadFixedSizeDataTypeDefinition(
-        definitions_registry, definition_values,
-        data_types.EnumerationDefinition, name)
-
     values = definition_values.get(u'values')
     if not values:
       raise errors.FormatError(u'Missing values')
+
+    definition_object = self._ReadFixedSizeDataTypeDefinition(
+        definitions_registry, definition_values,
+        data_types.EnumerationDefinition, name)
 
     last_name = None
     for enumeration_value in values:
@@ -266,9 +277,9 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     return definition_object
 
-  def _ReadStructureDataTypeDefinition(
+  def _ReadSequenceDataTypeDefinition(
       self, definitions_registry, definition_values, name):
-    """Reads structure members definitions.
+    """Reads a sequence data type definition.
 
     Args:
       definitions_registry (DataTypeDefinitionsRegistry): data type definitions
@@ -277,19 +288,61 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       name (str): name of the definition.
 
     Returns:
-      StructureDataTypeDefinition: structure data type definition.
+      SequenceDefinition: sequence data type definition.
+
+    Raises:
+      FormatError: if the definitions values are missing or if the format is
+          incorrect.
     """
+    data_type = definition_values.get(u'data_type', None)
+    if not data_type:
+      raise errors.FormatError(u'Missing data type')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(data_type)
+    if not data_type_definition:
+      raise errors.FormatError(
+          u'Undefined data type: {0:s}.'.format(data_type))
+
     aliases = definition_values.get(u'aliases', None)
     description = definition_values.get(u'description', None)
     urls = definition_values.get(u'urls', None)
 
-    definition_object = data_types.StructureDataTypeDefinition(
+    definition_object = data_types.SequenceDefinition(
+        name, aliases=aliases, description=description, urls=urls)
+    definition_object.data_type = data_type
+
+    return definition_object
+
+  def _ReadStructureDataTypeDefinition(
+      self, definitions_registry, definition_values, name):
+    """Reads a structure data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      name (str): name of the definition.
+
+    Returns:
+      StructureDefinition: structure data type definition.
+
+    Raises:
+      FormatError: if the definitions values are missing or if the format is
+          incorrect.
+    """
+    members = definition_values.get(u'members', None)
+    if not members:
+      raise errors.FormatError(u'Missing members')
+
+    aliases = definition_values.get(u'aliases', None)
+    description = definition_values.get(u'description', None)
+    urls = definition_values.get(u'urls', None)
+
+    definition_object = data_types.StructureDefinition(
         name, aliases=aliases, description=description, urls=urls)
 
-    members = definition_values.get(u'members')
-    if members:
-      self._ReadStructureDataTypeDefinitionMembers(
-          definitions_registry, members, definition_object)
+    self._ReadStructureDataTypeDefinitionMembers(
+        definitions_registry, members, definition_object)
 
     return definition_object
 
@@ -382,10 +435,20 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     Returns:
       UUIDDataTypeDefinition: UUID data type definition.
+
+    Raises:
+      FormatError: if the definitions values are missing or if the format is
+          incorrect.
     """
-    return self._ReadFixedSizeDataTypeDefinition(
+    definition_object = self._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values,
-        data_types.UUIDDefinition, name)
+        data_types.UUIDDefinition, name, default_size=16)
+
+    if definition_object.size != 16:
+      raise errors.FormatError(u'Unsupported size: {0:d}.'.format(
+          definition_object.size))
+
+    return definition_object
 
   def ReadDefinitionFromDict(self, definitions_registry, definition_values):
     """Reads a data type definition from a dictionary.

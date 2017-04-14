@@ -152,7 +152,7 @@ class BooleanDefinition(FixedSizeDataTypeDefinition):
   }
 
   def __init__(self, name, aliases=None, description=None, urls=None):
-    """Initializes an integer data type definition.
+    """Initializes a boolean data type definition.
 
     Args:
       name (str): name.
@@ -199,9 +199,26 @@ class CharacterDefinition(FixedSizeDataTypeDefinition):
 
 
 class ConstantDefinition(DataTypeDefinition):
-  """Constant data type definition."""
+  """Constant data type definition.
+
+  Attributes:
+    value (int): constant value.
+  """
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_CONSTANT
+
+  def __init__(self, name, aliases=None, description=None, urls=None):
+    """Initializes an enumeration data type definition.
+
+    Args:
+      name (str): name.
+      aliases (Optional[list[str]]): aliases.
+      description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
+    """
+    super(ConstantDefinition, self).__init__(
+        name, aliases=aliases, description=description, urls=urls)
+    self.value = None
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -258,7 +275,7 @@ class EnumerationDefinition(FixedSizeDataTypeDefinition):
   }
 
   def __init__(self, name, aliases=None, description=None, urls=None):
-    """Initializes an integer data type definition.
+    """Initializes an enumeration data type definition.
 
     Args:
       name (str): name.
@@ -396,7 +413,35 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
     return self._FORMAT_STRINGS_SIGNED.get(self.size, None)
 
 
-class StructureDataTypeDefinition(DataTypeDefinition):
+class SequenceDefinition(DataTypeDefinition):
+  """Sequence data type definition."""
+
+  TYPE_INDICATOR = definitions.TYPE_INDICATOR_SEQUENCE
+
+  def __init__(self, name, aliases=None, description=None, urls=None):
+    """Initializes a sequence data type definition.
+
+    Args:
+      name (str): name.
+      aliases (Optional[list[str]]): aliases.
+      description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
+    """
+    super(SequenceDefinition, self).__init__(
+        name, aliases=aliases, description=description, urls=urls)
+    self.values = []
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return
+
+
+class StructureDefinition(DataTypeDefinition):
   """Structure data type definition.
 
   Attributes:
@@ -414,7 +459,7 @@ class StructureDataTypeDefinition(DataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(StructureDataTypeDefinition, self).__init__(
+    super(StructureDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self._attribute_names = None
     self._byte_size = None
@@ -613,7 +658,7 @@ class UUIDDefinition(FixedSizeDataTypeDefinition):
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_UUID
 
   def __init__(self, name, aliases=None, description=None, urls=None):
-    """Initializes an integer data type definition.
+    """Initializes an UUID data type definition.
 
     Args:
       name (str): name.

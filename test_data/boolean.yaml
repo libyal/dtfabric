@@ -1,0 +1,5 @@
+name: bool
+type: boolean
+attributes:
+  size: 1
+  units: bytes

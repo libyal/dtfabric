@@ -1,0 +1,8 @@
+name: float32
+aliases: [float, FLOAT]
+type: floating-point
+description: 32-bit single precision floating-point type
+attributes:
+  byte_order: little-endian
+  size: 4
+  units: bytes

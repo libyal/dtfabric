@@ -7,12 +7,14 @@ attributes:
   units: bytes
 ---
 name: point3d
+aliases: [POINT]
 type: structure
 description: Point in 3 dimentional space.
 attributes:
   byte_order: little-endian
 members:
 - name: x
+  aliases: [XCOORD]
   data_type: int32
 - name: y
   data_type: int32

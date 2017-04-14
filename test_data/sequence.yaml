@@ -1,0 +1,14 @@
+name: int32
+type: integer
+description: 32-bit signed integer type
+attributes:
+  format: signed
+  size: 4
+  units: bytes
+---
+name: vector4
+aliases: [VECTOR]
+type: sequence
+description: vector with 4 elements
+data_type: int32
+number_of_elements: 4

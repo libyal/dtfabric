@@ -1,0 +1,7 @@
+name: int32
+type: integer
+attributes:
+  byte_order: little-endian
+  format: signed
+  size: 4
+  units: bytes

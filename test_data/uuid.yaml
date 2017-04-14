@@ -2,3 +2,5 @@ name: uuid
 aliases: [guid, GUID, UUID]
 type: uuid
 description: Globally or Universal unique identifier (GUID or UUID) type
+attributes:
+  byte_order: little-endian

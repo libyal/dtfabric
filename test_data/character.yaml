@@ -1,0 +1,5 @@
+name: char
+type: character
+attributes:
+  size: 1
+  units: bytes

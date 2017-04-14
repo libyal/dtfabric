@@ -3,6 +3,11 @@ aliases: [MINIDUMP_HANDLE_OBJECT_INFORMATION_TYPE]
 type: enumeration
 description: Minidump object information type
 urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680376(v=vs.85).aspx']
+attributes:
+  byte_order: little-endian
+  format: unsigned
+  size: 4
+  units: bytes
 values:
 - name: MiniHandleObjectInformationNone
   value: 0

@@ -10,7 +10,7 @@ from tests import test_lib
 
 
 # TODO: complete FormatDefinitionTest.
-# TODO: complete StructureDataTypeDefinitionTest.
+# TODO: complete StructureDefinitionTest.
 # TODO: complete UnionStructureMemberDefinitionTest.
 
 
@@ -155,6 +155,12 @@ class CharacterDefinitionTest(test_lib.BaseTestCase):
 
 class ConstantDefinitionTest(test_lib.BaseTestCase):
   """Constant data type definition tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    data_type_definition = data_types.ConstantDefinition(
+        u'const', description=u'contant')
+    self.assertIsNotNone(data_type_definition)
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
@@ -313,14 +319,33 @@ class IntegerDefinitionTest(test_lib.BaseTestCase):
     self.assertEqual(struct_format_string, u'Q')
 
 
-class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
+class SequenceDefinitionTest(test_lib.BaseTestCase):
+  """Sequence data type definition tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    data_type_definition = data_types.SequenceDefinition(
+        u'byte_stream', description=u'byte stream')
+    self.assertIsNotNone(data_type_definition)
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    data_type_definition = data_types.SequenceDefinition(
+        u'byte_stream', description=u'byte stream')
+
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
+
+
+@test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
+class StructureDefinitionTest(test_lib.BaseTestCase):
   """Structure data type definition tests."""
 
   # pylint: disable=protected-access
 
   def testGetAttributedNames(self):
     """Tests the GetAttributedNames function."""
-    data_type_definition = data_types.StructureDataTypeDefinition(
+    data_type_definition = data_types.StructureDefinition(
         u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
         description=u'my structure type')
 
@@ -345,7 +370,7 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
-    data_type_definition = data_types.StructureDataTypeDefinition(
+    data_type_definition = data_types.StructureDefinition(
         u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
         description=u'my structure type')
 
@@ -370,7 +395,7 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
-    data_type_definition = data_types.StructureDataTypeDefinition(
+    data_type_definition = data_types.StructureDefinition(
         u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
         description=u'my structure type')
 
@@ -395,7 +420,7 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
 
     # Test with member without a struct format string.
 
-    data_type_definition = data_types.StructureDataTypeDefinition(
+    data_type_definition = data_types.StructureDefinition(
         u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
         description=u'my structure type')
 
@@ -412,6 +437,7 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
     self.assertIsNone(struct_format_string)
 
 
+@test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
 class StructureMemberDefinitionTest(test_lib.BaseTestCase):
   """Structure member definition tests."""
 
