@@ -17,11 +17,8 @@ override_dh_auto_build:
 
 .PHONY: override_dh_auto_install
 override_dh_auto_install:
-	dh_auto_install --destdir $(CURDIR)/debian/python-dtfabric
+	dh_auto_install --destdir $(CURDIR)
 	set -ex; for python in $(shell py3versions -r); do \
-		$$python setup.py install --root=$(CURDIR)/debian/python3-dtfabric --install-layout=deb; \
+		$$python setup.py install --root=$(CURDIR) --install-layout=deb; \
 	done;
-	# The shared doc files are provided via python-dtfabric.dirs and python-dtfabric.install
-	rm -rf $(CURDIR)/debian/python-dfwinreg/usr/share/dtfabric /debian/python-dfwinreg/usr/share/doc/dtfabric
-	rm -rf $(CURDIR)/debian/python3-dfwinreg/usr/share/dtfabric /debian/python3-dfwinreg/usr/share/doc/dtfabric
 
