@@ -289,6 +289,15 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     definition_values[u'number_of_elements'] = 4
 
+    # Test with unusuported attributes definition.
+    definition_values[u'attributes'] = {u'byte_order': u'little-endian'}
+
+    with self.assertRaises(errors.FormatError):
+      definitions_reader._ReadSequenceDataTypeDefinition(
+          definitions_registry, definition_values, u'vector4')
+
+    del definition_values[u'attributes']
+
   @test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
   def testReadStructureDataTypeDefinition(self):
     """Tests the _ReadStructureDataTypeDefinition function."""
@@ -550,9 +559,9 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     self.assertEqual(len(definitions_registry._definitions), 1)
 
-    data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
     self.assertIsInstance(data_type_definition, data_types.IntegerDefinition)
-    self.assertEqual(data_type_definition.name, u'int32')
+    self.assertEqual(data_type_definition.name, u'int32le')
     self.assertEqual(
         data_type_definition.byte_order, definitions.BYTE_ORDER_LITTLE_ENDIAN)
     self.assertEqual(data_type_definition.format, u'signed')
@@ -636,10 +645,11 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertEqual(
         data_type_definition.description, u'vector with 4 elements')
     self.assertEqual(data_type_definition.aliases, [u'VECTOR'])
+    self.assertIsNotNone(data_type_definition.element_data_type)
+    self.assertEqual(data_type_definition.number_of_elements, 4)
 
     byte_size = data_type_definition.GetByteSize()
-    # TODO: fix byte size support.
-    self.assertEqual(byte_size, None)
+    self.assertEqual(byte_size, 16)
 
   @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testReadFileObjectStructure(self):

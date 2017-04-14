@@ -2,6 +2,7 @@ name: int32
 type: integer
 description: 32-bit signed integer type
 attributes:
+  byte_order: little-endian
   format: signed
   size: 4
   units: bytes

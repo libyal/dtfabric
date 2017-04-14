@@ -149,13 +149,13 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       FormatError: if the definitions values are missing or if the format is
           incorrect.
     """
+    value = definition_values.get(u'value', None)
+    if value is None:
+      raise errors.FormatError(u'Missing value')
+
     aliases = definition_values.get(u'aliases', None)
     description = definition_values.get(u'description', None)
     urls = definition_values.get(u'urls', None)
-    value = definition_values.get(u'value', None)
-
-    if value is None:
-      raise errors.FormatError(u'Missing value')
 
     definition_object = data_types.ConstantDefinition(
         name, aliases=aliases, description=description, urls=urls)
@@ -275,7 +275,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     attributes = definition_values.get(u'attributes')
     if attributes:
-      format_attribute = attributes.get(u'format', None)
+      format_attribute = attributes.get(u'format', definitions.FORMAT_SIGNED)
       if format_attribute not in self._INTEGER_FORMAT_ATTRIBUTES:
         raise errors.FormatError(
             u'Unsupported format attribute: {0:s}'.format(format_attribute))
@@ -319,9 +319,14 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     description = definition_values.get(u'description', None)
     urls = definition_values.get(u'urls', None)
 
+    attributes = definition_values.get(u'attributes')
+    if attributes:
+      raise errors.FormatError(
+          u'Attributes not supported by sequence data type.')
+
     definition_object = data_types.SequenceDefinition(
         name, aliases=aliases, description=description, urls=urls)
-    definition_object.element_type = data_type_definition
+    definition_object.element_data_type = data_type_definition
     definition_object.number_of_elements = number_of_elements
 
     return definition_object

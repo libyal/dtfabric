@@ -32,6 +32,15 @@ class EmptyDataTypeDefinition(data_types.DataTypeDefinition):
     """
     return
 
+  def GetStructByteOrderString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return
+
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
 
@@ -74,13 +83,47 @@ class StructOperationTest(test_lib.BaseTestCase):
 class DataTypeMapTest(test_lib.BaseTestCase):
   """Data type map tests."""
 
+  # pylint: disable=protected-access
+
+  def testGetStructByteOrderString(self):
+    """Tests the _GetStructByteOrderString function."""
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
+
+    data_type_map = runtime.DataTypeMap(data_type_definition)
+
+    format_string = data_type_map._GetStructByteOrderString(
+        data_type_definition)
+    self.assertEqual(format_string, u'<')
+
+    with self.assertRaises(errors.FormatError):
+      data_type_definition = EmptyDataTypeDefinition(u'empty')
+      data_type_map._GetStructByteOrderString(data_type_definition)
+
+  def testGetStructFormatString(self):
+    """Tests the _GetStructFormatString function."""
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
+
+    data_type_map = runtime.DataTypeMap(data_type_definition)
+
+    format_string = data_type_map._GetStructFormatString(data_type_definition)
+    self.assertEqual(format_string, u'i')
+
+    with self.assertRaises(errors.FormatError):
+      data_type_definition = EmptyDataTypeDefinition(u'empty')
+      data_type_map._GetStructFormatString(data_type_definition)
+
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
     definitions_file = self._GetTestFilePath([u'integer.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
-    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
 
     data_type_map = runtime.DataTypeMap(data_type_definition)
 
@@ -97,8 +140,7 @@ class FixedSizeDataTypeMapTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath([u'integer.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
-    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
 
     data_type_map = runtime.FixedSizeDataTypeMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
@@ -289,6 +331,41 @@ class IntegerMapTest(test_lib.BaseTestCase):
 
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(b'\x12\x34\x56\x78')
+
+
+@test_lib.skipUnlessHasTestFile([u'sequence.yaml'])
+class SequenceMapTest(test_lib.BaseTestCase):
+  """Sequence map tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    definitions_file = self._GetTestFilePath([u'sequence.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'vector4')
+
+    data_type_map = runtime.SequenceMap(data_type_definition)
+    self.assertIsNotNone(data_type_map)
+
+    with self.assertRaises(errors.FormatError):
+      runtime.SequenceMap(None)
+
+    with self.assertRaises(errors.FormatError):
+      data_type_definition = EmptyDataTypeDefinition(u'empty')
+      runtime.SequenceMap(data_type_definition)
+
+  def testMapByteStream(self):
+    """Tests the MapByteStream function."""
+    definitions_file = self._GetTestFilePath([u'sequence.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'vector4')
+
+    data_type_map = runtime.SequenceMap(data_type_definition)
+
+    sequence_value = data_type_map.MapByteStream(
+        b'\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00')
+    self.assertEqual(sequence_value, (1, 2, 3, 4))
 
 
 @test_lib.skipUnlessHasTestFile([u'structure.yaml'])

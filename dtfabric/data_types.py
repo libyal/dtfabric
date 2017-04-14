@@ -489,6 +489,16 @@ class SequenceDefinition(DataTypeDefinition):
     if element_byte_size:
       return element_byte_size * self.number_of_elements
 
+  def GetStructByteOrderString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    if self.element_data_type:
+      return self.element_data_type.GetStructByteOrderString()
+
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
 

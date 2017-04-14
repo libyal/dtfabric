@@ -1,4 +1,4 @@
-name: int32
+name: int32le
 type: integer
 attributes:
   byte_order: little-endian

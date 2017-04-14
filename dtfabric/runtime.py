@@ -14,7 +14,7 @@ from dtfabric import py2to3
 # TODO: add ConstantMap.
 # TODO: add EnumerationMap.
 # TODO: add FormatMap.
-# TODO: add SequenceMap.
+# TODO: complete SequenceMap.
 # TODO: complete StructureMap.
 
 class ByteStreamOperation(object):
@@ -87,6 +87,62 @@ class DataTypeMap(object):
     super(DataTypeMap, self).__init__()
     self._data_type_definition = data_type_definition
 
+  def _GetStructByteOrderString(self, data_type_definition):
+    """Retrieves the Python struct format string.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+
+    Raises:
+      FormatError: if struct format string cannot be determed from
+          the data type definition.
+    """
+    error_string = u''
+
+    try:
+      byte_order_string = data_type_definition.GetStructByteOrderString()
+    except (AttributeError, TypeError) as exception:
+      byte_order_string = None
+      error_string = u' with error: {0!s}'.format(exception)
+
+    if not byte_order_string:
+      raise errors.FormatError(
+          u'Unable to determine byte order string{0:s}'.format(error_string))
+
+    return byte_order_string
+
+  def _GetStructFormatString(self, data_type_definition):
+    """Retrieves the Python struct format string.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+
+    Raises:
+      FormatError: if struct format string cannot be determed from
+          the data type definition.
+    """
+    error_string = u''
+
+    try:
+      format_string = data_type_definition.GetStructFormatString()
+    except (AttributeError, TypeError) as exception:
+      format_string = None
+      error_string = u' with error: {0!s}'.format(exception)
+
+    if not format_string:
+      raise errors.FormatError(
+          u'Unable to determine format string{0:s}'.format(error_string))
+
+    return format_string
+
   def GetByteSize(self):
     """Determines the byte size of the data type map.
 
@@ -119,19 +175,10 @@ class FixedSizeDataTypeMap(DataTypeMap):
 
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
-
-    Raises:
-      FormatError: if struct format string cannot be determed from
-          the data type definition.
     """
-    try:
-      byte_order_string = data_type_definition.GetStructByteOrderString()
-      format_string = data_type_definition.GetStructFormatString()
-      format_string = u''.join([byte_order_string, format_string])
-    except (AttributeError, TypeError) as exception:
-      raise errors.FormatError((
-          u'Unable to create struct object from data type definition '
-          u'with error: {0!s}').format(exception))
+    byte_order_string = self._GetStructByteOrderString(data_type_definition)
+    format_string = self._GetStructFormatString(data_type_definition)
+    format_string = u''.join([byte_order_string, format_string])
 
     super(FixedSizeDataTypeMap, self).__init__(data_type_definition)
     self._operation = StructOperation(format_string)
@@ -283,7 +330,7 @@ class SequenceMap(DataTypeMap):
   """Sequence data type map."""
 
   def __init__(self, data_type_definition):
-    """Initializes a sequence data type map.
+    """Initializes a data type map.
 
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
@@ -292,8 +339,14 @@ class SequenceMap(DataTypeMap):
       FormatError: if struct format string cannot be determed from
           the data type definition.
     """
+    # TODO: add support for non-fixed size sequences.
+    # TODO: add support for structure sequences.
+    byte_order_string = self._GetStructByteOrderString(data_type_definition)
+    format_string = self._GetStructFormatString(data_type_definition)
+    format_string = u''.join([byte_order_string, format_string])
+
     super(SequenceMap, self).__init__(data_type_definition)
-    # TODO: implement.
+    self._operation = StructOperation(format_string)
 
   def MapByteStream(self, byte_stream):
     """Maps the data type on top of a byte stream.
@@ -302,14 +355,17 @@ class SequenceMap(DataTypeMap):
       byte_stream (bytes): byte stream.
 
     Returns:
-      collections.namedtuple: values mapped.
+      tuple: values mapped.
 
     Raises:
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
-    # TODO: implement.
-    return
+    try:
+      return self._operation.ReadFrom(byte_stream)
+
+    except Exception as exception:
+      raise errors.MappingError(exception)
 
 
 class StructureMap(DataTypeMap):
@@ -377,7 +433,7 @@ class StructureMap(DataTypeMap):
           StructureMemberDefinition represents that the struct member has no
           format string.
     """
-    byte_order_string = data_type_definition.GetStructByteOrderString()
+    byte_order_string = self._GetStructByteOrderString(data_type_definition)
     format_strings = [byte_order_string]
 
     for member in data_type_definition.members:

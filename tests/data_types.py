@@ -382,6 +382,21 @@ class SequenceDefinitionTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 32)
 
+  def testGetStructByteOrderString(self):
+    """Tests the GetStructByteOrderString function."""
+    data_type_definition = data_types.SequenceDefinition(
+        u'byte_stream', description=u'byte stream')
+
+    byte_order_string = data_type_definition.GetStructByteOrderString()
+    self.assertIsNone(byte_order_string)
+
+    element_data_type = data_types.IntegerDefinition(u'uint16le')
+    element_data_type.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
+    data_type_definition.element_data_type = element_data_type
+
+    byte_order_string = data_type_definition.GetStructByteOrderString()
+    self.assertEqual(byte_order_string, u'<')
+
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
     data_type_definition = data_types.SequenceDefinition(
