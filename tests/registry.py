@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Tests for the definitions registry."""
+"""Tests for the data type definitions registry."""
 
 import unittest
 
-from dtfabric import definitions
+from dtfabric import data_types
 from dtfabric import registry
 
 from tests import test_lib
@@ -16,7 +16,7 @@ class DataTypeDefinitionsRegistryTest(test_lib.BaseTestCase):
     """Tests the RegisterDefinition and DeregisterDefinition functions."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
 
-    data_type_definition = definitions.IntegerDefinition(
+    data_type_definition = data_types.IntegerDefinition(
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
 
@@ -25,13 +25,13 @@ class DataTypeDefinitionsRegistryTest(test_lib.BaseTestCase):
     with self.assertRaises(KeyError):
       definitions_registry.RegisterDefinition(data_type_definition)
 
-    test_definition = definitions.IntegerDefinition(
+    test_definition = data_types.IntegerDefinition(
         u'LONG', description=u'long integer')
 
     with self.assertRaises(KeyError):
       definitions_registry.RegisterDefinition(test_definition)
 
-    test_definition = definitions.IntegerDefinition(
+    test_definition = data_types.IntegerDefinition(
         u'test', aliases=[u'LONG'], description=u'long integer')
 
     with self.assertRaises(KeyError):
@@ -46,7 +46,7 @@ class DataTypeDefinitionsRegistryTest(test_lib.BaseTestCase):
     """Tests the GetDefinitionByName function."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
 
-    data_type_definition = definitions.IntegerDefinition(
+    data_type_definition = data_types.IntegerDefinition(
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
 
@@ -54,11 +54,11 @@ class DataTypeDefinitionsRegistryTest(test_lib.BaseTestCase):
 
     test_definition = definitions_registry.GetDefinitionByName(u'int32')
     self.assertIsNotNone(test_definition)
-    self.assertIsInstance(test_definition, definitions.IntegerDefinition)
+    self.assertIsInstance(test_definition, data_types.IntegerDefinition)
 
     test_definition = definitions_registry.GetDefinitionByName(u'LONG32')
     self.assertIsNotNone(test_definition)
-    self.assertIsInstance(test_definition, definitions.IntegerDefinition)
+    self.assertIsInstance(test_definition, data_types.IntegerDefinition)
 
     test_definition = definitions_registry.GetDefinitionByName(u'bogus')
     self.assertIsNone(test_definition)
@@ -72,7 +72,7 @@ class DataTypeDefinitionsRegistryTest(test_lib.BaseTestCase):
     test_definitions = definitions_registry.GetDefinitions()
     self.assertEqual(len(test_definitions), 0)
 
-    data_type_definition = definitions.IntegerDefinition(
+    data_type_definition = data_types.IntegerDefinition(
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The definitions registry."""
+"""The data type definitions registry."""
 
 
 class DataTypeDefinitionsRegistry(object):

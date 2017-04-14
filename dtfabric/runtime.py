@@ -304,6 +304,7 @@ class StructureMap(DataTypeMap):
     if len(grouped_format_strings) == 1:
       self._operation = StructOperation(grouped_format_strings[0])
 
+  # TODO: complete or remove
   def _GetStructFormatStringAndObject(self, data_type_definition):
     """Retrieves the struct format string and object.
 

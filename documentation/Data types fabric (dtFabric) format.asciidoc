@@ -38,12 +38,27 @@ in the section entitled "GNU Free Documentation License".
 | 0.0.1 | J.B. Metz | November 2016 | Initial version.
 | 0.0.2 | J.B. Metz | March 2017 | Moved documentation to asciidoc.
 | 0.0.3 | J.B. Metz | March 2017 | Worked on documentation.
+| 0.0.4 | J.B. Metz | April 2017 | Worked on documentation.
 |===
 
 :numbered:
 == Overview
 Data types fabric (dtFabric) is a proof-of-concept YAML-based definition
 language to specify format and data types.
+
+== Data type definition
+
+[cols="1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Description
+| name | string | Name of the format
+| type | string | Definition type +
+See section: <<data_type_definition_types,Data type definition types>>
+| description | string | Description of the format
+| urls | List of strings | List of URLS that contain more information about the format
+| attributes | | Data type attributes +
+See section: <<data_type_definition_attributes,Data type definition attributes>>
+|===
 
 === [[data_type_definition_types]]Data type definition types
 
@@ -72,7 +87,19 @@ See section: <<data_format_metadata,Data format metadata>>
 | reference | [yellow-background]*TODO*
 |===
 
-=== [[data_format_metadata]]Data format metadata
+=== [[data_type_definition_attributes]]Data type definition attributes
+
+[cols="1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Description
+| byte_order | string | Optional byte-order of the data type +
+Valid options are: big-endian, little-endian, native +
+The default is native
+|===
+
+[NOTE] middle-endian is a valid byte-ordering but currently not supported.
+
+== [[data_format_metadata]]Data format metadata
 
 [cols="1,1,5",options="header"]
 |===
@@ -96,19 +123,10 @@ urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680369(v=vs.8
 layout:
 ----
 
-=== Primitive data types
+== Data types
 
-[cols="1,1,5",options="header"]
-|===
-| Attribute name | Attribute type | Description
-| byte_order | string | Optional byte-order of the data type +
-Valid options are: big-endian, little-endian, native +
-The default is native
-|===
-
-[NOTE] middle-endian is a valid byte-ordering but currently not supported.
-
-==== Boolean
+=== Boolean
+A boolean is a data type to represent true-or-false values. 
 
 [source,yaml]
 ----
@@ -121,55 +139,24 @@ attributes:
   units: byte
 ----
 
-==== Character
+=== Character
+A character is a data type to represent elements of textual strings. 
 
 [source,yaml]
 ----
-name: wchar
+name: wchar16
 aliases: [WCHAR]
 type: character
-description: 16 or 32-bit wide character type
+description: 16-bit wide character type
 attributes:
-- size: [2, 4]
+- size: 2
   units: byte
 ----
-
-==== Fixed-point
-
-[yellow-background]*TODO: add example*
-
-==== Floating-point
-
-[source,yaml]
-----
-name: float64
-aliases: [double, DOUBLE]
-type: floating-point
-description: 64-bit double precision floating-point type
-attributes:
-  size: 8
-  units: bytes
-----
-
-==== Integer
-
-[source,yaml]
-----
-name: int32
-aliases: [LONG, LONG32]
-type: integer
-description: 32-bit signed integer type
-attributes:
-- format: signed
-  size: 4
-  units: byte
-----
-
-=== Sequence
-
-[yellow-background]*TODO: add example*
 
 === Constant
+A constant is a data type to provide meaning (semantic value) to a single
+predefined value. The value of a constant is typically not stored in a byte
+stream but used at compile time.
 
 [source,yaml]
 ----
@@ -178,9 +165,12 @@ aliases: [AVRF_MAX_TRACES]
 type: constant
 description: Application verifier resource enumeration maximum number of back traces
 urls: ['https://msdn.microsoft.com/en-us/library/bb432193(v=vs.85).aspx']
+value: 13
 ----
 
 === Enumeration
+An enumeration is a data type to provide meaning (semantic value) to one or more
+predefined values.
 
 [source,yaml]
 ----
@@ -202,6 +192,52 @@ values:
 - name: OperationDbBADREF
   value: 3
   description: Invalid handle operation
+----
+
+=== Fixed-point
+
+[yellow-background]*TODO: add example*
+
+=== Floating-point
+
+[source,yaml]
+----
+name: float64
+aliases: [double, DOUBLE]
+type: floating-point
+description: 64-bit double precision floating-point type
+attributes:
+  size: 8
+  units: bytes
+----
+
+=== Integer
+
+[source,yaml]
+----
+name: int32le
+aliases: [LONG, LONG32]
+type: integer
+description: 32-bit little-endian signed integer type
+attributes:
+- byte_order: little-endian
+  format: signed
+  size: 4
+  units: byte
+----
+
+=== Sequence
+
+[yellow-background]*TODO: add example*
+
+[source,yaml]
+----
+name: data
+aliases: [IDList]
+type: sequence
+description: Link target identifier data
+data_type: byte
+number_of_elements: 32
 ----
 
 === Structure
@@ -236,6 +272,18 @@ members:
 [yellow-background]*TODO: add example*
 
 :numbered!:
+[appendix]
+== References
+`[YAML]`
+
+[cols="1,5",options="header"]
+|===
+| Title: | YAML Ain’t Markup Language (YAML™)
+| Version: | 1.2
+| Data: | November 1, 2009
+| URL: | http://yaml.org/spec/1.2/spec.html
+|===
+
 [appendix]
 == GNU Free Documentation License
 Version 1.3, 3 November 2008

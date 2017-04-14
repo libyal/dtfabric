@@ -6,6 +6,7 @@ import glob
 import os
 import yaml
 
+from dtfabric import data_types
 from dtfabric import definitions
 from dtfabric import errors
 
@@ -37,6 +38,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
   _DATA_TYPE_CALLBACKS = {
       definitions.TYPE_INDICATOR_BOOLEAN: u'_ReadBooleanDataTypeDefinition',
       definitions.TYPE_INDICATOR_CHARACTER: u'_ReadCharacterDataTypeDefinition',
+      definitions.TYPE_INDICATOR_CONSTANT: u'_ReadConstantDataTypeDefinition',
       definitions.TYPE_INDICATOR_ENUMERATION: (
           u'_ReadEnumerationDataTypeDefinition'),
       definitions.TYPE_INDICATOR_FLOATING_POINT: (
@@ -100,7 +102,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     """
     return self._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values,
-        definitions.BooleanDefinition, name)
+        data_types.BooleanDefinition, name)
 
   def _ReadCharacterDataTypeDefinition(
       self, definitions_registry, definition_values, name):
@@ -117,10 +119,34 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     """
     return self._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values,
-        definitions.CharacterDefinition, name)
+        data_types.CharacterDefinition, name)
+
+  def _ReadConstantDataTypeDefinition(
+      self, unused_definitions_registry, definition_values, name):
+    """Reads a constant data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      name (str): name of the definition.
+
+    Returns:
+      ConstantDataTypeDefinition: constant data type definition.
+    """
+    aliases = definition_values.get(u'aliases', None)
+    description = definition_values.get(u'description', None)
+    urls = definition_values.get(u'urls', None)
+
+    definition_object = data_types.ConstantDefinition(
+        name, aliases=aliases, description=description, urls=urls)
+
+    # TODO: implement.
+
+    return definition_object
 
   def _ReadEnumerationDataTypeDefinition(
-      self, unused_definitions_registry, definition_values, name):
+      self, definitions_registry, definition_values, name):
     """Reads an enumeration data type definition.
 
     Args:
@@ -131,15 +157,43 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     Returns:
       EnumerationDataTypeDefinition: enumeration data type definition.
+
+    Raises:
+      FormatError: if the definitions values are missing or if the format is
+          incorrect.
     """
-    aliases = definition_values.get(u'aliases', None)
-    description = definition_values.get(u'description', None)
-    urls = definition_values.get(u'urls', None)
+    definition_object = self._ReadFixedSizeDataTypeDefinition(
+        definitions_registry, definition_values,
+        data_types.EnumerationDefinition, name)
 
-    definition_object = definitions.EnumerationDefinition(
-        name, aliases=aliases, description=description, urls=urls)
+    values = definition_values.get(u'values')
+    if not values:
+      raise errors.FormatError(u'Missing values')
 
-    # TODO: implement.
+    last_name = None
+    for enumeration_value in values:
+      aliases = enumeration_value.get(u'aliases', None)
+      description = enumeration_value.get(u'description', None)
+      name = enumeration_value.get(u'name', None)
+      value = enumeration_value.get(u'value', None)
+
+      if not name or value is None:
+        if last_name:
+          error_location = u'After: {0:s}'.format(last_name)
+        else:
+          error_location = u'At start'
+
+        error_message = u'{0:s} missing name or value'.format(error_location)
+        raise errors.FormatError(error_message)
+
+      else:
+        try:
+          definition_object.AddValue(
+              name, value, aliases=aliases, description=description)
+        except KeyError:
+          raise errors.FormatError(u'Value: {0:s} already exists'.format(name))
+
+      last_name = name
 
     return definition_object
 
@@ -158,7 +212,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     """
     return self._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values,
-        definitions.FloatingPointDefinition, name)
+        data_types.FloatingPointDefinition, name)
 
   def _ReadFormatDefinition(self, definition_values, name):
     """Reads a format definition.
@@ -173,7 +227,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     description = definition_values.get(u'description', None)
     urls = definition_values.get(u'urls', None)
 
-    definition_object = definitions.FormatDefinition(
+    definition_object = data_types.FormatDefinition(
         name, description=description, urls=urls)
 
     # TODO: implement.
@@ -199,7 +253,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     """
     definition_object = self._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values,
-        definitions.IntegerDefinition, name)
+        data_types.IntegerDefinition, name)
 
     attributes = definition_values.get(u'attributes')
     if attributes:
@@ -229,7 +283,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     description = definition_values.get(u'description', None)
     urls = definition_values.get(u'urls', None)
 
-    definition_object = definitions.StructureDataTypeDefinition(
+    definition_object = data_types.StructureDataTypeDefinition(
         name, aliases=aliases, description=description, urls=urls)
 
     members = definition_values.get(u'members')
@@ -273,7 +327,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       data_type = sequence.get(u'data_type', None)
       description = sequence.get(u'description', None)
 
-      definition_object = definitions.SequenceStructureMemberDefinition(
+      definition_object = data_types.SequenceStructureMemberDefinition(
           sequence_name, aliases=aliases, data_type=data_type,
           description=description)
 
@@ -282,7 +336,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       aliases = union.get(u'aliases', None)
       description = union.get(u'description', None)
 
-      definition_object = definitions.UnionStructureMemberDefinition(
+      definition_object = data_types.UnionStructureMemberDefinition(
           union_name, aliases=aliases, description=description)
 
     else:
@@ -295,7 +349,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
         raise errors.FormatError(
             u'Undefined data type: {0:s}.'.format(data_type))
 
-      definition_object = definitions.StructureMemberDefinition(
+      definition_object = data_types.StructureMemberDefinition(
           data_type_definition, name, aliases=aliases, data_type=data_type,
           description=description)
 
@@ -331,7 +385,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     """
     return self._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values,
-        definitions.UUIDDefinition, name)
+        data_types.UUIDDefinition, name)
 
   def ReadDefinitionFromDict(self, definitions_registry, definition_values):
     """Reads a data type definition from a dictionary.

@@ -29,3 +29,12 @@ members:
   data_type: point3d
 - name: c
   data_type: point3d
+---
+name: sphere3d
+type: structure
+description: Sphere in 3 dimentional space.
+members:
+- name: triangles
+  type: sequence
+  data_type: triangle3d
+  number_of_elements: 3

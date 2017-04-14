@@ -1,0 +1,24 @@
+name: object_information_type
+aliases: [MINIDUMP_HANDLE_OBJECT_INFORMATION_TYPE]
+type: enumeration
+description: Minidump object information type
+urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680376(v=vs.85).aspx']
+values:
+- name: MiniHandleObjectInformationNone
+  value: 0
+  description: No object-specific information available
+- name: MiniThreadInformation1
+  value: 1
+  description: Thread object information
+- name: MiniMutantInformation1
+  value: 2
+  description: Mutant object information
+- name: MiniMutantInformation2
+  value: 3
+  description: Mutant object information
+- name: MiniProcessInformation1
+  value: 4
+  description: Process object information
+- name: MiniProcessInformation2
+  value: 5
+  description: Process object information

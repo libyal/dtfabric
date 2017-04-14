@@ -5,14 +5,15 @@ import os
 import unittest
 import uuid
 
-from dtfabric import errors
+from dtfabric import data_types
 from dtfabric import definitions
+from dtfabric import errors
 from dtfabric import runtime
 
 from tests import test_lib
 
 
-class EmptyDataTypeDefinition(definitions.DataTypeDefinition):
+class EmptyDataTypeDefinition(data_types.DataTypeDefinition):
   """Empty data type definition for testing."""
 
   def GetAttributedNames(self):
@@ -320,7 +321,8 @@ class StructureMapTest(test_lib.BaseTestCase):
     format_strings = data_type_map._GetStructFormatStrings(data_type_definition)
     self.assertEqual(format_strings, [u'=', u'i', u'i', u'i'])
 
-    data_type_definition = definitions_registry.GetDefinitionByName(u'triangle3d')
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'triangle3d')
     data_type_map = runtime.StructureMap(data_type_definition)
 
     format_strings = data_type_map._GetStructFormatStrings(data_type_definition)

@@ -8,6 +8,7 @@ aliases: [AVRF_MAX_TRACES]
 type: constant
 description: Application verifier resource enumeration maximum number of back traces
 urls: ['https://msdn.microsoft.com/en-us/library/bb432193(v=vs.85).aspx']
+value: 32
 ---
 name: back_trace_information
 aliases: [AVRF_BACKTRACE_INFORMATION]

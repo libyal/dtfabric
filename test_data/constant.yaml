@@ -1,0 +1,6 @@
+name: maximum_number_of_back_traces
+aliases: [AVRF_MAX_TRACES]
+type: constant
+description: Application verifier resource enumeration maximum number of back traces
+urls: ['https://msdn.microsoft.com/en-us/library/bb432193(v=vs.85).aspx']
+value: 32

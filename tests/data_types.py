@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
-"""Tests for the structure and type definitions."""
+"""Tests for the data type definitions."""
 
 import unittest
 
+from dtfabric import data_types
 from dtfabric import definitions
 
 from tests import test_lib
 
 
-# TODO: complete EnumerationDefinitionTest.
 # TODO: complete FormatDefinitionTest.
 # TODO: complete StructureDataTypeDefinitionTest.
 # TODO: complete UnionStructureMemberDefinitionTest.
 
 
-class TestDataTypeDefinition(definitions.DataTypeDefinition):
+class TestDataTypeDefinition(data_types.DataTypeDefinition):
   """Data type definition for testing."""
 
   def GetAttributedNames(self):
@@ -48,7 +48,7 @@ class DataTypeDefinitionTest(test_lib.BaseTestCase):
 
   def testGetStructByteOrderString(self):
     """Tests the GetStructByteOrderString function."""
-    data_type_definition = definitions.DataTypeDefinition(
+    data_type_definition = data_types.DataTypeDefinition(
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
 
@@ -69,14 +69,14 @@ class FixedSizeDataTypeDefinitionTest(test_lib.BaseTestCase):
 
   def testInitialize(self):
     """Tests the __init__ function."""
-    data_type_definition = definitions.FixedSizeDataTypeDefinition(
+    data_type_definition = data_types.FixedSizeDataTypeDefinition(
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
     self.assertIsNotNone(data_type_definition)
 
   def testGetAttributedNames(self):
     """Tests the GetAttributedNames function."""
-    data_type_definition = definitions.FixedSizeDataTypeDefinition(
+    data_type_definition = data_types.FixedSizeDataTypeDefinition(
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
 
@@ -85,7 +85,7 @@ class FixedSizeDataTypeDefinitionTest(test_lib.BaseTestCase):
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
-    data_type_definition = definitions.FixedSizeDataTypeDefinition(
+    data_type_definition = data_types.FixedSizeDataTypeDefinition(
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
 
@@ -102,13 +102,13 @@ class BooleanDefinitionTest(test_lib.BaseTestCase):
 
   def testInitialize(self):
     """Tests the __init__ function."""
-    data_type_definition = definitions.BooleanDefinition(
+    data_type_definition = data_types.BooleanDefinition(
         u'bool32', aliases=[u'BOOL'], description=u'boolean')
     self.assertIsNotNone(data_type_definition)
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
-    data_type_definition = definitions.BooleanDefinition(
+    data_type_definition = data_types.BooleanDefinition(
         u'bool32', aliases=[u'BOOL'], description=u'boolean')
     self.assertIsNotNone(data_type_definition)
 
@@ -133,7 +133,7 @@ class CharacterDefinitionTest(test_lib.BaseTestCase):
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
-    data_type_definition = definitions.CharacterDefinition(
+    data_type_definition = data_types.CharacterDefinition(
         u'char', aliases=[u'CHAR'], description=u'character')
     self.assertIsNotNone(data_type_definition)
 
@@ -153,19 +153,68 @@ class CharacterDefinitionTest(test_lib.BaseTestCase):
     self.assertEqual(struct_format_string, u'i')
 
 
-class EnumerationDefinitionTest(test_lib.BaseTestCase):
-  """Enumeration data type definition tests."""
+class ConstantDefinitionTest(test_lib.BaseTestCase):
+  """Constant data type definition tests."""
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
-    data_type_definition = definitions.EnumerationDefinition(
+    data_type_definition = data_types.ConstantDefinition(
+        u'const', description=u'contant')
+    self.assertIsNotNone(data_type_definition)
+
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
+
+
+class EnumerationValueTest(test_lib.BaseTestCase):
+  """Enumeration value tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    enumeration_value = data_types.EnumerationValue(u'enum_value', 5)
+    self.assertIsNotNone(enumeration_value)
+
+
+class EnumerationDefinitionTest(test_lib.BaseTestCase):
+  """Enumeration data type definition tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    data_type_definition = data_types.EnumerationDefinition(
+        u'enum', description=u'enumeration')
+    self.assertIsNotNone(data_type_definition)
+
+  def testAddValue(self):
+    """Tests the AddValue function."""
+    data_type_definition = data_types.EnumerationDefinition(
+        u'enum', description=u'enumeration')
+    self.assertIsNotNone(data_type_definition)
+
+    data_type_definition.AddValue(u'enum_value', 5)
+
+    with self.assertRaises(KeyError):
+      data_type_definition.AddValue(u'enum_value', 5)
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    data_type_definition = data_types.EnumerationDefinition(
         u'enum', description=u'enumeration')
     self.assertIsNotNone(data_type_definition)
 
     struct_format_string = data_type_definition.GetStructFormatString()
     self.assertIsNone(struct_format_string)
 
-    # TODO: implement
+    data_type_definition.size = 1
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'B')
+
+    data_type_definition.size = 2
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'H')
+
+    data_type_definition.size = 4
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'I')
 
 
 class FormatDefinitionTest(test_lib.BaseTestCase):
@@ -173,7 +222,7 @@ class FormatDefinitionTest(test_lib.BaseTestCase):
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
-    data_type_definition = definitions.FormatDefinition(
+    data_type_definition = data_types.FormatDefinition(
         u'format', description=u'data format')
     self.assertIsNotNone(data_type_definition)
 
@@ -188,7 +237,7 @@ class FloatingPointDefinitionTest(test_lib.BaseTestCase):
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
-    data_type_definition = definitions.FloatingPointDefinition(
+    data_type_definition = data_types.FloatingPointDefinition(
         u'float32', aliases=[u'float', u'FLOAT'],
         description=u'32-bit floating-point')
 
@@ -209,14 +258,14 @@ class IntegerDefinitionTest(test_lib.BaseTestCase):
 
   def testInitialize(self):
     """Tests the __init__ function."""
-    data_type_definition = definitions.IntegerDefinition(
+    data_type_definition = data_types.IntegerDefinition(
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
     self.assertIsNotNone(data_type_definition)
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
-    data_type_definition = definitions.IntegerDefinition(
+    data_type_definition = data_types.IntegerDefinition(
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
 
@@ -271,7 +320,7 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
 
   def testGetAttributedNames(self):
     """Tests the GetAttributedNames function."""
-    data_type_definition = definitions.StructureDataTypeDefinition(
+    data_type_definition = data_types.StructureDataTypeDefinition(
         u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
         description=u'my structure type')
 
@@ -284,7 +333,7 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
     member_data_type_definition = definitions_registry.GetDefinitionByName(
         u'int32')
 
-    structure_member_definition = definitions.StructureMemberDefinition(
+    structure_member_definition = data_types.StructureMemberDefinition(
         member_data_type_definition, u'my_struct_member',
         aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
         description=u'my structure member')
@@ -296,7 +345,7 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
-    data_type_definition = definitions.StructureDataTypeDefinition(
+    data_type_definition = data_types.StructureDataTypeDefinition(
         u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
         description=u'my structure type')
 
@@ -309,7 +358,7 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
     member_data_type_definition = definitions_registry.GetDefinitionByName(
         u'int32')
 
-    structure_member_definition = definitions.StructureMemberDefinition(
+    structure_member_definition = data_types.StructureMemberDefinition(
         member_data_type_definition, u'my_struct_member',
         aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
         description=u'my structure member')
@@ -321,7 +370,7 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
-    data_type_definition = definitions.StructureDataTypeDefinition(
+    data_type_definition = data_types.StructureDataTypeDefinition(
         u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
         description=u'my structure type')
 
@@ -334,7 +383,7 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
     member_data_type_definition = definitions_registry.GetDefinitionByName(
         u'int32')
 
-    structure_member_definition = definitions.StructureMemberDefinition(
+    structure_member_definition = data_types.StructureMemberDefinition(
         member_data_type_definition, u'my_struct_member',
         aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
         description=u'my structure member')
@@ -346,13 +395,13 @@ class StructureDataTypeDefinitionTest(test_lib.BaseTestCase):
 
     # Test with member without a struct format string.
 
-    data_type_definition = definitions.StructureDataTypeDefinition(
+    data_type_definition = data_types.StructureDataTypeDefinition(
         u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
         description=u'my structure type')
 
     member_data_type_definition = TestDataTypeDefinition(u'test')
 
-    structure_member_definition = definitions.StructureMemberDefinition(
+    structure_member_definition = data_types.StructureMemberDefinition(
         member_data_type_definition, u'my_struct_member',
         aliases=[u'MY_STRUCT_MEMBER'], data_type=u'test',
         description=u'my structure member')
@@ -376,7 +425,7 @@ class StructureMemberDefinitionTest(test_lib.BaseTestCase):
     member_data_type_definition = definitions_registry.GetDefinitionByName(
         u'int32')
 
-    structure_member_definition = definitions.StructureMemberDefinition(
+    structure_member_definition = data_types.StructureMemberDefinition(
         member_data_type_definition, u'my_struct_member',
         aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
         description=u'my structure member')
@@ -390,7 +439,7 @@ class StructureMemberDefinitionTest(test_lib.BaseTestCase):
     member_data_type_definition = definitions_registry.GetDefinitionByName(
         u'int32')
 
-    structure_member_definition = definitions.StructureMemberDefinition(
+    structure_member_definition = data_types.StructureMemberDefinition(
         None, u'my_struct_member',
         aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
         description=u'my structure member')
@@ -411,7 +460,7 @@ class StructureMemberDefinitionTest(test_lib.BaseTestCase):
     member_data_type_definition = definitions_registry.GetDefinitionByName(
         u'int32')
 
-    structure_member_definition = definitions.StructureMemberDefinition(
+    structure_member_definition = data_types.StructureMemberDefinition(
         None, u'my_struct_member',
         aliases=[u'MY_STRUCT_MEMBER'], data_type=u'int32',
         description=u'my structure member')
@@ -430,14 +479,14 @@ class SequenceStructureMemberDefinitionTest(test_lib.BaseTestCase):
 
   def testInitialize(self):
     """Tests the __init__ function."""
-    structure_member_definition = definitions.SequenceStructureMemberDefinition(
+    structure_member_definition = data_types.SequenceStructureMemberDefinition(
         u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
         data_type=u'int32', description=u'my sequence structure member')
     self.assertIsNotNone(structure_member_definition)
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
-    structure_member_definition = definitions.SequenceStructureMemberDefinition(
+    structure_member_definition = data_types.SequenceStructureMemberDefinition(
         u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
         data_type=u'int32', description=u'my sequence structure member')
 
@@ -454,14 +503,14 @@ class UnionStructureMemberDefinitionTest(test_lib.BaseTestCase):
 
   def testInitialize(self):
     """Tests the __init__ function."""
-    structure_member_definition = definitions.UnionStructureMemberDefinition(
+    structure_member_definition = data_types.UnionStructureMemberDefinition(
         u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
         data_type=u'int32', description=u'my union structure member')
     self.assertIsNotNone(structure_member_definition)
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
-    structure_member_definition = definitions.UnionStructureMemberDefinition(
+    structure_member_definition = data_types.UnionStructureMemberDefinition(
         u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
         data_type=u'int32', description=u'my union structure member')
 
@@ -476,13 +525,13 @@ class UUIDDefinitionTest(test_lib.BaseTestCase):
 
   def testInitialize(self):
     """Tests the __init__ function."""
-    data_type_definition = definitions.UUIDDefinition(
+    data_type_definition = data_types.UUIDDefinition(
         u'guid', aliases=[u'GUID'], description=u'GUID')
     self.assertIsNotNone(data_type_definition)
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
-    data_type_definition = definitions.UUIDDefinition(
+    data_type_definition = data_types.UUIDDefinition(
         u'guid', aliases=[u'GUID'], description=u'GUID')
     self.assertIsNotNone(data_type_definition)
 

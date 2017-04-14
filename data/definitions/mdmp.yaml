@@ -387,7 +387,7 @@ aliases: [MINIDUMP_HANDLE_OBJECT_INFORMATION_TYPE]
 type: enumeration
 description: Minidump object information type
 urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680376(v=vs.85).aspx']
-members:
+values:
 - name: MiniHandleObjectInformationNone
   value: 0
   description: No object-specific information available
@@ -472,7 +472,7 @@ aliases: [MINIDUMP_STREAM_TYPE]
 type: enumeration
 description: Minidump stream type
 urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680394(v=vs.85).aspx']
-members:
+values:
 - name: UnusedStream
   value: 0
   description: Reserved

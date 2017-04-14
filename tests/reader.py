@@ -4,6 +4,7 @@
 import io
 import unittest
 
+from dtfabric import data_types
 from dtfabric import definitions
 from dtfabric import errors
 from dtfabric import reader
@@ -32,10 +33,10 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_reader = reader.DataTypeDefinitionsFileReader()
 
     data_type_definition = definitions_reader._ReadFixedSizeDataTypeDefinition(
-        definitions_registry, definition_values, definitions.IntegerDefinition,
+        definitions_registry, definition_values, data_types.IntegerDefinition,
         u'int32')
     self.assertIsNotNone(data_type_definition)
-    self.assertIsInstance(data_type_definition, definitions.IntegerDefinition)
+    self.assertIsInstance(data_type_definition, data_types.IntegerDefinition)
     self.assertEqual(
         data_type_definition.byte_order, definitions.BYTE_ORDER_LITTLE_ENDIAN)
     self.assertEqual(data_type_definition.size, 4)
@@ -55,7 +56,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     with self.assertRaises(errors.FormatError):
       definitions_reader._ReadFixedSizeDataTypeDefinition(
-          definitions_registry, definition_values, definitions.IntegerDefinition,
+          definitions_registry, definition_values, data_types.IntegerDefinition,
           u'int32')
 
   def testReadBooleanDataTypeDefinition(self):
@@ -74,7 +75,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     data_type_definition = definitions_reader._ReadBooleanDataTypeDefinition(
         definitions_registry, definition_values, u'bool')
     self.assertIsNotNone(data_type_definition)
-    self.assertIsInstance(data_type_definition, definitions.BooleanDefinition)
+    self.assertIsInstance(data_type_definition, data_types.BooleanDefinition)
 
   def testReadCharacterDataTypeDefinition(self):
     """Tests the _ReadCharacterDataTypeDefinition function."""
@@ -92,17 +93,39 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     data_type_definition = definitions_reader._ReadCharacterDataTypeDefinition(
         definitions_registry, definition_values, u'char')
     self.assertIsNotNone(data_type_definition)
-    self.assertIsInstance(data_type_definition, definitions.CharacterDefinition)
+    self.assertIsInstance(data_type_definition, data_types.CharacterDefinition)
+
+  def testReadConstantDataTypeDefinition(self):
+    """Tests the _ReadConstantDataTypeDefinition function."""
+    definition_values = {
+        u'aliases': [u'AVRF_MAX_TRACES'],
+        u'description': (
+            u'Application verifier resource enumeration maximum number of '
+            u'back traces'),
+        u'value': 32,
+    }
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    data_type_definition = (
+        definitions_reader._ReadConstantDataTypeDefinition(
+            definitions_registry, definition_values, u'const'))
+    self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(data_type_definition, data_types.ConstantDefinition)
 
   def testReadEnumerationDataTypeDefinition(self):
     """Tests the _ReadEnumerationDataTypeDefinition function."""
     definition_values = {
         u'description': u'Minidump object information type',
-        u'members': {
-            u'description': u'No object-specific information available',
-            u'name': u'MiniHandleObjectInformationNone',
-            u'value': 0,
-        },
+        u'values': [
+            {u'description': u'No object-specific information available',
+             u'name': u'MiniHandleObjectInformationNone',
+             u'value': 0},
+            {u'description': u'Thread object information',
+             u'name': u'MiniThreadInformation1',
+             u'value': 1},
+        ],
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
@@ -113,7 +136,44 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
             definitions_registry, definition_values, u'enum'))
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(
-        data_type_definition, definitions.EnumerationDefinition)
+        data_type_definition, data_types.EnumerationDefinition)
+
+    # Test with missing name in enumeration value definition.
+    del definition_values[u'values'][-1][u'name']
+
+    with self.assertRaises(errors.FormatError):
+      definitions_reader._ReadEnumerationDataTypeDefinition(
+          definitions_registry, definition_values, u'enum')
+
+    definition_values[u'values'][-1][u'name'] = u'MiniThreadInformation1'
+
+    # Test with missing value in enumeration value definition.
+    del definition_values[u'values'][-1][u'value']
+
+    with self.assertRaises(errors.FormatError):
+      definitions_reader._ReadEnumerationDataTypeDefinition(
+          definitions_registry, definition_values, u'enum')
+
+    definition_values[u'values'][-1][u'value'] = 1
+
+    # Test with duplicate enumeration value definition.
+    definition_values[u'values'].append(
+            {u'description': u'Thread object information',
+             u'name': u'MiniThreadInformation1',
+             u'value': 1})
+
+    with self.assertRaises(errors.FormatError):
+      definitions_reader._ReadEnumerationDataTypeDefinition(
+          definitions_registry, definition_values, u'enum')
+
+    del definition_values[u'values'][-1]
+
+    # Test with missing enumeration value definitions.
+    del definition_values[u'values']
+
+    with self.assertRaises(errors.FormatError):
+      definitions_reader._ReadEnumerationDataTypeDefinition(
+          definitions_registry, definition_values, u'enum')
 
   def testReadFloatingPointDataTypeDefinition(self):
     """Tests the _ReadFloatingPointDataTypeDefinition function."""
@@ -133,7 +193,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
             definitions_registry, definition_values, u'float32'))
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(
-        data_type_definition, definitions.FloatingPointDefinition)
+        data_type_definition, data_types.FloatingPointDefinition)
 
   def testReadFormatDefinition(self):
     """Tests the _ReadFormatDefinition function."""
@@ -151,7 +211,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     data_type_definition = definitions_reader._ReadFormatDefinition(
         definition_values, u'lnk')
     self.assertIsNotNone(data_type_definition)
-    self.assertIsInstance(data_type_definition, definitions.FormatDefinition)
+    self.assertIsInstance(data_type_definition, data_types.FormatDefinition)
 
   def testReadIntegerDataTypeDefinition(self):
     """Tests the _ReadIntegerDataTypeDefinition function."""
@@ -170,7 +230,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     data_type_definition = definitions_reader._ReadIntegerDataTypeDefinition(
         definitions_registry, definition_values, u'int32')
     self.assertIsNotNone(data_type_definition)
-    self.assertIsInstance(data_type_definition, definitions.IntegerDefinition)
+    self.assertIsInstance(data_type_definition, data_types.IntegerDefinition)
 
     definition_values[u'attributes'][u'format'] = u'bogus'
     with self.assertRaises(errors.FormatError):
@@ -199,7 +259,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     data_type_definition = definitions_reader._ReadCharacterDataTypeDefinition(
         definitions_registry, definition_values, u'char')
     self.assertIsNotNone(data_type_definition)
-    self.assertIsInstance(data_type_definition, definitions.CharacterDefinition)
+    self.assertIsInstance(data_type_definition, data_types.CharacterDefinition)
 
   def testReadDefinitionFromDict(self):
     """Tests the ReadDefinitionFromDict function."""
@@ -220,7 +280,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     data_type_definition = definitions_reader.ReadDefinitionFromDict(
         definitions_registry, definition_values)
     self.assertIsNotNone(data_type_definition)
-    self.assertIsInstance(data_type_definition, definitions.IntegerDefinition)
+    self.assertIsInstance(data_type_definition, data_types.IntegerDefinition)
 
     with self.assertRaises(errors.FormatError):
       definitions_reader.ReadDefinitionFromDict(definitions_registry, None)
@@ -286,7 +346,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertEqual(len(definitions_registry._definitions), 1)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'bool')
-    self.assertIsInstance(data_type_definition, definitions.BooleanDefinition)
+    self.assertIsInstance(data_type_definition, data_types.BooleanDefinition)
     self.assertEqual(data_type_definition.name, u'bool')
     self.assertEqual(data_type_definition.size, 1)
     self.assertEqual(data_type_definition.units, u'bytes')
@@ -312,7 +372,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertEqual(len(definitions_registry._definitions), 1)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'char')
-    self.assertIsInstance(data_type_definition, definitions.CharacterDefinition)
+    self.assertIsInstance(data_type_definition, data_types.CharacterDefinition)
     self.assertEqual(data_type_definition.name, u'char')
     self.assertEqual(data_type_definition.size, 1)
     self.assertEqual(data_type_definition.units, u'bytes')
@@ -340,7 +400,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertEqual(len(definitions_registry._definitions), 1)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
-    self.assertIsInstance(data_type_definition, definitions.IntegerDefinition)
+    self.assertIsInstance(data_type_definition, data_types.IntegerDefinition)
     self.assertEqual(data_type_definition.name, u'int32')
     self.assertEqual(
         data_type_definition.byte_order, definitions.BYTE_ORDER_LITTLE_ENDIAN)
@@ -445,7 +505,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     data_type_definition = definitions_registry.GetDefinitionByName(
         u'directory_descriptor')
     self.assertIsInstance(
-        data_type_definition, definitions.StructureDataTypeDefinition)
+        data_type_definition, data_types.StructureDataTypeDefinition)
     self.assertEqual(data_type_definition.name, u'directory_descriptor')
     self.assertEqual(data_type_definition.description, u'Minidump file header')
     self.assertEqual(data_type_definition.aliases, [u'MINIDUMP_DIRECTORY'])
@@ -455,7 +515,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     structure_member_definition = data_type_definition.members[0]
     self.assertIsInstance(
-        structure_member_definition, definitions.StructureMemberDefinition)
+        structure_member_definition, data_types.StructureMemberDefinition)
     self.assertEqual(structure_member_definition.name, u'stream_type')
     self.assertEqual(structure_member_definition.aliases, [u'StreamType'])
     self.assertEqual(structure_member_definition.data_type, u'uint32')
@@ -500,7 +560,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     data_type_definition = definitions_registry.GetDefinitionByName(
         u'string')
     self.assertIsInstance(
-        data_type_definition, definitions.StructureDataTypeDefinition)
+        data_type_definition, data_types.StructureDataTypeDefinition)
     self.assertEqual(data_type_definition.name, u'string')
     self.assertEqual(
         data_type_definition.description, u'Minidump 64-bit memory descriptor')
@@ -512,7 +572,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     structure_member_definition = data_type_definition.members[1]
     self.assertIsInstance(
         structure_member_definition,
-        definitions.SequenceStructureMemberDefinition)
+        data_types.SequenceStructureMemberDefinition)
     self.assertEqual(structure_member_definition.name, u'data')
     self.assertEqual(structure_member_definition.aliases, [u'Buffer'])
     self.assertEqual(structure_member_definition.data_type, u'uint16')
