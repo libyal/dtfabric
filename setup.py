@@ -3,6 +3,7 @@
 """Installation and deployment script."""
 
 from __future__ import print_function
+import glob
 import os
 import sys
 
@@ -147,6 +148,8 @@ setup(
         'dtfabric': 'dtfabric'
     },
     data_files=[
+        ('share/dtfabric/definitions', glob.glob(
+            os.path.join('data', 'definitions', '*.yaml'))),
         ('share/doc/dtfabric', [
             'ACKNOWLEDGEMENTS', 'LICENSE', 'README']),
     ],

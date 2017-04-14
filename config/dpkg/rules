@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --buildsystem=python_distutils --with=python2,python3 
+
+.PHONY: override_dh_auto_clean
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf build dtfabric.egg-info/SOURCES.txt dtfabric.egg-info/PKG-INFO
+
+.PHONY: override_dh_auto_build
+override_dh_auto_build:
+	dh_auto_build
+	set -ex; for python in $(shell py3versions -r); do \
+		$$python setup.py build; \
+	done;
+
+.PHONY: override_dh_auto_install
+override_dh_auto_install:
+	dh_auto_install --destdir $(CURDIR)/debian/python-dtfabric
+	set -ex; for python in $(shell py3versions -r); do \
+		$$python setup.py install --root=$(CURDIR)/debian/python3-dtfabric --install-layout=deb; \
+	done;
+	# The shared doc files are provided via python-dtfabric.dirs and python-dtfabric.install
+	rm -rf $(CURDIR)/debian/python-dfwinreg/usr/share/dtfabric /debian/python-dfwinreg/usr/share/doc/dtfabric
+	rm -rf $(CURDIR)/debian/python3-dfwinreg/usr/share/dtfabric /debian/python3-dfwinreg/usr/share/doc/dtfabric
+

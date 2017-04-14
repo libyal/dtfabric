@@ -1,0 +1,30 @@
+Source: dtfabric
+Section: python
+Priority: extra
+Maintainer: Joachim Metz <joachim.metz@gmail.com>
+Build-Depends: debhelper (>= 9), python-all (>= 2.7~), python-setuptools, python3-all (>= 3.4~), python3-setuptools
+Standards-Version: 3.9.5
+X-Python-Version: >= 2.7
+X-Python3-Version: >= 3.4
+Homepage: https://github.com/libyal/dtfabric
+
+Package: dtfabric-data
+Architecture: all
+Depends: ${misc:Depends}
+Description: Data files for dtFabric.
+ dtFabric, or data type fabric, is a project to manage data types and
+ structures, as used in the libyal projects.
+
+Package: python-dtfabric
+Architecture: all
+Depends: dtfabric-data, python-yaml (>= 3.10), ${python:Depends}, ${misc:Depends}
+Description: Python 2 module for data type and structure management
+ dtFabric, or data type fabric, is a project to manage data types and
+ structures, as used in the libyal projects.
+
+Package: python3-dtfabric
+Architecture: all
+Depends: dtfabric-data, python3-yaml (>= 3.10), ${python:Depends}, ${misc:Depends}
+Description: Python 3 module for data type and structure management
+ dtFabric, or data type fabric, is a project to manage data types and
+ structures, as used in the libyal projects.
