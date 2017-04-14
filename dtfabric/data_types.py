@@ -23,6 +23,7 @@ class DataTypeDefinition(object):
     urls (list[str]): URLs.
   """
 
+  IS_COMPOSITE = False
   TYPE_INDICATOR = None
 
   _BYTE_ORDER_STRINGS = {
@@ -363,6 +364,7 @@ class FloatingPointDefinition(FixedSizeDataTypeDefinition):
 class FormatDefinition(DataTypeDefinition):
   """Data format definition."""
 
+  IS_COMPOSITE = True
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_FORMAT
 
   def GetAttributedNames(self):
@@ -452,6 +454,7 @@ class SequenceDefinition(DataTypeDefinition):
     number_of_elements (int): number of elements.
   """
 
+  IS_COMPOSITE = True
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_SEQUENCE
 
   def __init__(self, name, aliases=None, description=None, urls=None):
@@ -522,6 +525,7 @@ class StructureDefinition(DataTypeDefinition):
     members (list[object]): members.
   """
 
+  IS_COMPOSITE = True
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRUCTURE
 
   def __init__(self, name, aliases=None, description=None, urls=None):

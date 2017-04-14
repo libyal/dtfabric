@@ -32,11 +32,57 @@ class ByteStreamOperation(object):
     """
 
 
+class SequenceMapOperation(ByteStreamOperation):
+  """Sequence map byte stream operation."""
+
+  def __init__(self, data_type_map, number_of_iterations):
+    """Initializes a sequence map byte stream operation.
+
+    Args:
+      data_type_map (DataTypeMap): data type map.
+      number_of_iterations (int): number of iterations.
+    """
+    super(SequenceMapOperation, self).__init__()
+    self._data_type_map = data_type_map
+    self._number_of_iterations = number_of_iterations
+
+  def ReadFrom(self, byte_stream):
+    """Read values from a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+
+    Returns:
+      tuple[object, ]: values copies from the byte stream.
+
+    Raises:
+      IOError: if byte stream cannot be read.
+    """
+    values = []
+
+    byte_stream_offset = 0
+    for _ in range(self._number_of_iterations):
+      try:
+        value = self._data_type_map.MapByteStream(
+            byte_stream[byte_stream_offset:])
+
+      except (TypeError, errors.MappingError) as exception:
+        raise IOError((
+            u'Unable to read byte stream at offset: {0:d} with error: '
+            u'{1!s}').format(byte_stream_offset, exception))
+
+      values.append(value)
+
+      byte_stream_offset += self._data_type_map.GetByteSize()
+
+    return tuple(values)
+
+
 class StructOperation(ByteStreamOperation):
-  """Python struct-base binary stream operation."""
+  """Python struct-base byte stream operation."""
 
   def __init__(self, format_string):
-    """Initializes a Python struct-base binary stream operation.
+    """Initializes a Python struct-base byte stream operation.
 
     Args:
       format_string (str): format string as used by Python struct.
@@ -339,14 +385,26 @@ class SequenceMap(DataTypeMap):
       FormatError: if struct format string cannot be determed from
           the data type definition.
     """
+    try:
+      is_composite = data_type_definition.element_data_type.IS_COMPOSITE
+    except (AttributeError, TypeError):
+      raise errors.FormatError(u'Invalid data type definition')
+
     # TODO: add support for non-fixed size sequences.
-    # TODO: add support for structure sequences.
-    byte_order_string = self._GetStructByteOrderString(data_type_definition)
-    format_string = self._GetStructFormatString(data_type_definition)
-    format_string = u''.join([byte_order_string, format_string])
+
+    if is_composite:
+      data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
+          data_type_definition.element_data_type)
+      operation = SequenceMapOperation(
+          data_type_map, data_type_definition.number_of_elements)
+    else:
+      byte_order_string = self._GetStructByteOrderString(data_type_definition)
+      format_string = self._GetStructFormatString(data_type_definition)
+      format_string = u''.join([byte_order_string, format_string])
+      operation = StructOperation(format_string)
 
     super(SequenceMap, self).__init__(data_type_definition)
-    self._operation = StructOperation(format_string)
+    self._operation = operation
 
   def MapByteStream(self, byte_stream):
     """Maps the data type on top of a byte stream.
@@ -576,9 +634,22 @@ class DataTypeMapFactory(object):
     if not data_type_definition:
       return
 
-    data_type_map = self._MAP_PER_DEFINITION.get(
+    return DataTypeMapFactory.CreateDataTypeMapByType(data_type_definition)
+
+  @classmethod
+  def CreateDataTypeMapByType(cls, data_type_definition):
+    """Creates a specific data type map by type indicator.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Returns:
+      DataTypeMape: data type map or None if the date type definition
+          is not available.
+    """
+    data_type_map_class = cls._MAP_PER_DEFINITION.get(
         data_type_definition.TYPE_INDICATOR, None)
-    if not data_type_map:
+    if not data_type_map_class:
       return
 
-    return data_type_map(data_type_definition)
+    return data_type_map_class(data_type_definition)

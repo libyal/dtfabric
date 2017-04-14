@@ -51,8 +51,34 @@ class EmptyDataTypeDefinition(data_types.DataTypeDefinition):
     return
 
 
+@test_lib.skipUnlessHasTestFile([u'integer.yaml'])
+class SequenceMapOperationTest(test_lib.BaseTestCase):
+  """Sequence map byte stream operation."""
+
+  def testReadFrom(self):
+    """Tests the ReadFrom function."""
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
+
+    data_type_map = runtime.IntegerMap(data_type_definition)
+
+    byte_stream_operation = runtime.SequenceMapOperation(data_type_map, 4)
+
+    value = byte_stream_operation.ReadFrom(
+        b'\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00')
+    self.assertEqual(value, (1, 2, 3, 4))
+
+    with self.assertRaises(IOError):
+      byte_stream_operation.ReadFrom(None)
+
+    with self.assertRaises(IOError):
+      byte_stream_operation.ReadFrom(b'\x12\x34\x56')
+
+
 class StructOperationTest(test_lib.BaseTestCase):
-  """Python struct-base binary stream operation tests."""
+  """Python struct-base byte stream operation tests."""
 
   def testInitialize(self):
     """Tests the __init__ function."""
@@ -69,8 +95,8 @@ class StructOperationTest(test_lib.BaseTestCase):
     """Tests the ReadFrom function."""
     byte_stream_operation = runtime.StructOperation(u'i')
 
-    struct_tuple = byte_stream_operation.ReadFrom(b'\x12\x34\x56\x78')
-    self.assertEqual(struct_tuple, (0x78563412, ))
+    value = byte_stream_operation.ReadFrom(b'\x12\x34\x56\x78')
+    self.assertEqual(value, (0x78563412, ))
 
     with self.assertRaises(IOError):
       byte_stream_operation.ReadFrom(None)
@@ -466,12 +492,13 @@ class UUIDMapTest(test_lib.BaseTestCase):
     self.assertEqual(uuid_value, expected_uuid_value)
 
 
+@test_lib.skipUnlessHasTestFile([u'integer.yaml'])
 class DataTypeMapFactoryTest(test_lib.BaseTestCase):
   """Data type map factory tests."""
 
   def testCreateDataTypeMap(self):
     """Tests the CreateDataTypeMap function."""
-    definitions_file = os.path.join(u'data', u'definitions', u'core.yaml')
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
 
@@ -480,13 +507,29 @@ class DataTypeMapFactoryTest(test_lib.BaseTestCase):
 
     factory = runtime.DataTypeMapFactory(definitions_registry)
 
-    data_type_map = factory.CreateDataTypeMap(u'int32')
+    data_type_map = factory.CreateDataTypeMap(u'int32le')
     self.assertIsNotNone(data_type_map)
 
     data_type_map = factory.CreateDataTypeMap(u'empty')
     self.assertIsNone(data_type_map)
 
     data_type_map = factory.CreateDataTypeMap(u'bogus')
+    self.assertIsNone(data_type_map)
+
+  def testCreateDataTypeMapByType(self):
+    """Tests the CreateDataTypeMapByType function."""
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
+    data_type_map = runtime.DataTypeMapFactory.CreateDataTypeMapByType(
+        data_type_definition)
+    self.assertIsNotNone(data_type_map)
+
+    data_type_definition = EmptyDataTypeDefinition(u'empty')
+    data_type_map = runtime.DataTypeMapFactory.CreateDataTypeMapByType(
+        data_type_definition)
     self.assertIsNone(data_type_map)
 
 
