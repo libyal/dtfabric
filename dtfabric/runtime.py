@@ -11,8 +11,10 @@ from dtfabric import errors
 from dtfabric import py2to3
 
 
+# TODO: add ConstantMap.
 # TODO: add EnumerationMap.
 # TODO: add FormatMap.
+# TODO: add SequenceMap.
 # TODO: complete StructureMap.
 
 class ByteStreamOperation(object):
@@ -277,11 +279,44 @@ class IntegerMap(FixedSizeDataTypeMap):
       raise errors.MappingError(exception)
 
 
+class SequenceMap(DataTypeMap):
+  """Sequence data type map."""
+
+  def __init__(self, data_type_definition):
+    """Initializes a sequence data type map.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Raises:
+      FormatError: if struct format string cannot be determed from
+          the data type definition.
+    """
+    super(SequenceMap, self).__init__(data_type_definition)
+    # TODO: implement.
+
+  def MapByteStream(self, byte_stream):
+    """Maps the data type on top of a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+
+    Returns:
+      collections.namedtuple: values mapped.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+    # TODO: implement.
+    return
+
+
 class StructureMap(DataTypeMap):
   """Structure data type map."""
 
   def __init__(self, data_type_definition):
-    """Initializes a data type map.
+    """Initializes a structure data type map.
 
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
@@ -447,6 +482,7 @@ class UUIDMap(FixedSizeDataTypeMap):
 class DataTypeMapFactory(object):
   """Factory for data type maps."""
 
+  # TODO: add support for definitions.TYPE_INDICATOR_CONSTANT
   # TODO: add support for definitions.TYPE_INDICATOR_ENUMERATION
   # TODO: add support for definitions.TYPE_INDICATOR_FORMAT
 
@@ -455,6 +491,7 @@ class DataTypeMapFactory(object):
       definitions.TYPE_INDICATOR_CHARACTER: CharacterMap,
       definitions.TYPE_INDICATOR_FLOATING_POINT: FloatingPointMap,
       definitions.TYPE_INDICATOR_INTEGER: IntegerMap,
+      definitions.TYPE_INDICATOR_SEQUENCE: SequenceMap,
       definitions.TYPE_INDICATOR_STRUCTURE: StructureMap,
       definitions.TYPE_INDICATOR_UUID: UUIDMap}
 

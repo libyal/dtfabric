@@ -243,8 +243,8 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
   def testReadSequenceDataTypeDefinition(self):
     """Tests the _ReadSequenceDataTypeDefinition function."""
     definition_values = {
-        u'data_type': u'int32',
         u'description': u'vector with 4 elements',
+        u'element_type': u'int32',
         u'number_of_elements': 4,
     }
 
@@ -262,19 +262,32 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertIsInstance(
         data_type_definition, data_types.SequenceDefinition)
 
-    # Test with undefined data type.
-    definition_values[u'data_type'] = u'bogus'
+    # Test with undefined element type.
+    definition_values[u'element_type'] = u'bogus'
 
     with self.assertRaises(errors.FormatError):
       definitions_reader._ReadSequenceDataTypeDefinition(
           definitions_registry, definition_values, u'vector4')
 
-    # Test with missing data type definition.
-    del definition_values[u'data_type']
+    definition_values[u'element_type'] = u'int32'
+
+    # Test with missing element type definition.
+    del definition_values[u'element_type']
 
     with self.assertRaises(errors.FormatError):
       definitions_reader._ReadSequenceDataTypeDefinition(
           definitions_registry, definition_values, u'vector4')
+
+    definition_values[u'element_type'] = u'int32'
+
+    # Test with missing number of elements definition.
+    del definition_values[u'number_of_elements']
+
+    with self.assertRaises(errors.FormatError):
+      definitions_reader._ReadSequenceDataTypeDefinition(
+          definitions_registry, definition_values, u'vector4')
+
+    definition_values[u'number_of_elements'] = 4
 
   @test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
   def testReadStructureDataTypeDefinition(self):

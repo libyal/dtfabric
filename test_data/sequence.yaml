@@ -10,5 +10,5 @@ name: vector4
 aliases: [VECTOR]
 type: sequence
 description: vector with 4 elements
-data_type: int32
+element_type: int32
 number_of_elements: 4

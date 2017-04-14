@@ -11,6 +11,9 @@ from dtfabric import definitions
 from dtfabric import errors
 
 
+# TODO: complete _ReadFormatDefinition
+
+
 class DataTypeDefinitionsReader(object):
   """Data type definitions reader interface."""
 
@@ -48,6 +51,10 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       definitions.TYPE_INDICATOR_STRUCTURE: u'_ReadStructureDataTypeDefinition',
       definitions.TYPE_INDICATOR_UUID: u'_ReadUUIDDataTypeDefinition',
   }
+
+  _INTEGER_FORMAT_ATTRIBUTES = frozenset([
+      definitions.FORMAT_SIGNED,
+      definitions.FORMAT_UNSIGNED])
 
   def _ReadFixedSizeDataTypeDefinition(
       self, unused_definitions_registry, definition_values,
@@ -269,7 +276,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     attributes = definition_values.get(u'attributes')
     if attributes:
       format_attribute = attributes.get(u'format', None)
-      if format_attribute not in (u'signed', u'unsigned'):
+      if format_attribute not in self._INTEGER_FORMAT_ATTRIBUTES:
         raise errors.FormatError(
             u'Unsupported format attribute: {0:s}'.format(format_attribute))
 
@@ -294,14 +301,19 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       FormatError: if the definitions values are missing or if the format is
           incorrect.
     """
-    data_type = definition_values.get(u'data_type', None)
-    if not data_type:
-      raise errors.FormatError(u'Missing data type')
+    element_type = definition_values.get(u'element_type', None)
+    if not element_type:
+      raise errors.FormatError(u'Missing element type')
 
-    data_type_definition = definitions_registry.GetDefinitionByName(data_type)
+    number_of_elements = definition_values.get(u'number_of_elements', None)
+    if not number_of_elements:
+      raise errors.FormatError(u'Missing number of elements')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        element_type)
     if not data_type_definition:
       raise errors.FormatError(
-          u'Undefined data type: {0:s}.'.format(data_type))
+          u'Undefined element data type: {0:s}.'.format(element_type))
 
     aliases = definition_values.get(u'aliases', None)
     description = definition_values.get(u'description', None)
@@ -309,7 +321,8 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     definition_object = data_types.SequenceDefinition(
         name, aliases=aliases, description=description, urls=urls)
-    definition_object.data_type = data_type
+    definition_object.element_type = data_type_definition
+    definition_object.number_of_elements = number_of_elements
 
     return definition_object
 

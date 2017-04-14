@@ -5,9 +5,8 @@ import abc
 
 from dtfabric import definitions
 
-# TODO: complete ConstantDefinition.
+# TODO: complete EnumerationDefinition.
 # TODO: complete FormatDefinition.
-# TODO: complete SequenceDefinition.
 
 # TODO: complete SequenceStructureMemberDefinition.
 # TODO: complete UnionStructureMemberDefinition.
@@ -220,6 +219,22 @@ class ConstantDefinition(DataTypeDefinition):
         name, aliases=aliases, description=description, urls=urls)
     self.value = None
 
+  def GetAttributedNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+    return [u'constant']
+
+  def GetByteSize(self):
+    """Determines the byte size of the data type definition.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    return
+
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
 
@@ -350,6 +365,22 @@ class FormatDefinition(DataTypeDefinition):
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_FORMAT
 
+  def GetAttributedNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+    return []
+
+  def GetByteSize(self):
+    """Determines the byte size of the data type definition.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    return
+
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
 
@@ -398,7 +429,7 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
     """
     super(IntegerDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.format = u'signed'
+    self.format = definitions.FORMAT_SIGNED
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -407,14 +438,19 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    if self.format == u'unsigned':
+    if self.format == definitions.FORMAT_UNSIGNED:
       return self._FORMAT_STRINGS_UNSIGNED.get(self.size, None)
 
     return self._FORMAT_STRINGS_SIGNED.get(self.size, None)
 
 
 class SequenceDefinition(DataTypeDefinition):
-  """Sequence data type definition."""
+  """Sequence data type definition.
+
+  Attributes:
+    element_data_type (DataTypeDefinition): element data type definition.
+    number_of_elements (int): number of elements.
+  """
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_SEQUENCE
 
@@ -429,7 +465,29 @@ class SequenceDefinition(DataTypeDefinition):
     """
     super(SequenceDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.values = []
+    self.element_data_type = None
+    self.number_of_elements = None
+
+  def GetAttributedNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+    return [u'elements']
+
+  def GetByteSize(self):
+    """Determines the byte size of the data type definition.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    if not self.element_data_type or not self.number_of_elements:
+      return
+
+    element_byte_size = self.element_data_type.GetByteSize()
+    if element_byte_size:
+      return element_byte_size * self.number_of_elements
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -438,7 +496,13 @@ class SequenceDefinition(DataTypeDefinition):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    return
+    if not self.element_data_type or not self.number_of_elements:
+      return
+
+    element_format_string = self.element_data_type.GetStructFormatString()
+    if element_format_string:
+      return u'{0:d}{1:s}'.format(
+          self.number_of_elements, element_format_string)
 
 
 class StructureDefinition(DataTypeDefinition):
@@ -649,8 +713,6 @@ class UnionStructureMemberDefinition(StructureMemberDefinition):
     """
     # TODO: implement size based on largest member.
 
-
-# TODO: revisit if this should this be a separate data type.
 
 class UUIDDefinition(FixedSizeDataTypeDefinition):
   """UUID (or GUID) data type definition."""

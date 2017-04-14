@@ -43,7 +43,7 @@ class EmptyDataTypeDefinition(data_types.DataTypeDefinition):
 
 
 class StructOperationTest(test_lib.BaseTestCase):
-  """Python struct-base binary stream operationt tests."""
+  """Python struct-base binary stream operation tests."""
 
   def testInitialize(self):
     """Tests the __init__ function."""
@@ -70,13 +70,13 @@ class StructOperationTest(test_lib.BaseTestCase):
       byte_stream_operation.ReadFrom(b'\x12\x34\x56')
 
 
-@test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
+@test_lib.skipUnlessHasTestFile([u'integer.yaml'])
 class DataTypeMapTest(test_lib.BaseTestCase):
   """Data type map tests."""
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
-    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
@@ -88,13 +88,13 @@ class DataTypeMapTest(test_lib.BaseTestCase):
     self.assertEqual(byte_size, 4)
 
 
-@test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
+@test_lib.skipUnlessHasTestFile([u'integer.yaml'])
 class FixedSizeDataTypeMapTest(test_lib.BaseTestCase):
   """Fixed-size data type map tests."""
 
   def testInitialize(self):
     """Tests the __init__ function."""
-    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
