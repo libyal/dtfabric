@@ -301,19 +301,19 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       FormatError: if the definitions values are missing or if the format is
           incorrect.
     """
-    element_type = definition_values.get(u'element_type', None)
-    if not element_type:
-      raise errors.FormatError(u'Missing element type')
+    element_data_type = definition_values.get(u'element_data_type', None)
+    if not element_data_type:
+      raise errors.FormatError(u'Missing element data type')
 
     number_of_elements = definition_values.get(u'number_of_elements', None)
     if not number_of_elements:
       raise errors.FormatError(u'Missing number of elements')
 
-    data_type_definition = definitions_registry.GetDefinitionByName(
-        element_type)
-    if not data_type_definition:
-      raise errors.FormatError(
-          u'Undefined element data type: {0:s}.'.format(element_type))
+    element_data_type_definition = definitions_registry.GetDefinitionByName(
+        element_data_type)
+    if not element_data_type_definition:
+      raise errors.FormatError(u'Undefined element data type: {0:s}.'.format(
+          element_data_type))
 
     aliases = definition_values.get(u'aliases', None)
     description = definition_values.get(u'description', None)
@@ -325,9 +325,8 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
           u'Attributes not supported by sequence data type.')
 
     definition_object = data_types.SequenceDefinition(
-        name, aliases=aliases, description=description, urls=urls)
-    definition_object.element_data_type = data_type_definition
-    definition_object.element_type = element_type
+        name, element_data_type_definition, aliases=aliases,
+        data_type=element_data_type, description=description, urls=urls)
     definition_object.number_of_elements = number_of_elements
 
     return definition_object
@@ -375,19 +374,19 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       definition_values (dict[str, object]): definition values.
 
     Returns:
-      StructureMemberDefinition: structure attribute definition.
+      DataTypeDefinition: structure member data type definition.
 
     Raises:
       FormatError: if the definitions values are missing or if the format is
           incorrect.
     """
     if not definition_values:
-      raise errors.FormatError(u'Missing definition values.')
+      raise errors.FormatError(
+          u'Invalid structure member missing definition values.')
 
     name = definition_values.get(u'name', None)
     if not name:
-      raise errors.FormatError(
-          u'Invalid structure attribute definition missing name.')
+      raise errors.FormatError(u'Invalid structure member missing name.')
 
     data_type = definition_values.get(u'data_type', None)
     type_indicator = definition_values.get(u'type', None)
@@ -413,7 +412,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       description = definition_values.get(u'description', None)
 
       definition_object = data_types.StructureMemberDefinition(
-          data_type_definition, name, aliases=aliases, data_type=data_type,
+          name, data_type_definition, aliases=aliases, data_type=data_type,
           description=description)
 
     return definition_object
@@ -428,10 +427,10 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       definition_values (dict[str, object]): definition values.
       definition_object (DataTypeDefinition): data type definition.
     """
-    for attribute in definition_values:
-      structure_attribute = self._ReadStructureDataTypeDefinitionMember(
-          definitions_registry, attribute)
-      definition_object.members.append(structure_attribute)
+    for member in definition_values:
+      structure_member = self._ReadStructureDataTypeDefinitionMember(
+          definitions_registry, member)
+      definition_object.members.append(structure_member)
 
   def _ReadUUIDDataTypeDefinition(
       self, definitions_registry, definition_values, name):

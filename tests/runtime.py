@@ -50,32 +50,6 @@ class EmptyDataTypeDefinition(data_types.DataTypeDefinition):
     return
 
 
-@test_lib.skipUnlessHasTestFile([u'integer.yaml'])
-class SequenceMapOperationTest(test_lib.BaseTestCase):
-  """Sequence map byte stream operation."""
-
-  def testReadFrom(self):
-    """Tests the ReadFrom function."""
-    definitions_file = self._GetTestFilePath([u'integer.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
-
-    data_type_map = runtime.IntegerMap(data_type_definition)
-
-    byte_stream_operation = runtime.SequenceMapOperation(data_type_map, 4)
-
-    value = byte_stream_operation.ReadFrom(
-        b'\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00')
-    self.assertEqual(value, (1, 2, 3, 4))
-
-    with self.assertRaises(IOError):
-      byte_stream_operation.ReadFrom(None)
-
-    with self.assertRaises(IOError):
-      byte_stream_operation.ReadFrom(b'\x12\x34\x56')
-
-
 class StructOperationTest(test_lib.BaseTestCase):
   """Python struct-base byte stream operation tests."""
 
@@ -160,6 +134,8 @@ class DataTypeMapTest(test_lib.BaseTestCase):
 class FixedSizeDataTypeMapTest(test_lib.BaseTestCase):
   """Fixed-size data type map tests."""
 
+  # pylint: disable=protected-access
+
   def testInitialize(self):
     """Tests the __init__ function."""
     definitions_file = self._GetTestFilePath([u'integer.yaml'])
@@ -170,12 +146,24 @@ class FixedSizeDataTypeMapTest(test_lib.BaseTestCase):
     data_type_map = runtime.FixedSizeDataTypeMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
+  def testGetByteStreamOperation(self):
+    """Tests the _GetByteStreamOperation function."""
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
+
+    data_type_map = runtime.FixedSizeDataTypeMap(data_type_definition)
+
+    operation = data_type_map._GetByteStreamOperation(data_type_definition)
+    self.assertIsInstance(operation, runtime.StructOperation)
+
     with self.assertRaises(errors.FormatError):
-      runtime.FixedSizeDataTypeMap(None)
+      data_type_map._GetByteStreamOperation(None)
 
     with self.assertRaises(errors.FormatError):
       data_type_definition = EmptyDataTypeDefinition(u'empty')
-      runtime.FixedSizeDataTypeMap(data_type_definition)
+      data_type_map._GetByteStreamOperation(data_type_definition)
 
 
 @test_lib.skipUnlessHasTestFile([u'definitions', u'booleans.yaml'])
@@ -362,6 +350,8 @@ class IntegerMapTest(test_lib.BaseTestCase):
 class SequenceMapTest(test_lib.BaseTestCase):
   """Sequence map tests."""
 
+  # pylint: disable=protected-access
+
   def testInitialize(self):
     """Tests the __init__ function."""
     definitions_file = self._GetTestFilePath([u'sequence.yaml'])
@@ -372,12 +362,24 @@ class SequenceMapTest(test_lib.BaseTestCase):
     data_type_map = runtime.SequenceMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
+  def testGetByteStreamOperation(self):
+    """Tests the _GetByteStreamOperation function."""
+    definitions_file = self._GetTestFilePath([u'sequence.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'vector4')
+
+    data_type_map = runtime.SequenceMap(data_type_definition)
+
+    operation = data_type_map._GetByteStreamOperation(data_type_definition)
+    self.assertIsInstance(operation, runtime.StructOperation)
+
     with self.assertRaises(errors.FormatError):
-      runtime.SequenceMap(None)
+      data_type_map._GetByteStreamOperation(None)
 
     with self.assertRaises(errors.FormatError):
       data_type_definition = EmptyDataTypeDefinition(u'empty')
-      runtime.SequenceMap(data_type_definition)
+      data_type_map._GetByteStreamOperation(data_type_definition)
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
@@ -391,6 +393,12 @@ class SequenceMapTest(test_lib.BaseTestCase):
     sequence_value = data_type_map.MapByteStream(
         b'\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00')
     self.assertEqual(sequence_value, (1, 2, 3, 4))
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(None)
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\x12\x34\x56')
 
 
 @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
@@ -409,10 +417,27 @@ class StructureMapTest(test_lib.BaseTestCase):
     data_type_map = runtime.StructureMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
-  # TODO: test _GetStructFormatStringAndObject
+  def testGetByteStreamOperation(self):
+    """Tests the _GetByteStreamOperation function."""
+    definitions_file = self._GetTestFilePath([u'structure.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'point3d')
 
-  def testGetStructFormatStrings(self):
-    """Tests the _GetStructFormatStrings function."""
+    data_type_map = runtime.StructureMap(data_type_definition)
+
+    operation = data_type_map._GetByteStreamOperation(data_type_definition)
+    self.assertIsInstance(operation, runtime.StructOperation)
+
+    with self.assertRaises(errors.FormatError):
+      data_type_map._GetByteStreamOperation(None)
+
+    with self.assertRaises(errors.FormatError):
+      data_type_definition = EmptyDataTypeDefinition(u'empty')
+      data_type_map._GetByteStreamOperation(data_type_definition)
+
+  def testGroupMembers(self):
+    """Tests the _GroupMembers function."""
     definitions_file = self._GetTestFilePath([u'structure.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
@@ -420,41 +445,23 @@ class StructureMapTest(test_lib.BaseTestCase):
     data_type_definition = definitions_registry.GetDefinitionByName(u'point3d')
     data_type_map = runtime.StructureMap(data_type_definition)
 
-    format_strings = data_type_map._GetStructFormatStrings(data_type_definition)
-    self.assertEqual(format_strings, [u'=', u'i', u'i', u'i'])
+    member_groups = data_type_map._GroupMembers(data_type_definition)
+    self.assertEqual(len(member_groups), 1)
 
     data_type_definition = definitions_registry.GetDefinitionByName(
         u'triangle3d')
     data_type_map = runtime.StructureMap(data_type_definition)
 
-    format_strings = data_type_map._GetStructFormatStrings(data_type_definition)
-    self.assertEqual(format_strings, [u'=', u'iii', u'iii', u'iii'])
+    member_groups = data_type_map._GroupMembers(data_type_definition)
+    self.assertEqual(len(member_groups), 3)
 
-  def testGroupFormatStrings(self):
-    """Tests the _GroupFormatStrings function."""
-    definitions_file = self._GetTestFilePath([u'structure.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-
-    data_type_definition = definitions_registry.GetDefinitionByName(u'point3d')
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'sphere3d')
     data_type_map = runtime.StructureMap(data_type_definition)
 
-    format_strings = [u'a', u'b', None, u'c', None]
-    expected_grouped_format_strings = [u'ab', None, u'c', None]
+    member_groups = data_type_map._GroupMembers(data_type_definition)
+    self.assertEqual(len(member_groups), 2)
 
-    grouped_format_strings = data_type_map._GroupFormatStrings(format_strings)
-    self.assertEqual(grouped_format_strings, expected_grouped_format_strings)
-
-    grouped_format_strings = data_type_map._GroupFormatStrings([])
-    self.assertEqual(grouped_format_strings, [])
-
-    grouped_format_strings = data_type_map._GroupFormatStrings([u'a'])
-    self.assertEqual(grouped_format_strings, [u'a'])
-
-    grouped_format_strings = data_type_map._GroupFormatStrings([None])
-    self.assertEqual(grouped_format_strings, [None])
-
-  @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
     definitions_file = self._GetTestFilePath([u'structure.yaml'])
@@ -464,11 +471,37 @@ class StructureMapTest(test_lib.BaseTestCase):
     data_type_definition = definitions_registry.GetDefinitionByName(u'point3d')
     data_type_map = runtime.StructureMap(data_type_definition)
 
-    named_tuple = data_type_map.MapByteStream(
-        b'\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00')
+    byte_values = []
+    for byte_value in range(1, 4):
+      byte_values.extend([chr(byte_value), chr(0), chr(0), chr(0)])
+
+    byte_stream = b''.join(byte_values)
+
+    named_tuple = data_type_map.MapByteStream(byte_stream)
     self.assertEqual(named_tuple.x, 1)
     self.assertEqual(named_tuple.y, 2)
     self.assertEqual(named_tuple.z, 3)
+
+  def testMapByteStreamWithSequence(self):
+    """Tests the MapByteStream function with a sequence."""
+    definitions_file = self._GetTestFilePath([u'structure.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'sphere3d')
+    data_type_map = runtime.StructureMap(data_type_definition)
+
+    byte_values = []
+    for byte_value in range(0, 113):
+      byte_values.extend([chr(byte_value), chr(0), chr(0), chr(0)])
+
+    byte_stream = b''.join(byte_values)
+
+    sphere = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(sphere.number_of_triangles, 0)
+    self.assertEqual(sphere.triangles[0].a.x, 1)
+    self.assertEqual(sphere.triangles[0].a.y, 2)
+    self.assertEqual(sphere.triangles[0].a.z, 3)
 
 
 @test_lib.skipUnlessHasTestFile([u'uuid.yaml'])

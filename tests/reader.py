@@ -13,6 +13,9 @@ from dtfabric import registry
 from tests import test_lib
 
 
+# TODO: complete testReadFormatDefinition.
+
+
 class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
   """Data type definitions reader tests."""
 
@@ -113,6 +116,13 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
             definitions_registry, definition_values, u'const'))
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.ConstantDefinition)
+
+    # Test with missing value definition.
+    del definition_values[u'value']
+
+    with self.assertRaises(errors.FormatError):
+      definitions_reader._ReadConstantDataTypeDefinition(
+          definitions_registry, definition_values, u'const')
 
   def testReadEnumerationDataTypeDefinition(self):
     """Tests the _ReadEnumerationDataTypeDefinition function."""
@@ -244,15 +254,13 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     """Tests the _ReadSequenceDataTypeDefinition function."""
     definition_values = {
         u'description': u'vector with 4 elements',
-        u'element_type': u'int32',
+        u'element_data_type': u'int32',
         u'number_of_elements': 4,
     }
 
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    self.assertEqual(len(definitions_registry._definitions), 8)
-
     definitions_reader = reader.DataTypeDefinitionsFileReader()
 
     data_type_definition = (
@@ -262,23 +270,23 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertIsInstance(
         data_type_definition, data_types.SequenceDefinition)
 
-    # Test with undefined element type.
-    definition_values[u'element_type'] = u'bogus'
+    # Test with undefined element data type.
+    definition_values[u'element_data_type'] = u'bogus'
 
     with self.assertRaises(errors.FormatError):
       definitions_reader._ReadSequenceDataTypeDefinition(
           definitions_registry, definition_values, u'vector4')
 
-    definition_values[u'element_type'] = u'int32'
+    definition_values[u'element_data_type'] = u'int32'
 
-    # Test with missing element type definition.
-    del definition_values[u'element_type']
+    # Test with missing element data type definition.
+    del definition_values[u'element_data_type']
 
     with self.assertRaises(errors.FormatError):
       definitions_reader._ReadSequenceDataTypeDefinition(
           definitions_registry, definition_values, u'vector4')
 
-    definition_values[u'element_type'] = u'int32'
+    definition_values[u'element_data_type'] = u'int32'
 
     # Test with missing number of elements definition.
     del definition_values[u'number_of_elements']
@@ -316,8 +324,6 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    self.assertEqual(len(definitions_registry._definitions), 8)
-
     definitions_reader = reader.DataTypeDefinitionsFileReader()
 
     data_type_definition = (
@@ -341,8 +347,40 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
       definitions_reader._ReadStructureDataTypeDefinition(
           definitions_registry, definition_values, u'point3d')
 
-  # TODO: add test for _ReadStructureDataTypeDefinitionMember
-  # TODO: add test for _ReadStructureDataTypeDefinitionMembers
+  @test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
+  def testReadStructureDataTypeDefinitionMember(self):
+    """Tests the _ReadStructureDataTypeDefinitionMember function."""
+    definition_values = {u'name': u'x', u'data_type': u'int32'}
+
+    definition_object = data_types.StructureDefinition(u'point3d')
+
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    definitions_reader._ReadStructureDataTypeDefinitionMember(
+        definitions_registry, definition_values)
+
+    # TODO: implement.
+    _ = definition_object
+
+  def testReadStructureDataTypeDefinitionMembers(self):
+    """Tests the _ReadStructureDataTypeDefinitionMembers function."""
+    definition_values = [
+        {u'name': u'x', u'data_type': u'int32'},
+        {u'name': u'y', u'data_type': u'int32'},
+        {u'name': u'z', u'data_type': u'int32'}]
+
+    definition_object = data_types.StructureDefinition(u'point3d')
+
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    definitions_reader._ReadStructureDataTypeDefinitionMembers(
+        definitions_registry, definition_values, definition_object)
 
   def testReadUUIDDataTypeDefinition(self):
     """Tests the _ReadUUIDDataTypeDefinition function."""
@@ -645,8 +683,8 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertEqual(
         data_type_definition.description, u'vector with 4 elements')
     self.assertEqual(data_type_definition.aliases, [u'VECTOR'])
-    self.assertIsNotNone(data_type_definition.element_data_type)
-    self.assertEqual(data_type_definition.element_type, u'int32')
+    self.assertEqual(data_type_definition.element_data_type, u'int32')
+    self.assertIsNotNone(data_type_definition.element_data_type_definition)
     self.assertEqual(data_type_definition.number_of_elements, 4)
 
     byte_size = data_type_definition.GetByteSize()
@@ -678,7 +716,8 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
         member_definition, data_types.StructureMemberDefinition)
     self.assertEqual(member_definition.name, u'x')
     self.assertEqual(member_definition.aliases, [u'XCOORD'])
-    self.assertEqual(member_definition.data_type, u'int32')
+    self.assertEqual(member_definition.member_data_type, u'int32')
+    self.assertIsNotNone(member_definition.member_data_type_definition)
 
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 12)
@@ -706,8 +745,8 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     member_definition = data_type_definition.members[1]
     self.assertIsInstance(member_definition, data_types.SequenceDefinition)
     self.assertEqual(member_definition.name, u'triangles')
-    self.assertIsNotNone(member_definition.element_data_type)
-    self.assertEqual(member_definition.element_type, u'triangle3d')
+    self.assertEqual(member_definition.element_data_type, u'triangle3d')
+    self.assertIsNotNone(member_definition.element_data_type_definition)
 
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 112)

@@ -20,13 +20,14 @@ class DataTypeDefinition(object):
     urls (list[str]): URLs.
   """
 
-  IS_COMPOSITE = False
   TYPE_INDICATOR = None
 
   _BYTE_ORDER_STRINGS = {
       definitions.BYTE_ORDER_BIG_ENDIAN: u'>',
       definitions.BYTE_ORDER_LITTLE_ENDIAN: u'<',
       definitions.BYTE_ORDER_NATIVE: u'='}
+
+  _IS_COMPOSITE = False
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes a data type definition.
@@ -54,7 +55,7 @@ class DataTypeDefinition(object):
 
   @abc.abstractmethod
   def GetByteSize(self):
-    """Determines the byte size of the data type definition.
+    """Retrieves the byte size of the data type definition.
 
     Returns:
       int: data type size in bytes or None if size cannot be determined.
@@ -77,6 +78,16 @@ class DataTypeDefinition(object):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
+
+  def IsComposite(self):
+    """Determines if the data type is composite.
+
+    A composite data type consists of other data types.
+
+    Returns:
+      bool: True if the data type is composite, False otherwise.
+    """
+    return self._IS_COMPOSITE
 
 
 class FixedSizeDataTypeDefinition(DataTypeDefinition):
@@ -110,7 +121,7 @@ class FixedSizeDataTypeDefinition(DataTypeDefinition):
     return [u'value']
 
   def GetByteSize(self):
-    """Determines the byte size of the data type definition.
+    """Retrieves the byte size of the data type definition.
 
     Returns:
       int: data type size in bytes or None if size cannot be determined.
@@ -226,7 +237,7 @@ class ConstantDefinition(DataTypeDefinition):
     return [u'constant']
 
   def GetByteSize(self):
-    """Determines the byte size of the data type definition.
+    """Retrieves the byte size of the data type definition.
 
     Returns:
       int: data type size in bytes or None if size cannot be determined.
@@ -361,8 +372,9 @@ class FloatingPointDefinition(FixedSizeDataTypeDefinition):
 class FormatDefinition(DataTypeDefinition):
   """Data format definition."""
 
-  IS_COMPOSITE = True
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_FORMAT
+
+  _IS_COMPOSITE = True
 
   def GetAttributedNames(self):
     """Determines the attribute (or field) names of the data type definition.
@@ -373,7 +385,7 @@ class FormatDefinition(DataTypeDefinition):
     return []
 
   def GetByteSize(self):
-    """Determines the byte size of the data type definition.
+    """Retrieves the byte size of the data type definition.
 
     Returns:
       int: data type size in bytes or None if size cannot be determined.
@@ -447,27 +459,36 @@ class SequenceDefinition(DataTypeDefinition):
   """Sequence data type definition.
 
   Attributes:
-    element_data_type (DataTypeDefinition): element data type definition.
-    element_type (str): name of the element data type definition.
+    element_data_type (str): name of the sequence element data type.
+    element_data_type_definition (DataTypeDefinition): sequence element
+        data type definition.
     number_of_elements (int): number of elements.
   """
 
-  IS_COMPOSITE = True
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_SEQUENCE
 
-  def __init__(self, name, aliases=None, description=None, urls=None):
+  _IS_COMPOSITE = True
+
+  def __init__(
+      self, name, data_type_definition, aliases=None, data_type=None,
+      description=None, urls=None):
     """Initializes a sequence data type definition.
 
     Args:
       name (str): name.
+      data_type_definition (DataTypeDefinition): sequence element data type
+          definition.
       aliases (Optional[list[str]]): aliases.
+      data_type (Optional[str]): name of the sequence element data type.
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
     super(SequenceDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.element_data_type = None
-    self.element_type = None
+    self.byte_order = getattr(
+        data_type_definition, u'byte_order', definitions.BYTE_ORDER_NATIVE)
+    self.element_data_type = data_type
+    self.element_data_type_definition = data_type_definition
     self.number_of_elements = None
 
   def GetAttributedNames(self):
@@ -479,15 +500,15 @@ class SequenceDefinition(DataTypeDefinition):
     return [u'elements']
 
   def GetByteSize(self):
-    """Determines the byte size of the data type definition.
+    """Retrieves the byte size of the data type definition.
 
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if not self.element_data_type or not self.number_of_elements:
+    if not self.element_data_type_definition or not self.number_of_elements:
       return
 
-    element_byte_size = self.element_data_type.GetByteSize()
+    element_byte_size = self.element_data_type_definition.GetByteSize()
     if element_byte_size:
       return element_byte_size * self.number_of_elements
 
@@ -498,8 +519,8 @@ class SequenceDefinition(DataTypeDefinition):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    if self.element_data_type:
-      return self.element_data_type.GetStructByteOrderString()
+    if self.element_data_type_definition:
+      return self.element_data_type_definition.GetStructByteOrderString()
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -508,24 +529,24 @@ class SequenceDefinition(DataTypeDefinition):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    if not self.element_data_type or not self.number_of_elements:
+    if not self.element_data_type_definition or not self.number_of_elements:
       return
 
-    element_format_string = self.element_data_type.GetStructFormatString()
-    if element_format_string:
-      return u'{0:d}{1:s}'.format(
-          self.number_of_elements, element_format_string)
+    format_string = self.element_data_type_definition.GetStructFormatString()
+    if format_string:
+      return u'{0:d}{1:s}'.format(self.number_of_elements, format_string)
 
 
 class StructureDefinition(DataTypeDefinition):
   """Structure data type definition.
 
   Attributes:
-    members (list[object]): members.
+    members (list[DataTypeDefinition]): members.
   """
 
-  IS_COMPOSITE = True
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRUCTURE
+
+  _IS_COMPOSITE = True
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes a data type definition.
@@ -547,7 +568,7 @@ class StructureDefinition(DataTypeDefinition):
     """Adds structure member definition.
 
     Args:
-      member_definition (StructureMemberDefinition): structure member
+      member_definition (DataTypeDefinition): structure member data type
           definition.
     """
     self._attribute_names = None
@@ -569,7 +590,7 @@ class StructureDefinition(DataTypeDefinition):
     return self._attribute_names
 
   def GetByteSize(self):
-    """Determines the byte size of the data type definition.
+    """Retrieves the byte size of the data type definition.
 
     Returns:
       int: data type size in bytes or None if size cannot be determined.
@@ -607,43 +628,44 @@ class StructureDefinition(DataTypeDefinition):
     return self._format_string
 
 
-class StructureMemberDefinition(object):
+class StructureMemberDefinition(DataTypeDefinition):
   """Structure data type member definition.
 
   Attributes:
-    aliases (list[str]): aliases.
-    data_type (str): data type.
-    description (str): description.
-    name (str): name.
+    member_data_type (str): structure member data type.
+    member_data_type_definition (DataTypeDefinition): structure member
+        data type definition.
   """
 
   def __init__(
-      self, data_type_definition, name, aliases=None, data_type=None,
-      description=None):
+      self, name, data_type_definition, aliases=None, data_type=None,
+      description=None, urls=None):
     """Initializes a structure member definition.
 
     Args:
-      data_type_definition (DataTypeDefinition): data type definition.
       name (str): name.
+      data_type_definition (DataTypeDefinition): structure member data type
+          definition.
       aliases (Optional[list[str]]): aliases.
-      data_type (Optional[str]): data type.
+      data_type (Optional[str]): structure member data type.
       description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
     """
-    super(StructureMemberDefinition, self).__init__()
-    self._data_type_definition = data_type_definition
-    self.aliases = aliases or []
-    self.data_type = data_type
-    self.description = description
-    self.name = name
+    super(StructureMemberDefinition, self).__init__(
+        name, aliases=aliases, description=description, urls=urls)
+    self.byte_order = getattr(
+        data_type_definition, u'byte_order', definitions.BYTE_ORDER_NATIVE)
+    self.member_data_type = data_type
+    self.member_data_type_definition = data_type_definition
 
   def GetByteSize(self):
-    """Determines the byte size of the data type definition.
+    """Retrieves the byte size of the data type definition.
 
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if self._data_type_definition:
-      return self._data_type_definition.GetByteSize()
+    if self.member_data_type_definition:
+      return self.member_data_type_definition.GetByteSize()
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -652,8 +674,19 @@ class StructureMemberDefinition(object):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    if self._data_type_definition:
-      return self._data_type_definition.GetStructFormatString()
+    if self.member_data_type_definition:
+      return self.member_data_type_definition.GetStructFormatString()
+
+  def IsComposite(self):
+    """Determines if the data type is composite.
+
+    A composite data type consists of other data types.
+
+    Returns:
+      bool: True if the data type is composite, False otherwise.
+    """
+    return (self.member_data_type_definition and
+            self.member_data_type_definition.IsComposite())
 
 
 class UUIDDefinition(FixedSizeDataTypeDefinition):
