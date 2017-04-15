@@ -36,7 +36,9 @@ name: sphere3d
 type: structure
 description: Sphere in 3 dimentional space.
 members:
+- name: number_of_trianges
+  data_type: int32
 - name: triangles
   type: sequence
-  data_type: triangle3d
+  element_type: triangle3d
   number_of_elements: 3

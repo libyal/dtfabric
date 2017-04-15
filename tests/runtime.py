@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for the run-time object."""
 
-import os
 import unittest
 import uuid
 

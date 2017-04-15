@@ -8,9 +8,6 @@ from dtfabric import definitions
 # TODO: complete EnumerationDefinition.
 # TODO: complete FormatDefinition.
 
-# TODO: complete SequenceStructureMemberDefinition.
-# TODO: complete UnionStructureMemberDefinition.
-
 
 class DataTypeDefinition(object):
   """Data type definition interface.
@@ -451,6 +448,7 @@ class SequenceDefinition(DataTypeDefinition):
 
   Attributes:
     element_data_type (DataTypeDefinition): element data type definition.
+    element_type (str): name of the element data type definition.
     number_of_elements (int): number of elements.
   """
 
@@ -469,6 +467,7 @@ class SequenceDefinition(DataTypeDefinition):
     super(SequenceDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.element_data_type = None
+    self.element_type = None
     self.number_of_elements = None
 
   def GetAttributedNames(self):
@@ -655,77 +654,6 @@ class StructureMemberDefinition(object):
     """
     if self._data_type_definition:
       return self._data_type_definition.GetStructFormatString()
-
-
-class SequenceStructureMemberDefinition(StructureMemberDefinition):
-  """Sequence structure data type member definition.
-
-  Attributes:
-    data_size (int): data size.
-    number_of_items (int): number of items.
-  """
-
-  def __init__(self, name, aliases=None, data_type=None, description=None):
-    """Initializes a sequence structure data type member definition.
-
-    Args:
-      name (str): name.
-      aliases (Optional[list[str]]): aliases.
-      data_type (Optional[str]): data type.
-      description (Optional[str]): description.
-    """
-    super(SequenceStructureMemberDefinition, self).__init__(
-        None, name, aliases=aliases, data_type=data_type,
-        description=description)
-    self.data_size = None
-    # TODO: add expression support.
-    self.number_of_items = None
-
-  def GetByteSize(self):
-    """Determines the byte size of the data type definition.
-
-    Returns:
-      int: data type size in bytes or None if size cannot be determined.
-    """
-    if self.data_size:
-      return self.data_size
-
-    # TODO: implement size based on expression.
-    # TODO: implement size based on data type x number of items.
-
-
-class UnionStructureMemberDefinition(StructureMemberDefinition):
-  """Union structure data type member definition.
-
-  Attributes:
-    members (list[object]): members.
-    name (str): name.
-  """
-
-  def __init__(
-      self, name, aliases=None, data_size=None, data_type=None,
-      description=None):
-    """Initializes an union structure data type member definition.
-
-    Args:
-      name (str): name.
-      aliases (Optional[list[str]]): aliases.
-      data_size (Optional[int]): data size.
-      data_type (Optional[str]): data type.
-      description (Optional[str]): description.
-    """
-    super(UnionStructureMemberDefinition, self).__init__(
-        None, name, aliases=aliases, data_type=data_type,
-        description=description)
-    self.members = []
-
-  def GetByteSize(self):
-    """Determines the byte size of the data type definition.
-
-    Returns:
-      int: data type size in bytes or None if size cannot be determined.
-    """
-    # TODO: implement size based on largest member.
 
 
 class UUIDDefinition(FixedSizeDataTypeDefinition):

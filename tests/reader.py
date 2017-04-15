@@ -646,6 +646,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
         data_type_definition.description, u'vector with 4 elements')
     self.assertEqual(data_type_definition.aliases, [u'VECTOR'])
     self.assertIsNotNone(data_type_definition.element_data_type)
+    self.assertEqual(data_type_definition.element_type, u'int32')
     self.assertEqual(data_type_definition.number_of_elements, 4)
 
     byte_size = data_type_definition.GetByteSize()
@@ -682,61 +683,34 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 12)
 
-  @test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
+  @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testReadFileObjectStructureWithSequence(self):
     """Tests the ReadFileObject function of a structure with a sequence."""
-    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-    self.assertEqual(len(definitions_registry._definitions), 8)
-
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
-    url = (
-        u'https://msdn.microsoft.com/en-us/library/windows/desktop/'
-        u'ms680384(v=vs.85).aspx')
+    definitions_file = self._GetTestFilePath([u'structure.yaml'])
+    with open(definitions_file, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
 
-    yaml_data = u'\n'.join([
-        u'name: string',
-        u'aliases: [MINIDUMP_STRING]',
-        u'type: structure',
-        u'description: Minidump 64-bit memory descriptor',
-        u'urls: [\'{0:s}\']'.format(url),
-        u'members:',
-        u'- name: data_size',
-        u'  aliases: [Length]',
-        u'  data_type: uint32',
-        u'- sequence:',
-        u'    name: data',
-        u'    aliases: [Buffer]',
-        u'    data_type: uint16',
-        u'    data_size: data_size']).encode(u'ascii')
+    self.assertEqual(len(definitions_registry._definitions), 4)
 
-    file_object = io.BytesIO(initial_bytes=yaml_data)
-
-    definitions_reader.ReadFileObject(definitions_registry, file_object)
-    self.assertEqual(len(definitions_registry._definitions), 9)
-
-    data_type_definition = definitions_registry.GetDefinitionByName(
-        u'string')
+    data_type_definition = definitions_registry.GetDefinitionByName(u'sphere3d')
     self.assertIsInstance(data_type_definition, data_types.StructureDefinition)
-    self.assertEqual(data_type_definition.name, u'string')
+    self.assertEqual(data_type_definition.name, u'sphere3d')
     self.assertEqual(
-        data_type_definition.description, u'Minidump 64-bit memory descriptor')
-    self.assertEqual(data_type_definition.aliases, [u'MINIDUMP_STRING'])
-    self.assertEqual(data_type_definition.urls, [url])
+        data_type_definition.description, u'Sphere in 3 dimentional space.')
 
     self.assertEqual(len(data_type_definition.members), 2)
 
     member_definition = data_type_definition.members[1]
-    self.assertIsInstance(
-        member_definition, data_types.SequenceStructureMemberDefinition)
-    self.assertEqual(member_definition.name, u'data')
-    self.assertEqual(member_definition.aliases, [u'Buffer'])
-    self.assertEqual(member_definition.data_type, u'uint16')
+    self.assertIsInstance(member_definition, data_types.SequenceDefinition)
+    self.assertEqual(member_definition.name, u'triangles')
+    self.assertIsNotNone(member_definition.element_data_type)
+    self.assertEqual(member_definition.element_type, u'triangle3d')
 
     byte_size = data_type_definition.GetByteSize()
-    self.assertIsNone(byte_size)
+    self.assertEqual(byte_size, 112)
 
   @test_lib.skipUnlessHasTestFile([u'uuid.yaml'])
   def testReadFileObjectUUID(self):

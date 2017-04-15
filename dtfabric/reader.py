@@ -327,6 +327,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     definition_object = data_types.SequenceDefinition(
         name, aliases=aliases, description=description, urls=urls)
     definition_object.element_data_type = data_type_definition
+    definition_object.element_type = element_type
     definition_object.number_of_elements = number_of_elements
 
     return definition_object
@@ -384,41 +385,32 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       raise errors.FormatError(u'Missing definition values.')
 
     name = definition_values.get(u'name', None)
-    sequence = definition_values.get(u'sequence', None)
-    union = definition_values.get(u'union', None)
-
-    if not name and not sequence and not union:
+    if not name:
       raise errors.FormatError(
-          u'Invalid structure attribute definition missing name, sequence or '
-          u'union.')
+          u'Invalid structure attribute definition missing name.')
 
-    if sequence:
-      sequence_name = sequence.get(u'name', None)
-      aliases = sequence.get(u'aliases', None)
-      data_type = sequence.get(u'data_type', None)
-      description = sequence.get(u'description', None)
+    data_type = definition_values.get(u'data_type', None)
+    type_indicator = definition_values.get(u'type', None)
 
-      definition_object = data_types.SequenceStructureMemberDefinition(
-          sequence_name, aliases=aliases, data_type=data_type,
-          description=description)
+    if type_indicator is not None and data_type is not None:
+      raise errors.FormatError((
+          u'Invalid structure member both type: {0:s} and data type: {1:s} '
+          u'are set.').format(type_indicator, data_type))
 
-    elif union:
-      union_name = union.get(u'name', None)
-      aliases = union.get(u'aliases', None)
-      description = union.get(u'description', None)
-
-      definition_object = data_types.UnionStructureMemberDefinition(
-          union_name, aliases=aliases, description=description)
+    if type_indicator is not None:
+      definition_object = self.ReadDefinitionFromDict(
+          definitions_registry, definition_values)
 
     else:
-      aliases = definition_values.get(u'aliases', None)
-      data_type = definition_values.get(u'data_type', None)
-      description = definition_values.get(u'description', None)
-
-      data_type_definition = definitions_registry.GetDefinitionByName(data_type)
+      data_type_definition = definitions_registry.GetDefinitionByName(
+          data_type)
       if not data_type_definition:
         raise errors.FormatError(
-            u'Undefined data type: {0:s}.'.format(data_type))
+            u'Invalid structure member undefined data type: {0:s}.'.format(
+                data_type))
+
+      aliases = definition_values.get(u'aliases', None)
+      description = definition_values.get(u'description', None)
 
       definition_object = data_types.StructureMemberDefinition(
           data_type_definition, name, aliases=aliases, data_type=data_type,

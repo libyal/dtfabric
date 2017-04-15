@@ -11,7 +11,6 @@ from tests import test_lib
 
 # TODO: complete FormatDefinitionTest.
 # TODO: complete StructureDefinitionTest.
-# TODO: complete UnionStructureMemberDefinitionTest.
 
 
 class TestDataTypeDefinition(data_types.DataTypeDefinition):
@@ -579,52 +578,6 @@ class StructureMemberDefinitionTest(test_lib.BaseTestCase):
         member_data_type_definition)
     struct_format_string = structure_member_definition.GetStructFormatString()
     self.assertEqual(struct_format_string, u'i')
-
-
-class SequenceStructureMemberDefinitionTest(test_lib.BaseTestCase):
-  """Sequence structure member definition tests."""
-
-  def testInitialize(self):
-    """Tests the __init__ function."""
-    structure_member_definition = data_types.SequenceStructureMemberDefinition(
-        u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
-        data_type=u'int32', description=u'my sequence structure member')
-    self.assertIsNotNone(structure_member_definition)
-
-  def testGetByteSize(self):
-    """Tests the GetByteSize function."""
-    structure_member_definition = data_types.SequenceStructureMemberDefinition(
-        u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
-        data_type=u'int32', description=u'my sequence structure member')
-
-    byte_size = structure_member_definition.GetByteSize()
-    self.assertIsNone(byte_size)
-
-    structure_member_definition.data_size = 4
-    byte_size = structure_member_definition.GetByteSize()
-    self.assertEqual(byte_size, 4)
-
-
-class UnionStructureMemberDefinitionTest(test_lib.BaseTestCase):
-  """Union structure member definition tests."""
-
-  def testInitialize(self):
-    """Tests the __init__ function."""
-    structure_member_definition = data_types.UnionStructureMemberDefinition(
-        u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
-        data_type=u'int32', description=u'my union structure member')
-    self.assertIsNotNone(structure_member_definition)
-
-  def testGetByteSize(self):
-    """Tests the GetByteSize function."""
-    structure_member_definition = data_types.UnionStructureMemberDefinition(
-        u'my_struct_member', aliases=[u'MY_STRUCT_MEMBER'],
-        data_type=u'int32', description=u'my union structure member')
-
-    byte_size = structure_member_definition.GetByteSize()
-    self.assertIsNone(byte_size)
-
-    # TODO: change test when code is implemented
 
 
 class UUIDDefinitionTest(test_lib.BaseTestCase):
