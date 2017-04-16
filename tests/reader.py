@@ -45,22 +45,24 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertEqual(data_type_definition.size, 4)
 
     # Test with incorrect byte-order.
-    definition_values = {
-        u'aliases': [u'LONG', u'LONG32'],
-        u'attributes': {
-            u'byte_order': u'bogus',
-            u'size': 4,
-        },
-        u'description': u'signed 32-bit integer type',
-    }
+    definition_values[u'attributes'][u'byte_order'] = u'bogus'
 
-    definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
-
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadFixedSizeDataTypeDefinition(
           definitions_registry, definition_values, data_types.IntegerDefinition,
           u'int32')
+
+    definition_values[u'attributes'][u'byte_order'] = u'little-endian'
+
+    # Test with incorrect size.
+    definition_values[u'attributes'][u'size'] = u'bogus'
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadFixedSizeDataTypeDefinition(
+          definitions_registry, definition_values, data_types.IntegerDefinition,
+          u'int32')
+
+    definition_values[u'attributes'][u'size'] = 4
 
   def testReadBooleanDataTypeDefinition(self):
     """Tests the _ReadBooleanDataTypeDefinition function."""
@@ -120,7 +122,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     # Test with missing value definition.
     del definition_values[u'value']
 
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadConstantDataTypeDefinition(
           definitions_registry, definition_values, u'const')
 
@@ -151,7 +153,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     # Test with missing name in enumeration value definition.
     del definition_values[u'values'][-1][u'name']
 
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadEnumerationDataTypeDefinition(
           definitions_registry, definition_values, u'enum')
 
@@ -160,7 +162,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     # Test with missing value in enumeration value definition.
     del definition_values[u'values'][-1][u'value']
 
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadEnumerationDataTypeDefinition(
           definitions_registry, definition_values, u'enum')
 
@@ -172,7 +174,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
         u'name': u'MiniThreadInformation1',
         u'value': 1})
 
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadEnumerationDataTypeDefinition(
           definitions_registry, definition_values, u'enum')
 
@@ -181,7 +183,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     # Test with missing enumeration value definitions.
     del definition_values[u'values']
 
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadEnumerationDataTypeDefinition(
           definitions_registry, definition_values, u'enum')
 
@@ -245,7 +247,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     # Test with unsupported format attribute.
     definition_values[u'attributes'][u'format'] = u'bogus'
 
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadIntegerDataTypeDefinition(
           definitions_registry, definition_values, u'int32')
 
@@ -273,7 +275,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     # Test with undefined element data type.
     definition_values[u'element_data_type'] = u'bogus'
 
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadSequenceDataTypeDefinition(
           definitions_registry, definition_values, u'vector4')
 
@@ -282,7 +284,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     # Test with missing element data type definition.
     del definition_values[u'element_data_type']
 
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadSequenceDataTypeDefinition(
           definitions_registry, definition_values, u'vector4')
 
@@ -291,7 +293,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     # Test with missing number of elements definition.
     del definition_values[u'number_of_elements']
 
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadSequenceDataTypeDefinition(
           definitions_registry, definition_values, u'vector4')
 
@@ -300,7 +302,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     # Test with unusuported attributes definition.
     definition_values[u'attributes'] = {u'byte_order': u'little-endian'}
 
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadSequenceDataTypeDefinition(
           definitions_registry, definition_values, u'vector4')
 
@@ -336,14 +338,14 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     # Test with undefined data type.
     definition_values[u'members'][1][u'data_type'] = u'bogus'
 
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadStructureDataTypeDefinition(
           definitions_registry, definition_values, u'point3d')
 
     # Test with missing member definitions.
     del definition_values[u'members']
 
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadStructureDataTypeDefinition(
           definitions_registry, definition_values, u'point3d')
 
@@ -360,7 +362,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_reader = reader.DataTypeDefinitionsFileReader()
 
     definitions_reader._ReadStructureDataTypeDefinitionMember(
-        definitions_registry, definition_values)
+        definitions_registry, definition_values, u'point3d')
 
     # TODO: implement.
     _ = definition_object
@@ -404,7 +406,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     # Test with unsupported size.
     definition_values[u'attributes'][u'size'] = 32
 
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadUUIDDataTypeDefinition(
           definitions_registry, definition_values, u'uuid')
 
@@ -429,11 +431,11 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.IntegerDefinition)
 
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader.ReadDefinitionFromDict(definitions_registry, None)
 
     definition_values[u'type'] = u'bogus'
-    with self.assertRaises(errors.FormatError):
+    with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader.ReadDefinitionFromDict(
           definitions_registry, definition_values)
 
@@ -700,7 +702,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
-    self.assertEqual(len(definitions_registry._definitions), 4)
+    self.assertEqual(len(definitions_registry._definitions), 5)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'point3d')
     self.assertIsInstance(data_type_definition, data_types.StructureDefinition)
@@ -732,7 +734,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
-    self.assertEqual(len(definitions_registry._definitions), 4)
+    self.assertEqual(len(definitions_registry._definitions), 5)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'sphere3d')
     self.assertIsInstance(data_type_definition, data_types.StructureDefinition)

@@ -32,6 +32,15 @@ members:
 - name: c
   data_type: point3d
 ---
+name: box3d
+type: structure
+description: Sphere in 3 dimentional space.
+members:
+- name: triangles
+  type: sequence
+  element_data_type: triangle3d
+  number_of_elements: 12
+---
 name: sphere3d
 type: structure
 description: Sphere in 3 dimentional space.
