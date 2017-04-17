@@ -46,7 +46,7 @@ class DataTypeDefinition(object):
     self.urls = urls
 
   @abc.abstractmethod
-  def GetAttributedNames(self):
+  def GetAttributeNames(self):
     """Determines the attribute (or field) names of the data type definition.
 
     Returns:
@@ -112,7 +112,7 @@ class FixedSizeDataTypeDefinition(DataTypeDefinition):
     self.size = None
     self.units = u'bytes'
 
-  def GetAttributedNames(self):
+  def GetAttributeNames(self):
     """Determines the attribute (or field) names of the data type definition.
 
     Returns:
@@ -228,7 +228,7 @@ class ConstantDefinition(DataTypeDefinition):
         name, aliases=aliases, description=description, urls=urls)
     self.value = None
 
-  def GetAttributedNames(self):
+  def GetAttributeNames(self):
     """Determines the attribute (or field) names of the data type definition.
 
     Returns:
@@ -376,7 +376,7 @@ class FormatDefinition(DataTypeDefinition):
 
   _IS_COMPOSITE = True
 
-  def GetAttributedNames(self):
+  def GetAttributeNames(self):
     """Determines the attribute (or field) names of the data type definition.
 
     Returns:
@@ -463,6 +463,8 @@ class SequenceDefinition(DataTypeDefinition):
     element_data_type_definition (DataTypeDefinition): sequence element
         data type definition.
     number_of_elements (int): number of elements.
+    number_of_elements_expression (str): expression to determine number
+        of elements.
   """
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_SEQUENCE
@@ -490,8 +492,9 @@ class SequenceDefinition(DataTypeDefinition):
     self.element_data_type = data_type
     self.element_data_type_definition = data_type_definition
     self.number_of_elements = None
+    self.number_of_elements_expression = None
 
-  def GetAttributedNames(self):
+  def GetAttributeNames(self):
     """Determines the attribute (or field) names of the data type definition.
 
     Returns:
@@ -505,12 +508,13 @@ class SequenceDefinition(DataTypeDefinition):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if not self.element_data_type_definition or not self.number_of_elements:
+    if not self.element_data_type_definition:
       return
 
-    element_byte_size = self.element_data_type_definition.GetByteSize()
-    if element_byte_size:
-      return element_byte_size * self.number_of_elements
+    if self.number_of_elements:
+      element_byte_size = self.element_data_type_definition.GetByteSize()
+      if element_byte_size:
+        return element_byte_size * self.number_of_elements
 
   def GetStructByteOrderString(self):
     """Retrieves the Python struct format string.
@@ -529,12 +533,13 @@ class SequenceDefinition(DataTypeDefinition):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    if not self.element_data_type_definition or not self.number_of_elements:
+    if not self.element_data_type_definition:
       return
 
-    format_string = self.element_data_type_definition.GetStructFormatString()
-    if format_string:
-      return u'{0:d}{1:s}'.format(self.number_of_elements, format_string)
+    if self.number_of_elements:
+      format_string = self.element_data_type_definition.GetStructFormatString()
+      if format_string:
+        return u'{0:d}{1:s}'.format(self.number_of_elements, format_string)
 
 
 class StructureDefinition(DataTypeDefinition):
@@ -576,7 +581,7 @@ class StructureDefinition(DataTypeDefinition):
     self._format_string = None
     self.members.append(member_definition)
 
-  def GetAttributedNames(self):
+  def GetAttributeNames(self):
     """Determines the attribute (or field) names of the data type definition.
 
     Returns:
@@ -658,6 +663,15 @@ class StructureMemberDefinition(DataTypeDefinition):
     self.member_data_type = data_type
     self.member_data_type_definition = data_type_definition
 
+  def GetAttributeNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+    if self.member_data_type_definition:
+      return self.member_data_type_definition.GetAttributeNames()
+
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.
 
@@ -693,6 +707,8 @@ class UUIDDefinition(FixedSizeDataTypeDefinition):
   """UUID (or GUID) data type definition."""
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_UUID
+
+  _IS_COMPOSITE = True
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes an UUID data type definition.

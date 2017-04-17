@@ -316,7 +316,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
         u'attributes': {
             u'byte_order': u'little-endian',
         },
-        u'description': u'Point in 3 dimentional space.',
+        u'description': u'Point in 3 dimensional space.',
         u'members': [
             {u'name': u'x', u'data_type': u'int32'},
             {u'name': u'y', u'data_type': u'int32'},
@@ -708,7 +708,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertIsInstance(data_type_definition, data_types.StructureDefinition)
     self.assertEqual(data_type_definition.name, u'point3d')
     self.assertEqual(
-        data_type_definition.description, u'Point in 3 dimentional space.')
+        data_type_definition.description, u'Point in 3 dimensional space.')
     self.assertEqual(data_type_definition.aliases, [u'POINT'])
 
     self.assertEqual(len(data_type_definition.members), 3)
@@ -736,11 +736,40 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     self.assertEqual(len(definitions_registry._definitions), 5)
 
+    data_type_definition = definitions_registry.GetDefinitionByName(u'box3d')
+    self.assertIsInstance(data_type_definition, data_types.StructureDefinition)
+    self.assertEqual(data_type_definition.name, u'box3d')
+    self.assertEqual(
+        data_type_definition.description, u'Box in 3 dimensional space.')
+
+    self.assertEqual(len(data_type_definition.members), 1)
+
+    member_definition = data_type_definition.members[0]
+    self.assertIsInstance(member_definition, data_types.SequenceDefinition)
+    self.assertEqual(member_definition.name, u'triangles')
+    self.assertEqual(member_definition.element_data_type, u'triangle3d')
+    self.assertIsNotNone(member_definition.element_data_type_definition)
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 432)
+
+  @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
+  def testReadFileObjectStructureWithSequenceWithExpression(self):
+    """Tests the ReadFileObject function of a structure with a sequence."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath([u'structure.yaml'])
+    with open(definitions_file, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    self.assertEqual(len(definitions_registry._definitions), 5)
+
     data_type_definition = definitions_registry.GetDefinitionByName(u'sphere3d')
     self.assertIsInstance(data_type_definition, data_types.StructureDefinition)
     self.assertEqual(data_type_definition.name, u'sphere3d')
     self.assertEqual(
-        data_type_definition.description, u'Sphere in 3 dimentional space.')
+        data_type_definition.description, u'Sphere in 3 dimensional space.')
 
     self.assertEqual(len(data_type_definition.members), 2)
 
@@ -751,7 +780,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertIsNotNone(member_definition.element_data_type_definition)
 
     byte_size = data_type_definition.GetByteSize()
-    self.assertEqual(byte_size, 112)
+    self.assertIsNone(byte_size)
 
   @test_lib.skipUnlessHasTestFile([u'uuid.yaml'])
   def testReadFileObjectUUID(self):

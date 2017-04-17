@@ -335,13 +335,6 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
           element_data_type)
       raise errors.DefinitionReaderError(definition_name, error_message)
 
-    try:
-      int(number_of_elements)
-    except ValueError:
-      error_message = u'unsupported number of elements: {0!s}'.format(
-          number_of_elements)
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
     aliases = definition_values.get(u'aliases', None)
     description = definition_values.get(u'description', None)
     urls = definition_values.get(u'urls', None)
@@ -349,7 +342,11 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     definition_object = data_types.SequenceDefinition(
         definition_name, element_data_type_definition, aliases=aliases,
         data_type=element_data_type, description=description, urls=urls)
-    definition_object.number_of_elements = number_of_elements
+
+    try:
+      definition_object.number_of_elements = int(number_of_elements)
+    except ValueError:
+      definition_object.number_of_elements_expression = number_of_elements
 
     return definition_object
 
