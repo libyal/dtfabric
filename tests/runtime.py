@@ -227,6 +227,18 @@ class DataTypeMapTest(test_lib.BaseTestCase):
       data_type_definition = EmptyDataTypeDefinition(u'empty')
       data_type_map._GetStructFormatString(data_type_definition)
 
+  def testGetByteSize(self):
+    """Tests the GetByteSize function."""
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
+
+    data_type_map = runtime.DataTypeMap(data_type_definition)
+
+    byte_size = data_type_map.GetByteSize()
+    self.assertEqual(byte_size, 4)
+
 
 @test_lib.skipUnlessHasTestFile([u'integer.yaml'])
 class PrimitiveDataTypeMapTest(test_lib.BaseTestCase):

@@ -159,7 +159,7 @@ class StructureValuesClassFactory(object):
 
     class_attributes_description = u'\n'.join(
         sorted(class_attributes_description))
-    init_arguments = u', '.join(sorted(init_arguments))
+    init_arguments = u', '.join(init_arguments)
     instance_attributes = u'\n'.join(sorted(instance_attributes))
 
     template_values = {
@@ -365,6 +365,14 @@ class DataTypeMap(object):
           u'Unable to determine format string{0:s}'.format(error_string))
 
     return format_string
+
+  def GetByteSize(self):
+    """Retrieves the byte size of the data type map.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    return self._data_type_definition.GetByteSize()
 
   @abc.abstractmethod
   def MapByteStream(self, byte_stream, context=None, **unused_kwargs):
