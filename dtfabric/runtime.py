@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 """Run-time objects."""
 
+try:
+  import __builtin__ as builtins
+except ImportError:
+  import builtins
+
 import abc
 import keyword
 import struct
@@ -234,7 +239,11 @@ class StructureValuesClassFactory(object):
 
     class_definition = cls._CreateClassTemplate(data_type_definition)
 
-    namespace = {u'__name__': u'{0:s}'.format(data_type_definition.name)}
+    namespace = {
+        u'__builtins__' : {
+            u'object': builtins.object,
+            u'super': builtins.super},
+        u'__name__': u'{0:s}'.format(data_type_definition.name)}
 
     exec(class_definition, namespace)  # pylint: disable=exec-used
 
@@ -513,7 +522,8 @@ class SequenceMap(DataTypeMap):
     data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
         element_data_type_definition)
 
-    if element_data_type_definition.IsComposite():
+    if (element_data_type_definition.IsComposite() or
+        data_type_definition.number_of_elements_expression):
       map_byte_stream = self._CompositeMapByteStream
       operation = None
     else:
@@ -543,7 +553,7 @@ class SequenceMap(DataTypeMap):
       number_of_elements = self._data_type_definition.number_of_elements
     else:
       expression = self._data_type_definition.number_of_elements_expression
-      namespace = {}
+      namespace = {u'__builtins__' : {}}
       if context and context.value:
         namespace[type(context.value).__name__] = context.value
 
@@ -553,6 +563,10 @@ class SequenceMap(DataTypeMap):
         raise errors.MappingError(
             u'Unable to determine number of elements with error: {0!s}'.format(
                 exception))
+
+    if number_of_elements < 0:
+      raise errors.MappingError(
+          u'Invalid number of elements: {0:d}'.format(number_of_elements))
 
     values = []
 

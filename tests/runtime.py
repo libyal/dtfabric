@@ -493,12 +493,12 @@ class SequenceMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\x12\x34\x56')
 
 
-@test_lib.skipUnlessHasTestFile([u'structure.yaml'])
 class StructureMapTest(test_lib.BaseTestCase):
   """Structure map tests."""
 
   # pylint: disable=protected-access
 
+  @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testInitialize(self):
     """Tests the __init__ function."""
     definitions_file = self._GetTestFilePath([u'structure.yaml'])
@@ -509,6 +509,7 @@ class StructureMapTest(test_lib.BaseTestCase):
     data_type_map = runtime.StructureMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
+  @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testCheckCompositeMap(self):
     """Tests the _CheckCompositeMap function."""
     definitions_file = self._GetTestFilePath([u'structure.yaml'])
@@ -548,6 +549,7 @@ class StructureMapTest(test_lib.BaseTestCase):
     result = data_type_map._CheckCompositeMap(data_type_definition)
     self.assertTrue(result)
 
+  @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testGetByteStreamOperation(self):
     """Tests the _GetByteStreamOperation function."""
     definitions_file = self._GetTestFilePath([u'structure.yaml'])
@@ -567,6 +569,7 @@ class StructureMapTest(test_lib.BaseTestCase):
       data_type_definition = EmptyDataTypeDefinition(u'empty')
       data_type_map._GetByteStreamOperation(data_type_definition)
 
+  @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testGetMemberDataTypeMaps(self):
     """Tests the _GetMemberDataTypeMaps function."""
     definitions_file = self._GetTestFilePath([u'structure.yaml'])
@@ -587,6 +590,7 @@ class StructureMapTest(test_lib.BaseTestCase):
       data_type_definition = EmptyDataTypeDefinition(u'empty')
       data_type_map._GetMemberDataTypeMaps(data_type_definition, {})
 
+  @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
     definitions_file = self._GetTestFilePath([u'structure.yaml'])
@@ -608,6 +612,7 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertEqual(named_tuple.y, 2)
     self.assertEqual(named_tuple.z, 3)
 
+  @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testMapByteStreamWithSequence(self):
     """Tests the MapByteStream function with a sequence."""
     definitions_file = self._GetTestFilePath([u'structure.yaml'])
@@ -629,6 +634,7 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertEqual(box.triangles[0].a.y, 2)
     self.assertEqual(box.triangles[0].a.z, 3)
 
+  @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testMapByteStreamWithSequenceWithExpression(self):
     """Tests the MapByteStream function with a sequence with expression."""
     definitions_file = self._GetTestFilePath([u'structure.yaml'])
@@ -658,6 +664,37 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertEqual(sphere.triangles[0].c.x, 7)
     self.assertEqual(sphere.triangles[0].c.y, 8)
     self.assertEqual(sphere.triangles[0].c.z, 9)
+
+  @test_lib.skipUnlessHasTestFile([u'structure2.yaml'])
+  def testMapByteStreamWithSequenceWithExpression2(self):
+    """Tests the MapByteStream function with a sequence with expression."""
+    definitions_file = self._GetTestFilePath([u'structure2.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'extension_block')
+    data_type_map = runtime.StructureMap(data_type_definition)
+
+    byte_values = [4, 1, 0, 0]
+    for byte_value in range(0, 256):
+      byte_values.extend([byte_value])
+
+    byte_stream = b''.join(map(chr, byte_values))
+
+    extension_block = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(extension_block.size, 260)
+    self.assertEqual(extension_block.data[0], 0)
+    self.assertEqual(extension_block.data[-1], 255)
+
+    byte_values = [3, 0, 0, 0]
+    for byte_value in range(0, 256):
+      byte_values.extend([byte_value])
+
+    byte_stream = b''.join(map(chr, byte_values))
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(byte_stream)
 
 
 @test_lib.skipUnlessHasTestFile([u'uuid.yaml'])
