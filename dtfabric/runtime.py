@@ -255,18 +255,22 @@ class StructureValuesClassFactory(object):
 
 
 class DataTypeMapContext(object):
-  """Data type map context."""
+  """Data type map context.
 
-  def __init__(self, value=None):
+  Attributes:
+    byte_size (int): byte size.
+    values (dict[str, object]): values per name.
+  """
+
+  def __init__(self, values=None):
     """Initializes a data type map context.
 
     Args:
-      value (object): value.
+      values (dict[str, object]): values per name.
     """
     super(DataTypeMapContext, self).__init__()
     self.byte_size = None
-    self.value = value
-
+    self.values = values or {}
 
 
 class DataTypeMap(object):
@@ -565,9 +569,11 @@ class SequenceMap(DataTypeMap):
       number_of_elements = self._data_type_definition.number_of_elements
     else:
       expression = self._data_type_definition.number_of_elements_expression
-      namespace = {u'__builtins__' : {}}
-      if context and context.value:
-        namespace[type(context.value).__name__] = context.value
+      namespace = {}
+      if context and context.values:
+        namespace.update(context.values)
+      # Make sure __builtins__ contains an empty dictionary.
+      namespace[u'__builtins__'] = {}
 
       try:
         number_of_elements = eval(expression, namespace)  # pylint: disable=eval-used
@@ -759,7 +765,8 @@ class StructureMap(DataTypeMap):
     """
     structure_values = self._structure_values_class()
 
-    subcontext = DataTypeMapContext(value=structure_values)
+    subcontext = DataTypeMapContext(values={
+        type(structure_values).__name__: structure_values})
 
     byte_stream_offset = 0
     for index in range(len(self._attribute_names)):
