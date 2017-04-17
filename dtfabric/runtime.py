@@ -9,6 +9,7 @@ except ImportError:
 import abc
 import keyword
 import struct
+import sys
 import uuid
 
 from dtfabric import data_types
@@ -244,6 +245,9 @@ class StructureValuesClassFactory(object):
             u'object': builtins.object,
             u'super': builtins.super},
         u'__name__': u'{0:s}'.format(data_type_definition.name)}
+
+    if sys.version_info[0] >= 3:
+      namespace[u'__builtins__'][u'__build_class__'] = builtins.__build_class__
 
     exec(class_definition, namespace)  # pylint: disable=exec-used
 

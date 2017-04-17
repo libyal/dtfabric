@@ -7,16 +7,23 @@ class Error(Exception):
 
 
 class DefinitionReaderError(Error):
-  """Error that is raised by the definition reader."""
+  """Error that is raised by the definition reader.
 
-  def __init__(self, name, *args):
+  Attributes:
+    name (str): name of the definition.
+    message (str): error message.
+  """
+
+  def __init__(self, name, message):
     """Initializes an error.
 
     Args:
       name (str): name of the definition.
+      message (str): error message.
     """
-    super(DefinitionReaderError, self).__init__(args)
+    # Do not call initialize of the super class.
     self.name = name
+    self.message = message
 
 
 class FormatError(Error):

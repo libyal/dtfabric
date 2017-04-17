@@ -609,7 +609,8 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
 
       except errors.DefinitionReaderError as exception:
         definition_object = None
-        error_location = u'In: {0:s}'.format(exception.name)
+        if exception.name:
+          error_location = u'In: {0:s}'.format(exception.name)
         error_message = u''.join(exception.message)
 
       if not definition_object:

@@ -605,7 +605,7 @@ class StructureMapTest(test_lib.BaseTestCase):
       byte_value_upper, byte_value_lower = divmod(value, 256)
       byte_values.extend([byte_value_lower, byte_value_upper, 0, 0])
 
-    byte_stream = b''.join(map(chr, byte_values))
+    byte_stream = bytes(bytearray(byte_values))
 
     named_tuple = data_type_map.MapByteStream(byte_stream)
     self.assertEqual(named_tuple.x, 1)
@@ -627,7 +627,7 @@ class StructureMapTest(test_lib.BaseTestCase):
       byte_value_upper, byte_value_lower = divmod(value, 256)
       byte_values.extend([byte_value_lower, byte_value_upper, 0, 0])
 
-    byte_stream = b''.join(map(chr, byte_values))
+    byte_stream = bytes(bytearray(byte_values))
 
     box = data_type_map.MapByteStream(byte_stream)
     self.assertEqual(box.triangles[0].a.x, 1)
@@ -649,7 +649,7 @@ class StructureMapTest(test_lib.BaseTestCase):
       byte_value_upper, byte_value_lower = divmod(value, 256)
       byte_values.extend([byte_value_lower, byte_value_upper, 0, 0])
 
-    byte_stream = b''.join(map(chr, byte_values))
+    byte_stream = bytes(bytearray(byte_values))
 
     sphere = data_type_map.MapByteStream(byte_stream)
     self.assertEqual(sphere.number_of_triangles, 3)
@@ -680,7 +680,7 @@ class StructureMapTest(test_lib.BaseTestCase):
     for byte_value in range(0, 256):
       byte_values.extend([byte_value])
 
-    byte_stream = b''.join(map(chr, byte_values))
+    byte_stream = bytes(bytearray(byte_values))
 
     extension_block = data_type_map.MapByteStream(byte_stream)
     self.assertEqual(extension_block.size, 260)
@@ -691,7 +691,7 @@ class StructureMapTest(test_lib.BaseTestCase):
     for byte_value in range(0, 256):
       byte_values.extend([byte_value])
 
-    byte_stream = b''.join(map(chr, byte_values))
+    byte_stream = bytes(bytearray(byte_values))
 
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(byte_stream)
