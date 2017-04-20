@@ -308,7 +308,7 @@ class SequenceMap(DataTypeMap):
       map_byte_stream = self._CompositeMapByteStream
       operation = None
     else:
-      map_byte_stream = self._PrimitiveMapByteStream
+      map_byte_stream = self._LinearMapByteStream
       operation = self._GetByteStreamOperation(data_type_definition)
 
     super(SequenceMap, self).__init__(data_type_definition)
@@ -384,7 +384,7 @@ class SequenceMap(DataTypeMap):
       DataTypeDefinition: element data type definition.
 
     Raises:
-      FormatError: if the data type map cannot be determed from the data
+      FormatError: if the element data type cannot be determed from the data
           type definition.
     """
     if not data_type_definition:
@@ -398,7 +398,7 @@ class SequenceMap(DataTypeMap):
 
     return element_data_type_definition
 
-  def _PrimitiveMapByteStream(self, byte_stream, context=None, **unused_kwargs):
+  def _LinearMapByteStream(self, byte_stream, context=None, **unused_kwargs):
     """Maps a data type sequence on a byte stream.
 
     Args:
@@ -438,6 +438,84 @@ class SequenceMap(DataTypeMap):
     return self._map_byte_stream(byte_stream, **kwargs)
 
 
+class StreamMap(DataTypeMap):
+  """Stream data type map."""
+
+  def __init__(self, data_type_definition):
+    """Initializes a data type map.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Raises:
+      FormatError: if the data type map cannot be determed from the data
+          type definition.
+    """
+    element_data_type_definition = self._GetElementDataTypeDefinition(
+        data_type_definition)
+
+    if element_data_type_definition.IsComposite():
+      raise errors.FormatError(u'Unsupported composite element data type')
+
+    super(StreamMap, self).__init__(data_type_definition)
+
+  def _GetElementDataTypeDefinition(self, data_type_definition):
+    """Retrieves the element data type definition.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Returns:
+      DataTypeDefinition: element data type definition.
+
+    Raises:
+      FormatError: if the element data type cannot be determed from the data
+          type definition.
+    """
+    if not data_type_definition:
+      raise errors.FormatError(u'Missing data type definition')
+
+    element_data_type_definition = getattr(
+        data_type_definition, u'element_data_type_definition', None)
+    if not element_data_type_definition:
+      raise errors.FormatError(
+          u'Invalid data type definition missing element')
+
+    return element_data_type_definition
+
+  def MapByteStream(self, byte_stream, context=None, **kwargs):
+    """Maps the data type on a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+      context (Optional[DataTypeMapContext]): data type map context.
+
+    Returns:
+      tuple[object, ...]: mapped values.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+    try:
+      byte_stream_size = len(byte_stream)
+
+    except Exception as exception:
+      raise errors.MappingError(exception)
+
+    byte_size = self._data_type_definition.GetByteSize()
+
+    if byte_stream_size < byte_size:
+      raise errors.MappingError(
+          u'Byte stream too small requested: {0:s} available: {1:d}'.format(
+              byte_stream, byte_stream_size))
+
+    if context:
+      context.byte_size = byte_size
+
+    return byte_stream[:byte_size]
+
+
 class StructureMap(DataTypeMap):
   """Structure data type map."""
 
@@ -458,7 +536,7 @@ class StructureMap(DataTypeMap):
       map_byte_stream = self._CompositeMapByteStream
       operation = None
     else:
-      map_byte_stream = self._PrimitiveMapByteStream
+      map_byte_stream = self._LinearMapByteStream
       operation = self._GetByteStreamOperation(data_type_definition)
 
     super(StructureMap, self).__init__(data_type_definition)
@@ -619,7 +697,7 @@ class StructureMap(DataTypeMap):
 
     return data_type_maps
 
-  def _PrimitiveMapByteStream(self, byte_stream, context=None, **unused_kwargs):
+  def _LinearMapByteStream(self, byte_stream, context=None, **unused_kwargs):
     """Maps a data type sequence on a byte stream.
 
     Args:
@@ -721,6 +799,7 @@ class DataTypeMapFactory(object):
       definitions.TYPE_INDICATOR_FLOATING_POINT: FloatingPointMap,
       definitions.TYPE_INDICATOR_INTEGER: IntegerMap,
       definitions.TYPE_INDICATOR_SEQUENCE: SequenceMap,
+      definitions.TYPE_INDICATOR_STREAM: StreamMap,
       definitions.TYPE_INDICATOR_STRUCTURE: StructureMap,
       definitions.TYPE_INDICATOR_UUID: UUIDMap}
 

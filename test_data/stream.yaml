@@ -12,4 +12,4 @@ aliases: [UTF16LE]
 type: stream
 description: UTF-16 little-endian stream
 element_data_type: wchar16
-number_of_elements: 16
+number_of_elements: 8

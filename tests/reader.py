@@ -771,10 +771,10 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertEqual(data_type_definition.aliases, [u'UTF16LE'])
     self.assertEqual(data_type_definition.element_data_type, u'wchar16')
     self.assertIsNotNone(data_type_definition.element_data_type_definition)
-    self.assertEqual(data_type_definition.number_of_elements, 16)
+    self.assertEqual(data_type_definition.number_of_elements, 8)
 
     byte_size = data_type_definition.GetByteSize()
-    self.assertEqual(byte_size, 32)
+    self.assertEqual(byte_size, 16)
 
   @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testReadFileObjectStructure(self):

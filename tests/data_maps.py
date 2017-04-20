@@ -402,6 +402,65 @@ class SequenceMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\x12\x34\x56')
 
 
+@test_lib.skipUnlessHasTestFile([u'stream.yaml'])
+class StreamMapTest(test_lib.BaseTestCase):
+  """Stream map tests."""
+
+  # pylint: disable=protected-access
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    definitions_file = self._GetTestFilePath([u'stream.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'utf16le_stream')
+
+    data_type_map = data_maps.StreamMap(data_type_definition)
+    self.assertIsNotNone(data_type_map)
+
+  def testGetElementDataTypeDefinition(self):
+    """Tests the _GetElementDataTypeDefinition function."""
+    definitions_file = self._GetTestFilePath([u'stream.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'utf16le_stream')
+
+    data_type_map = data_maps.StreamMap(data_type_definition)
+
+    element_data_type_definition = data_type_map._GetElementDataTypeDefinition(
+        data_type_definition)
+    self.assertIsNotNone(element_data_type_definition)
+
+    with self.assertRaises(errors.FormatError):
+      data_type_map._GetElementDataTypeDefinition(None)
+
+    with self.assertRaises(errors.FormatError):
+      data_type_definition = EmptyDataTypeDefinition(u'empty')
+      data_type_map._GetElementDataTypeDefinition(data_type_definition)
+
+  def testMapByteStream(self):
+    """Tests the MapByteStream function."""
+    definitions_file = self._GetTestFilePath([u'stream.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'utf16le_stream')
+
+    data_type_map = data_maps.StreamMap(data_type_definition)
+
+    stream_value = data_type_map.MapByteStream(
+        u'dtFabric'.encode(u'utf-16-le'))
+    self.assertEqual(stream_value, b'd\x00t\x00F\x00a\x00b\x00r\x00i\x00c\x00')
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(None)
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\x12\x34\x56')
+
+
 class StructureMapTest(test_lib.BaseTestCase):
   """Structure map tests."""
 
