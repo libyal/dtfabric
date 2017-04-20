@@ -3,12 +3,12 @@
 
 import io
 
+from dtfabric import data_maps
 from dtfabric import reader
-from dtfabric import runtime
 from dtfabric import registry
 
 
-class DataTypeFabric(runtime.DataTypeMapFactory):
+class DataTypeFabric(data_maps.DataTypeMapFactory):
   """Data type fabric."""
 
   def __init__(self, yaml_definition=None):

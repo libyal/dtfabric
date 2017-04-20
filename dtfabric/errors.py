@@ -21,6 +21,7 @@ class DefinitionReaderError(Error):
       name (str): name of the definition.
       message (str): error message.
     """
+    # pylint: disable=super-init-not-called
     # Do not call initialize of the super class.
     self.name = name
     self.message = message
