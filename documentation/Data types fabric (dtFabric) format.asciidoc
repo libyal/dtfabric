@@ -39,6 +39,7 @@ in the section entitled "GNU Free Documentation License".
 | 0.0.2 | J.B. Metz | March 2017 | Moved documentation to asciidoc.
 | 0.0.3 | J.B. Metz | March 2017 | Worked on documentation.
 | 0.0.4 | J.B. Metz | April 2017 | Worked on documentation.
+| 0.0.5 | J.B. Metz | April 2017 | Worked on documentation.
 |===
 
 :numbered:
@@ -65,15 +66,17 @@ See section: <<data_type_definition_attributes,Data type definition attributes>>
 [cols="1,5",options="header"]
 |===
 | Identifier | Description
-| boolean | Boolean data type
-| character | Character data type
-| enumeration | Enumeration data type
-| floating-point | Floating-point data type
+| boolean | Boolean
+| character | Character
+| enumeration | Enumeration
+| floating-point | Floating-point
 | format | Data format metadata +
-See section: <<data_format_metadata,Data format metadata>>
-| integer | Integer data type
+See section: <<data_format,Data format>>
+| integer | Integer
+| stream | Stream
+| string | String
 | structure | Structure
-| uuid | UUID (or GUID) data type
+| uuid | UUID (or GUID)
 |===
 
 [yellow-background]*TODO: consider adding the following types*
@@ -85,6 +88,7 @@ See section: <<data_format_metadata,Data format metadata>>
 | constant | Constant
 | fixed-point | Fixed-point data type
 | reference | [yellow-background]*TODO*
+| union | Union data type
 |===
 
 === [[data_type_definition_attributes]]Data type definition attributes
@@ -99,7 +103,7 @@ The default is native
 
 [NOTE] middle-endian is a valid byte-ordering but currently not supported.
 
-== [[data_format_metadata]]Data format metadata
+== [[data_format]]Data format
 
 [cols="1,1,5",options="header"]
 |===
@@ -137,7 +141,20 @@ description: 32-bit boolean type
 attributes:
 - size: 4
   units: byte
+  false_value: 0
+  true_value: 1
 ----
+
+Boolean data type specfic attributes:
+
+[cols="1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Description
+| false_value | integer | Integer value that represents False +
+The default is 0
+| true_value | integer | Integer value that represents True +
+The default is not-set, which represent any value except for the false_value
+|===
 
 === Character
 A character is a data type to represent elements of textual strings. 
@@ -168,6 +185,14 @@ urls: ['https://msdn.microsoft.com/en-us/library/bb432193(v=vs.85).aspx']
 value: 13
 ----
 
+Constant data type specfic attributes:
+
+[cols="1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Description
+| value | integer or string | Integer or string value that the constant represents
+|===
+
 === Enumeration
 An enumeration is a data type to provide meaning (semantic value) to one or more
 predefined values.
@@ -195,10 +220,12 @@ values:
 ----
 
 === Fixed-point
+A fixed-point is a data type to represent elements of fixed-point values.
 
 [yellow-background]*TODO: add example*
 
 === Floating-point
+A floating-point is a data type to represent elements of floating-point values.
 
 [source,yaml]
 ----
@@ -212,6 +239,7 @@ attributes:
 ----
 
 === Integer
+A integer is a data type to represent elements of integer values.
 
 [source,yaml]
 ----
@@ -226,54 +254,134 @@ attributes:
   units: byte
 ----
 
-=== Sequence
+Integer data type specfic attributes:
 
-[yellow-background]*TODO: add example*
+[cols="1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Description
+| format | string | Signed or unsiged +
+The default is signed
+|===
+
+=== Sequence
+A sequence is a data type to represent a sequence of individual elements such
+as an array of integers.
+
+[source,yaml]
+----
+name: page_numbers
+type: sequence
+description: Array of 32-bit page numbers.
+element_data_type: int32
+number_of_elements: 32
+----
+
+Sequence data type specfic attributes:
+
+[cols="1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Description
+| element_data_type | string | Data type of sequence element
+| number_of_elements | integer or string | Integer value or expression to determine the number of elements in the sequence
+|===
+
+[yellow-background]*TODO: describe expressions and the map context*
+
+=== Stream
+A stream is a data type to represent a continous sequence of elements such as
+a byte stream.
 
 [source,yaml]
 ----
 name: data
-aliases: [IDList]
-type: sequence
-description: Link target identifier data
-data_type: byte
-number_of_elements: 32
+type: stream
+element_data_type: byte
+number_of_elements: data_size
 ----
 
-=== Structure
+[yellow-background]*TODO: add definition of attributes*
+
+=== String
+A string is a data type to represent a continous sequence of elements with a
+known encoding such as an UTF-16 formatted string.
 
 [source,yaml]
 ----
-name: directory_descriptor
-aliases: [MINIDUMP_DIRECTORY]
-type: structure
-description: Minidump file header
-urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680365(v=vs.85).aspx']
-members:
-- name: stream_type
-  aliases: [StreamType]
-  data_type: uint32
-- name: location
-  aliases: [Location]
-  data_type: uint32
+name: utf16le_string
+type: string
+element_data_type: wchar16
+number_of_elements: string_data_size / 2
+attributes:
+  byte_order: little-endian
 ----
 
-==== Structure modifiers
+[yellow-background]*TODO: add definition of attributes*
+[yellow-background]*TODO: what about NUL-terminated strings?*
 
-[cols="1,5",options="header"]
+=== Structure
+A structure is a data type to represent a composition of members of other
+data types.
+
+[source,yaml]
+----
+name: point3d
+aliases: [POINT]
+type: structure
+description: Point in 3 dimensional space.
+attributes:
+  byte_order: little-endian
+members:
+- name: x
+  aliases: [XCOORD]
+  data_type: int32
+- name: y
+  data_type: int32
+- name: z
+  data_type: int32
+----
+
+[source,yaml]
+----
+name: sphere3d
+type: structure
+description: Sphere in 3 dimensional space.
+members:
+- name: number_of_triangles
+  data_type: int32
+- name: triangles
+  type: sequence
+  element_data_type: triangle3d
+  number_of_elements: sphere3d.number_of_triangles
+----
+
+Structure data type specfic attributes:
+
+[cols="1,1,5",options="header"]
 |===
-| Identifier | Description
-| condition | [yellow-background]*TODO: describe*
-| union | Union of structure members, the data size is that of the largest union member
+| Attribute name | Attribute type | Description
+| members | list | List of member definitions +
+A member definition needs to specify either 'type' or 'data_type'
 |===
 
-=== UUID
+[yellow-background]*TODO: describe short-hand and long form*
 
-[yellow-background]*TODO: add example*
+=== UUID (or GUID)
+An UUID (or GUID) is a data type to represent a Globally or Universal unique
+identifier (GUID or UUID) data types.
+
+[source,yaml]
+----
+name: known_folder_identifier
+type: uuid
+description: Known folder identifier.
+attributes:
+  byte_order: little-endian
+----
 
 :numbered!:
 [appendix]
 == References
+
 `[YAML]`
 
 [cols="1,5",options="header"]

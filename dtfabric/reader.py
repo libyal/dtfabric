@@ -48,6 +48,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
           u'_ReadFloatingPointDataTypeDefinition'),
       definitions.TYPE_INDICATOR_INTEGER: u'_ReadIntegerDataTypeDefinition',
       definitions.TYPE_INDICATOR_SEQUENCE: u'_ReadSequenceDataTypeDefinition',
+      definitions.TYPE_INDICATOR_STREAM: u'_ReadStreamDataTypeDefinition',
       definitions.TYPE_INDICATOR_STRUCTURE: u'_ReadStructureDataTypeDefinition',
       definitions.TYPE_INDICATOR_UUID: u'_ReadUUIDDataTypeDefinition',
   }
@@ -340,6 +341,60 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     urls = definition_values.get(u'urls', None)
 
     definition_object = data_types.SequenceDefinition(
+        definition_name, element_data_type_definition, aliases=aliases,
+        data_type=element_data_type, description=description, urls=urls)
+
+    try:
+      definition_object.number_of_elements = int(number_of_elements)
+    except ValueError:
+      definition_object.number_of_elements_expression = number_of_elements
+
+    return definition_object
+
+  def _ReadStreamDataTypeDefinition(
+      self, definitions_registry, definition_values, definition_name):
+    """Reads a stream data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      definition_name (str): name of the definition.
+
+    Returns:
+      StreamDefinition: stream data type definition.
+
+    Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
+    """
+    attributes = definition_values.get(u'attributes')
+    if attributes:
+      error_message = u'attributes not supported by stream data type'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    element_data_type = definition_values.get(u'element_data_type', None)
+    if not element_data_type:
+      error_message = u'missing element data type'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    number_of_elements = definition_values.get(u'number_of_elements', None)
+    if not number_of_elements:
+      error_message = u'missing number of elements'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    element_data_type_definition = definitions_registry.GetDefinitionByName(
+        element_data_type)
+    if not element_data_type_definition:
+      error_message = u'undefined element data type: {0:s}.'.format(
+          element_data_type)
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    aliases = definition_values.get(u'aliases', None)
+    description = definition_values.get(u'description', None)
+    urls = definition_values.get(u'urls', None)
+
+    definition_object = data_types.StreamDefinition(
         definition_name, element_data_type_definition, aliases=aliases,
         data_type=element_data_type, description=description, urls=urls)
 

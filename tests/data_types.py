@@ -366,16 +366,16 @@ class SequenceDefinitionTest(test_lib.BaseTestCase):
 
   def testInitialize(self):
     """Tests the __init__ function."""
-    element_definition = data_types.IntegerDefinition(u'byte')
+    element_definition = data_types.IntegerDefinition(u'int32')
     data_type_definition = data_types.SequenceDefinition(
-        u'byte_stream', element_definition, description=u'byte stream')
+        u'offsets', element_definition, description=u'offsets array')
     self.assertIsNotNone(data_type_definition)
 
   def testGetAttributeNames(self):
     """Tests the GetAttributeNames function."""
-    element_definition = data_types.IntegerDefinition(u'byte')
+    element_definition = data_types.IntegerDefinition(u'int32')
     data_type_definition = data_types.SequenceDefinition(
-        u'byte_stream', element_definition, description=u'byte stream')
+        u'offsets', element_definition, description=u'offsets array')
 
     attribute_names = data_type_definition.GetAttributeNames()
     self.assertEqual(attribute_names, [u'elements'])
@@ -383,6 +383,89 @@ class SequenceDefinitionTest(test_lib.BaseTestCase):
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
     data_type_definition = data_types.SequenceDefinition(
+        u'offsets', None, description=u'offsets array')
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
+
+    element_definition = data_types.IntegerDefinition(u'int32')
+    element_definition.format = definitions.FORMAT_SIGNED
+    element_definition.size = 4
+    data_type_definition.element_data_type_definition = element_definition
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
+
+    data_type_definition.number_of_elements = 32
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 128)
+
+  def testGetStructByteOrderString(self):
+    """Tests the GetStructByteOrderString function."""
+    data_type_definition = data_types.SequenceDefinition(
+        u'offsets', None, description=u'offsets array')
+
+    byte_order_string = data_type_definition.GetStructByteOrderString()
+    self.assertIsNone(byte_order_string)
+
+    element_definition = data_types.IntegerDefinition(u'uint16le')
+    element_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
+    data_type_definition.element_data_type_definition = element_definition
+
+    byte_order_string = data_type_definition.GetStructByteOrderString()
+    self.assertEqual(byte_order_string, u'<')
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    data_type_definition = data_types.SequenceDefinition(
+        u'offsets', None, description=u'offsets array')
+
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
+
+    element_definition = data_types.IntegerDefinition(u'int32')
+    element_definition.format = definitions.FORMAT_SIGNED
+    element_definition.size = 4
+    data_type_definition.element_data_type_definition = element_definition
+
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
+
+    data_type_definition.number_of_elements = 32
+    struct_format_string = data_type_definition.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'32i')
+
+  def testIsComposite(self):
+    """Tests the IsComposite function."""
+    data_type_definition = data_types.SequenceDefinition(
+        u'offsets', None, description=u'offsets array')
+
+    result = data_type_definition.IsComposite()
+    self.assertTrue(result)
+
+
+class StreamDefinitionTest(test_lib.BaseTestCase):
+  """Stream data type definition tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    element_definition = data_types.IntegerDefinition(u'byte')
+    data_type_definition = data_types.StreamDefinition(
+        u'byte_stream', element_definition, description=u'byte stream')
+    self.assertIsNotNone(data_type_definition)
+
+  def testGetAttributeNames(self):
+    """Tests the GetAttributeNames function."""
+    element_definition = data_types.IntegerDefinition(u'byte')
+    data_type_definition = data_types.StreamDefinition(
+        u'byte_stream', element_definition, description=u'byte stream')
+
+    attribute_names = data_type_definition.GetAttributeNames()
+    self.assertEqual(attribute_names, [u'elements'])
+
+  def testGetByteSize(self):
+    """Tests the GetByteSize function."""
+    data_type_definition = data_types.StreamDefinition(
         u'byte_stream', None, description=u'byte stream')
 
     byte_size = data_type_definition.GetByteSize()
@@ -402,7 +485,7 @@ class SequenceDefinitionTest(test_lib.BaseTestCase):
 
   def testGetStructByteOrderString(self):
     """Tests the GetStructByteOrderString function."""
-    data_type_definition = data_types.SequenceDefinition(
+    data_type_definition = data_types.StreamDefinition(
         u'byte_stream', None, description=u'byte stream')
 
     byte_order_string = data_type_definition.GetStructByteOrderString()
@@ -417,7 +500,7 @@ class SequenceDefinitionTest(test_lib.BaseTestCase):
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
-    data_type_definition = data_types.SequenceDefinition(
+    data_type_definition = data_types.StreamDefinition(
         u'byte_stream', None, description=u'byte stream')
 
     struct_format_string = data_type_definition.GetStructFormatString()
@@ -437,7 +520,7 @@ class SequenceDefinitionTest(test_lib.BaseTestCase):
 
   def testIsComposite(self):
     """Tests the IsComposite function."""
-    data_type_definition = data_types.SequenceDefinition(
+    data_type_definition = data_types.StreamDefinition(
         u'byte_stream', None, description=u'byte stream')
 
     result = data_type_definition.IsComposite()

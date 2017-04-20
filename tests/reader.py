@@ -14,6 +14,7 @@ from tests import test_lib
 
 
 # TODO: complete testReadFormatDefinition.
+# TODO: test errors, such as duplicate structure members.
 
 
 class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
@@ -304,6 +305,63 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadSequenceDataTypeDefinition(
+          definitions_registry, definition_values, u'vector4')
+
+    del definition_values[u'attributes']
+
+  @test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
+  def testReadStreamDataTypeDefinition(self):
+    """Tests the _ReadStreamDataTypeDefinition function."""
+    definition_values = {
+        u'description': u'vector with 4 elements',
+        u'element_data_type': u'int32',
+        u'number_of_elements': 4,
+    }
+
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    data_type_definition = (
+        definitions_reader._ReadStreamDataTypeDefinition(
+            definitions_registry, definition_values, u'vector4'))
+    self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(
+        data_type_definition, data_types.StreamDefinition)
+
+    # Test with undefined element data type.
+    definition_values[u'element_data_type'] = u'bogus'
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadStreamDataTypeDefinition(
+          definitions_registry, definition_values, u'vector4')
+
+    definition_values[u'element_data_type'] = u'int32'
+
+    # Test with missing element data type definition.
+    del definition_values[u'element_data_type']
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadStreamDataTypeDefinition(
+          definitions_registry, definition_values, u'vector4')
+
+    definition_values[u'element_data_type'] = u'int32'
+
+    # Test with missing number of elements definition.
+    del definition_values[u'number_of_elements']
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadStreamDataTypeDefinition(
+          definitions_registry, definition_values, u'vector4')
+
+    definition_values[u'number_of_elements'] = 4
+
+    # Test with unusuported attributes definition.
+    definition_values[u'attributes'] = {u'byte_order': u'little-endian'}
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadStreamDataTypeDefinition(
           definitions_registry, definition_values, u'vector4')
 
     del definition_values[u'attributes']
@@ -691,6 +749,32 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 16)
+
+  @test_lib.skipUnlessHasTestFile([u'stream.yaml'])
+  def testReadFileObjectStream(self):
+    """Tests the ReadFileObject function of a stream data type."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath([u'stream.yaml'])
+    with open(definitions_file, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    self.assertEqual(len(definitions_registry._definitions), 2)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'utf16le_stream')
+    self.assertIsInstance(data_type_definition, data_types.StreamDefinition)
+    self.assertEqual(data_type_definition.name, u'utf16le_stream')
+    self.assertEqual(
+        data_type_definition.description, u'UTF-16 little-endian stream')
+    self.assertEqual(data_type_definition.aliases, [u'UTF16LE'])
+    self.assertEqual(data_type_definition.element_data_type, u'wchar16')
+    self.assertIsNotNone(data_type_definition.element_data_type_definition)
+    self.assertEqual(data_type_definition.number_of_elements, 16)
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 32)
 
   @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testReadFileObjectStructure(self):
