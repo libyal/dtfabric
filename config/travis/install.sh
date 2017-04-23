@@ -4,6 +4,10 @@
 
 COVERALL_DEPENDENCIES="python-coverage python-coveralls python-docopt";
 
+L2TBINARIES_DEPENDENCIES="PyYAML";
+
+L2TBINARIES_TEST_DEPENDENCIES="funcsigs mock pbr six";
+
 PYTHON2_DEPENDENCIES="python-yaml";
 
 PYTHON2_TEST_DEPENDENCIES="python-mock";
@@ -22,9 +26,7 @@ then
 	mv l2tdevtools ../;
 	mkdir dependencies;
 	
-	PYTHONPATH=../l2tdevtools ../l2tdevtools/tools/update.py --download-directory=dependencies --preset=dtfabric;
-
-	pip install -U tox;
+	PYTHONPATH=../l2tdevtools ../l2tdevtools/tools/update.py --download-directory=dependencies ${L2TBINARIES_DEPENDENCIES} ${L2TBINARIES_TEST_DEPENDENCIES};
 
 elif test `uname -s` = "Linux";
 then
