@@ -58,56 +58,6 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       definitions.FORMAT_SIGNED,
       definitions.FORMAT_UNSIGNED])
 
-  def _ReadFixedSizeDataTypeDefinition(
-      self, unused_definitions_registry, definition_values,
-      data_type_definition_class, definition_name, default_size=None,
-      default_units=u'bytes'):
-    """Reads a fixed-size data type definition.
-
-    Args:
-      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
-          registry.
-      definition_values (dict[str, object]): definition values.
-      data_type_definition_class (str): data type definition class.
-      definition_name (str): name of the definition.
-      default_size (Optional[int]): default size.
-      default_units (Optional[str]): default units.
-
-    Returns:
-      FixedSizeDataTypeDefinition: fixed-size data type definition.
-
-    Raises:
-      DefinitionReaderError: if the definitions values are missing or if
-          the format is incorrect.
-    """
-    aliases = definition_values.get(u'aliases', None)
-    description = definition_values.get(u'description', None)
-    urls = definition_values.get(u'urls', None)
-
-    definition_object = data_type_definition_class(
-        definition_name, aliases=aliases, description=description, urls=urls)
-
-    attributes = definition_values.get(u'attributes')
-    if attributes:
-      byte_order = attributes.get(u'byte_order', definitions.BYTE_ORDER_NATIVE)
-      if byte_order not in definitions.BYTE_ORDERS:
-        error_message = u'unsupported byte-order attribute: {0!s}'.format(
-            byte_order)
-        raise errors.DefinitionReaderError(definition_name, error_message)
-
-      size = attributes.get(u'size', default_size)
-      try:
-        int(size)
-      except ValueError:
-        error_message = u'unuspported size attribute: {0!s}'.format(size)
-        raise errors.DefinitionReaderError(definition_name, error_message)
-
-      definition_object.byte_order = byte_order
-      definition_object.size = size
-      definition_object.units = attributes.get(u'units', default_units)
-
-    return definition_object
-
   def _ReadBooleanDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
     """Reads a boolean data type definition.
@@ -228,6 +178,127 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     return definition_object
 
+  def _ReadElementSequenceDataTypeDefinition(
+      self, definitions_registry, definition_values,
+      data_type_definition_class, definition_name):
+    """Reads an element sequence data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      data_type_definition_class (str): data type definition class.
+      definition_name (str): name of the definition.
+
+    Returns:
+      SequenceDefinition: sequence data type definition.
+
+    Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
+    """
+    attributes = definition_values.get(u'attributes')
+    if attributes:
+      error_message = u'attributes not supported by sequence data type'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    element_data_type = definition_values.get(u'element_data_type', None)
+    if not element_data_type:
+      error_message = u'missing element data type'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    elements_data_size = definition_values.get(u'elements_data_size', None)
+    number_of_elements = definition_values.get(u'number_of_elements', None)
+
+    if elements_data_size is None and number_of_elements is None:
+      error_message = u'missing element data size and number of elements'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    if elements_data_size is not None and number_of_elements is not None:
+      error_message = (
+          u'both element data size: {0!s} and number of elements: {1!s} '
+          u'are set').format(elements_data_size, number_of_elements)
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    element_data_type_definition = definitions_registry.GetDefinitionByName(
+        element_data_type)
+    if not element_data_type_definition:
+      error_message = u'undefined element data type: {0:s}.'.format(
+          element_data_type)
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    aliases = definition_values.get(u'aliases', None)
+    description = definition_values.get(u'description', None)
+    urls = definition_values.get(u'urls', None)
+
+    definition_object = data_type_definition_class(
+        definition_name, element_data_type_definition, aliases=aliases,
+        data_type=element_data_type, description=description, urls=urls)
+
+    if elements_data_size:
+      try:
+        definition_object.elements_data_size = int(elements_data_size)
+      except ValueError:
+        definition_object.elements_data_size_expression = elements_data_size
+
+    elif number_of_elements:
+      try:
+        definition_object.number_of_elements = int(number_of_elements)
+      except ValueError:
+        definition_object.number_of_elements_expression = number_of_elements
+
+    return definition_object
+
+  def _ReadFixedSizeDataTypeDefinition(
+      self, unused_definitions_registry, definition_values,
+      data_type_definition_class, definition_name, default_size=None,
+      default_units=u'bytes'):
+    """Reads a fixed-size data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      data_type_definition_class (str): data type definition class.
+      definition_name (str): name of the definition.
+      default_size (Optional[int]): default size.
+      default_units (Optional[str]): default units.
+
+    Returns:
+      FixedSizeDataTypeDefinition: fixed-size data type definition.
+
+    Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
+    """
+    aliases = definition_values.get(u'aliases', None)
+    description = definition_values.get(u'description', None)
+    urls = definition_values.get(u'urls', None)
+
+    definition_object = data_type_definition_class(
+        definition_name, aliases=aliases, description=description, urls=urls)
+
+    attributes = definition_values.get(u'attributes')
+    if attributes:
+      byte_order = attributes.get(u'byte_order', definitions.BYTE_ORDER_NATIVE)
+      if byte_order not in definitions.BYTE_ORDERS:
+        error_message = u'unsupported byte-order attribute: {0!s}'.format(
+            byte_order)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      size = attributes.get(u'size', default_size)
+      try:
+        int(size)
+      except ValueError:
+        error_message = u'unuspported size attribute: {0!s}'.format(size)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      definition_object.byte_order = byte_order
+      definition_object.size = size
+      definition_object.units = attributes.get(u'units', default_units)
+
+    return definition_object
+
   def _ReadFloatingPointDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
     """Reads a floating-point data type definition.
@@ -315,46 +386,12 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
-    attributes = definition_values.get(u'attributes')
-    if attributes:
-      error_message = u'attributes not supported by sequence data type'
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
-    element_data_type = definition_values.get(u'element_data_type', None)
-    if not element_data_type:
-      error_message = u'missing element data type'
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
-    number_of_elements = definition_values.get(u'number_of_elements', None)
-    if not number_of_elements:
-      error_message = u'missing number of elements'
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
-    element_data_type_definition = definitions_registry.GetDefinitionByName(
-        element_data_type)
-    if not element_data_type_definition:
-      error_message = u'undefined element data type: {0:s}.'.format(
-          element_data_type)
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
-    aliases = definition_values.get(u'aliases', None)
-    description = definition_values.get(u'description', None)
-    urls = definition_values.get(u'urls', None)
-
-    definition_object = data_types.SequenceDefinition(
-        definition_name, element_data_type_definition, aliases=aliases,
-        data_type=element_data_type, description=description, urls=urls)
-
-    try:
-      definition_object.number_of_elements = int(number_of_elements)
-    except ValueError:
-      definition_object.number_of_elements_expression = number_of_elements
-
-    return definition_object
+    return self._ReadElementSequenceDataTypeDefinition(
+        definitions_registry, definition_values, data_types.SequenceDefinition,
+        definition_name)
 
   def _ReadStreamDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name,
-      data_type_definition_class=data_types.StreamDefinition):
+      self, definitions_registry, definition_values, definition_name):
     """Reads a stream data type definition.
 
     Args:
@@ -362,7 +399,6 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
-      data_type_definition_class (Optional[str]): data type definition class.
 
     Returns:
       StreamDefinition: stream data type definition.
@@ -371,42 +407,9 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
-    attributes = definition_values.get(u'attributes')
-    if attributes:
-      error_message = u'attributes not supported by stream data type'
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
-    element_data_type = definition_values.get(u'element_data_type', None)
-    if not element_data_type:
-      error_message = u'missing element data type'
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
-    number_of_elements = definition_values.get(u'number_of_elements', None)
-    if not number_of_elements:
-      error_message = u'missing number of elements'
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
-    element_data_type_definition = definitions_registry.GetDefinitionByName(
-        element_data_type)
-    if not element_data_type_definition:
-      error_message = u'undefined element data type: {0:s}.'.format(
-          element_data_type)
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
-    aliases = definition_values.get(u'aliases', None)
-    description = definition_values.get(u'description', None)
-    urls = definition_values.get(u'urls', None)
-
-    definition_object = data_type_definition_class(
-        definition_name, element_data_type_definition, aliases=aliases,
-        data_type=element_data_type, description=description, urls=urls)
-
-    try:
-      definition_object.number_of_elements = int(number_of_elements)
-    except ValueError:
-      definition_object.number_of_elements_expression = number_of_elements
-
-    return definition_object
+    return self._ReadElementSequenceDataTypeDefinition(
+        definitions_registry, definition_values, data_types.StreamDefinition,
+        definition_name)
 
   def _ReadStringDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
@@ -430,9 +433,9 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       error_message = u'missing encoding'
       raise errors.DefinitionReaderError(definition_name, error_message)
 
-    definition_object = self._ReadStreamDataTypeDefinition(
-        definitions_registry, definition_values, definition_name,
-        data_type_definition_class=data_types.StringDefinition)
+    definition_object = self._ReadElementSequenceDataTypeDefinition(
+        definitions_registry, definition_values, data_types.StringDefinition,
+        definition_name)
     definition_object.encoding = encoding
 
     return definition_object
@@ -512,10 +515,16 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     data_type = definition_values.get(u'data_type', None)
     type_indicator = definition_values.get(u'type', None)
 
-    if type_indicator is not None and data_type is not None:
+    if data_type is None and type_indicator is None:
       error_message = (
-          u'invalid structure member: {0:s} both type: {1:s} and data '
-          u'type: {2:s} are set').format(name, type_indicator, data_type)
+          u'invalid structure member: {0:s} both data type and type are '
+          u'missing').format(name)
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    if data_type is not None and type_indicator is not None:
+      error_message = (
+          u'invalid structure member: {0:s} both data type: {1:s} and '
+          u'type: {2:s} are set').format(name, data_type, type_indicator)
       raise errors.DefinitionReaderError(definition_name, error_message)
 
     if type_indicator is not None:

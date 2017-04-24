@@ -311,19 +311,20 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
     self.format = definitions.FORMAT_SIGNED
 
 
-class SequenceDefinition(DataTypeDefinition):
-  """Sequence data type definition.
+class ElementSequenceDataTypeDefinition(DataTypeDefinition):
+  """Element sequence data type definition.
 
   Attributes:
+    element_data_size (int): data size of the sequence elements.
+    element_data_size_expression (str): expression to determine the data
+        size of the sequenc eelements.
     element_data_type (str): name of the sequence element data type.
     element_data_type_definition (DataTypeDefinition): sequence element
         data type definition.
-    number_of_elements (int): number of elements.
-    number_of_elements_expression (str): expression to determine number
-        of elements.
+    number_of_elements (int): number of sequence elements.
+    number_of_elements_expression (str): expression to determine the number
+        of sequence elements.
   """
-
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_SEQUENCE
 
   _IS_COMPOSITE = True
 
@@ -341,7 +342,7 @@ class SequenceDefinition(DataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(SequenceDefinition, self).__init__(
+    super(ElementSequenceDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.byte_order = getattr(
         data_type_definition, u'byte_order', definitions.BYTE_ORDER_NATIVE)
@@ -349,6 +350,31 @@ class SequenceDefinition(DataTypeDefinition):
     self.element_data_type_definition = data_type_definition
     self.number_of_elements = None
     self.number_of_elements_expression = None
+
+  @abc.abstractmethod
+  def GetAttributeNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+
+  def GetByteSize(self):
+    """Retrieves the byte size of the data type definition.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    if self.element_data_type_definition and self.number_of_elements:
+      element_byte_size = self.element_data_type_definition.GetByteSize()
+      if element_byte_size:
+        return element_byte_size * self.number_of_elements
+
+
+class SequenceDefinition(ElementSequenceDataTypeDefinition):
+  """Sequence data type definition."""
+
+  TYPE_INDICATOR = definitions.TYPE_INDICATOR_SEQUENCE
 
   def GetAttributeNames(self):
     """Determines the attribute (or field) names of the data type definition.
@@ -358,59 +384,11 @@ class SequenceDefinition(DataTypeDefinition):
     """
     return [u'elements']
 
-  def GetByteSize(self):
-    """Retrieves the byte size of the data type definition.
 
-    Returns:
-      int: data type size in bytes or None if size cannot be determined.
-    """
-    if not self.element_data_type_definition:
-      return
-
-    if self.number_of_elements:
-      element_byte_size = self.element_data_type_definition.GetByteSize()
-      if element_byte_size:
-        return element_byte_size * self.number_of_elements
-
-
-class StreamDefinition(DataTypeDefinition):
-  """Stream data type definition.
-
-  Attributes:
-    element_data_type (str): name of the stream element data type.
-    element_data_type_definition (DataTypeDefinition): stream element
-        data type definition.
-    number_of_elements (int): number of elements.
-    number_of_elements_expression (str): expression to determine number
-        of elements.
-  """
+class StreamDefinition(ElementSequenceDataTypeDefinition):
+  """Stream data type definition."""
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_STREAM
-
-  _IS_COMPOSITE = True
-
-  def __init__(
-      self, name, data_type_definition, aliases=None, data_type=None,
-      description=None, urls=None):
-    """Initializes a stream data type definition.
-
-    Args:
-      name (str): name.
-      data_type_definition (DataTypeDefinition): stream element data type
-          definition.
-      aliases (Optional[list[str]]): aliases.
-      data_type (Optional[str]): name of the stream element data type.
-      description (Optional[str]): description.
-      urls (Optional[list[str]]): URLs.
-    """
-    super(StreamDefinition, self).__init__(
-        name, aliases=aliases, description=description, urls=urls)
-    self.byte_order = getattr(
-        data_type_definition, u'byte_order', definitions.BYTE_ORDER_NATIVE)
-    self.element_data_type = data_type
-    self.element_data_type_definition = data_type_definition
-    self.number_of_elements = None
-    self.number_of_elements_expression = None
 
   def GetAttributeNames(self):
     """Determines the attribute (or field) names of the data type definition.
@@ -420,34 +398,17 @@ class StreamDefinition(DataTypeDefinition):
     """
     return [u'stream']
 
-  def GetByteSize(self):
-    """Retrieves the byte size of the data type definition.
 
-    Returns:
-      int: data type size in bytes or None if size cannot be determined.
-    """
-    if not self.element_data_type_definition:
-      return
-
-    if self.number_of_elements:
-      element_byte_size = self.element_data_type_definition.GetByteSize()
-      if element_byte_size:
-        return element_byte_size * self.number_of_elements
-
-
-class StringDefinition(StreamDefinition):
+class StringDefinition(ElementSequenceDataTypeDefinition):
   """String data type definition.
 
   Attributes:
-    element_data_type (str): name of the string element data type.
-    element_data_type_definition (DataTypeDefinition): string element
-        data type definition.
-    number_of_elements (int): number of elements.
-    number_of_elements_expression (str): expression to determine number
-        of elements.
+    encoding (str): string encoding.
   """
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRING
+
+  _IS_COMPOSITE = True
 
   def __init__(
       self, name, data_type_definition, aliases=None, data_type=None,

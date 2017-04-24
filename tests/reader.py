@@ -22,49 +22,6 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
-  def testReadFixedSizeDataTypeDefinition(self):
-    """Tests the _ReadFixedSizeDataTypeDefinition function."""
-    definition_values = {
-        u'aliases': [u'LONG', u'LONG32'],
-        u'attributes': {
-            u'byte_order': u'little-endian',
-            u'size': 4,
-        },
-        u'description': u'signed 32-bit integer type',
-    }
-
-    definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
-
-    data_type_definition = definitions_reader._ReadFixedSizeDataTypeDefinition(
-        definitions_registry, definition_values, data_types.IntegerDefinition,
-        u'int32')
-    self.assertIsNotNone(data_type_definition)
-    self.assertIsInstance(data_type_definition, data_types.IntegerDefinition)
-    self.assertEqual(
-        data_type_definition.byte_order, definitions.BYTE_ORDER_LITTLE_ENDIAN)
-    self.assertEqual(data_type_definition.size, 4)
-
-    # Test with incorrect byte-order.
-    definition_values[u'attributes'][u'byte_order'] = u'bogus'
-
-    with self.assertRaises(errors.DefinitionReaderError):
-      definitions_reader._ReadFixedSizeDataTypeDefinition(
-          definitions_registry, definition_values, data_types.IntegerDefinition,
-          u'int32')
-
-    definition_values[u'attributes'][u'byte_order'] = u'little-endian'
-
-    # Test with incorrect size.
-    definition_values[u'attributes'][u'size'] = u'bogus'
-
-    with self.assertRaises(errors.DefinitionReaderError):
-      definitions_reader._ReadFixedSizeDataTypeDefinition(
-          definitions_registry, definition_values, data_types.IntegerDefinition,
-          u'int32')
-
-    definition_values[u'attributes'][u'size'] = 4
-
   def testReadBooleanDataTypeDefinition(self):
     """Tests the _ReadBooleanDataTypeDefinition function."""
     definition_values = {
@@ -127,6 +84,67 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
       definitions_reader._ReadConstantDataTypeDefinition(
           definitions_registry, definition_values, u'const')
 
+  @test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
+  def testReadElementSequenceDataTypeDefinition(self):
+    """Tests the _ReadElementSequenceDataTypeDefinition function."""
+    definition_values = {
+        u'description': u'vector with 4 elements',
+        u'element_data_type': u'int32',
+        u'number_of_elements': 4,
+    }
+
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    data_type_definition = (
+        definitions_reader._ReadElementSequenceDataTypeDefinition(
+            definitions_registry, definition_values,
+            data_types.SequenceDefinition, u'vector4'))
+    self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(data_type_definition, data_types.SequenceDefinition)
+
+    # Test with undefined element data type.
+    definition_values[u'element_data_type'] = u'bogus'
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadElementSequenceDataTypeDefinition(
+          definitions_registry, definition_values,
+          data_types.SequenceDefinition, u'vector4')
+
+    definition_values[u'element_data_type'] = u'int32'
+
+    # Test with missing element data type definition.
+    del definition_values[u'element_data_type']
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadElementSequenceDataTypeDefinition(
+          definitions_registry, definition_values,
+          data_types.SequenceDefinition, u'vector4')
+
+    definition_values[u'element_data_type'] = u'int32'
+
+    # Test with missing number of elements definition.
+    del definition_values[u'number_of_elements']
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadElementSequenceDataTypeDefinition(
+          definitions_registry, definition_values,
+          data_types.SequenceDefinition, u'vector4')
+
+    definition_values[u'number_of_elements'] = 4
+
+    # Test with unusuported attributes definition.
+    definition_values[u'attributes'] = {u'byte_order': u'little-endian'}
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadElementSequenceDataTypeDefinition(
+          definitions_registry, definition_values,
+          data_types.SequenceDefinition, u'vector4')
+
+    del definition_values[u'attributes']
+
   def testReadEnumerationDataTypeDefinition(self):
     """Tests the _ReadEnumerationDataTypeDefinition function."""
     definition_values = {
@@ -187,6 +205,49 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadEnumerationDataTypeDefinition(
           definitions_registry, definition_values, u'enum')
+
+  def testReadFixedSizeDataTypeDefinition(self):
+    """Tests the _ReadFixedSizeDataTypeDefinition function."""
+    definition_values = {
+        u'aliases': [u'LONG', u'LONG32'],
+        u'attributes': {
+            u'byte_order': u'little-endian',
+            u'size': 4,
+        },
+        u'description': u'signed 32-bit integer type',
+    }
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    data_type_definition = definitions_reader._ReadFixedSizeDataTypeDefinition(
+        definitions_registry, definition_values, data_types.IntegerDefinition,
+        u'int32')
+    self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(data_type_definition, data_types.IntegerDefinition)
+    self.assertEqual(
+        data_type_definition.byte_order, definitions.BYTE_ORDER_LITTLE_ENDIAN)
+    self.assertEqual(data_type_definition.size, 4)
+
+    # Test with incorrect byte-order.
+    definition_values[u'attributes'][u'byte_order'] = u'bogus'
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadFixedSizeDataTypeDefinition(
+          definitions_registry, definition_values, data_types.IntegerDefinition,
+          u'int32')
+
+    definition_values[u'attributes'][u'byte_order'] = u'little-endian'
+
+    # Test with incorrect size.
+    definition_values[u'attributes'][u'size'] = u'bogus'
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadFixedSizeDataTypeDefinition(
+          definitions_registry, definition_values, data_types.IntegerDefinition,
+          u'int32')
+
+    definition_values[u'attributes'][u'size'] = 4
 
   def testReadFloatingPointDataTypeDefinition(self):
     """Tests the _ReadFloatingPointDataTypeDefinition function."""
@@ -270,51 +331,14 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
         definitions_reader._ReadSequenceDataTypeDefinition(
             definitions_registry, definition_values, u'vector4'))
     self.assertIsNotNone(data_type_definition)
-    self.assertIsInstance(
-        data_type_definition, data_types.SequenceDefinition)
-
-    # Test with undefined element data type.
-    definition_values[u'element_data_type'] = u'bogus'
-
-    with self.assertRaises(errors.DefinitionReaderError):
-      definitions_reader._ReadSequenceDataTypeDefinition(
-          definitions_registry, definition_values, u'vector4')
-
-    definition_values[u'element_data_type'] = u'int32'
-
-    # Test with missing element data type definition.
-    del definition_values[u'element_data_type']
-
-    with self.assertRaises(errors.DefinitionReaderError):
-      definitions_reader._ReadSequenceDataTypeDefinition(
-          definitions_registry, definition_values, u'vector4')
-
-    definition_values[u'element_data_type'] = u'int32'
-
-    # Test with missing number of elements definition.
-    del definition_values[u'number_of_elements']
-
-    with self.assertRaises(errors.DefinitionReaderError):
-      definitions_reader._ReadSequenceDataTypeDefinition(
-          definitions_registry, definition_values, u'vector4')
-
-    definition_values[u'number_of_elements'] = 4
-
-    # Test with unusuported attributes definition.
-    definition_values[u'attributes'] = {u'byte_order': u'little-endian'}
-
-    with self.assertRaises(errors.DefinitionReaderError):
-      definitions_reader._ReadSequenceDataTypeDefinition(
-          definitions_registry, definition_values, u'vector4')
-
-    del definition_values[u'attributes']
+    self.assertIsInstance(data_type_definition, data_types.SequenceDefinition)
 
   @test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
   def testReadStreamDataTypeDefinition(self):
     """Tests the _ReadStreamDataTypeDefinition function."""
     definition_values = {
-        u'description': u'vector with 4 elements',
-        u'element_data_type': u'int32',
+        u'description': u'stream with 4 elements',
+        u'element_data_type': u'uint8',
         u'number_of_elements': 4,
     }
 
@@ -325,46 +349,31 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     data_type_definition = (
         definitions_reader._ReadStreamDataTypeDefinition(
-            definitions_registry, definition_values, u'vector4'))
+            definitions_registry, definition_values, u'array4'))
     self.assertIsNotNone(data_type_definition)
-    self.assertIsInstance(
-        data_type_definition, data_types.StreamDefinition)
+    self.assertIsInstance(data_type_definition, data_types.StreamDefinition)
 
-    # Test with undefined element data type.
-    definition_values[u'element_data_type'] = u'bogus'
+  @test_lib.skipUnlessHasTestFile([u'definitions', u'characters.yaml'])
+  def testReadStringDataTypeDefinition(self):
+    """Tests the _ReadStringDataTypeDefinition function."""
+    definition_values = {
+        u'description': u'string with 4 characters',
+        u'encoding': u'ascii',
+        u'element_data_type': u'char',
+        u'number_of_elements': 4,
+    }
 
-    with self.assertRaises(errors.DefinitionReaderError):
-      definitions_reader._ReadStreamDataTypeDefinition(
-          definitions_registry, definition_values, u'vector4')
+    definitions_file = self._GetTestFilePath([
+        u'definitions', u'characters.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
 
-    definition_values[u'element_data_type'] = u'int32'
-
-    # Test with missing element data type definition.
-    del definition_values[u'element_data_type']
-
-    with self.assertRaises(errors.DefinitionReaderError):
-      definitions_reader._ReadStreamDataTypeDefinition(
-          definitions_registry, definition_values, u'vector4')
-
-    definition_values[u'element_data_type'] = u'int32'
-
-    # Test with missing number of elements definition.
-    del definition_values[u'number_of_elements']
-
-    with self.assertRaises(errors.DefinitionReaderError):
-      definitions_reader._ReadStreamDataTypeDefinition(
-          definitions_registry, definition_values, u'vector4')
-
-    definition_values[u'number_of_elements'] = 4
-
-    # Test with unusuported attributes definition.
-    definition_values[u'attributes'] = {u'byte_order': u'little-endian'}
-
-    with self.assertRaises(errors.DefinitionReaderError):
-      definitions_reader._ReadStreamDataTypeDefinition(
-          definitions_registry, definition_values, u'vector4')
-
-    del definition_values[u'attributes']
+    data_type_definition = (
+        definitions_reader._ReadStringDataTypeDefinition(
+            definitions_registry, definition_values, u'string4'))
+    self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(data_type_definition, data_types.StringDefinition)
 
   @test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
   def testReadStructureDataTypeDefinition(self):
