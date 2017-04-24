@@ -1,2 +1,2 @@
-usr/bin/python3*/dist-packages/dtfabric/*.py
-usr/bin/python3*/dist-packages/dtfabric*.egg-info/*
+usr/lib/python3*/dist-packages/dtfabric/*.py
+usr/lib/python3*/dist-packages/dtfabric*.egg-info/*
