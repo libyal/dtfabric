@@ -2,6 +2,7 @@
 """Data type maps."""
 
 import abc
+import copy
 import uuid
 
 from dtfabric import byte_operations
@@ -481,7 +482,7 @@ class StreamMap(DataTypeMap):
 
     return element_data_type_definition
 
-  def MapByteStream(self, byte_stream, context=None, **kwargs):
+  def MapByteStream(self, byte_stream, context=None, **unused_kwargs):
     """Maps the data type on a byte stream.
 
     Args:
@@ -565,29 +566,21 @@ class StructureMap(DataTypeMap):
     if not members:
       raise errors.FormatError(u'Invalid data type definition missing members')
 
-    structure_byte_order = data_type_definition.byte_order
-
     is_composite_map = False
-    last_member_byte_order = definitions.BYTE_ORDER_NATIVE
+    last_member_byte_order = data_type_definition.byte_order
 
     for member_definition in members:
-      if isinstance(member_definition, data_types.StructureMemberDefinition):
-        member_definition = member_definition.member_data_type_definition
-
       if member_definition.IsComposite():
         is_composite_map = True
-        continue
+        break
 
-      member_byte_order = member_definition.byte_order
-      if (structure_byte_order != definitions.BYTE_ORDER_NATIVE and
-          member_byte_order != definitions.BYTE_ORDER_NATIVE and
-          structure_byte_order != member_byte_order):
-        raise errors.FormatError((
-            u'Contficting byte-order definitions in structure: {0:s} and '
-            u'member: {1:s}').format(
-                data_type_definition.name, member_definition.name))
+      if (last_member_byte_order != definitions.BYTE_ORDER_NATIVE and
+          member_definition.byte_order != definitions.BYTE_ORDER_NATIVE and
+          last_member_byte_order != member_definition.byte_order):
+        is_composite_map = True
+        break
 
-      last_member_byte_order = member_byte_order
+      last_member_byte_order = member_definition.byte_order
 
     return is_composite_map
 
@@ -686,6 +679,15 @@ class StructureMap(DataTypeMap):
     for member_definition in members:
       if isinstance(member_definition, data_types.StructureMemberDefinition):
         member_definition = member_definition.member_data_type_definition
+
+      if (data_type_definition.byte_order != definitions.BYTE_ORDER_NATIVE and
+          member_definition.byte_order == definitions.BYTE_ORDER_NATIVE):
+        # Make a copy of the data type definition where byte-order can be
+        # safely changed.
+        member_definition = copy.copy(member_definition)
+        member_definition.name = u'{0:s}.{1:s}'.format(
+            data_type_definition.name, member_definition.name)
+        member_definition.byte_order = data_type_definition.byte_order
 
       if member_definition.name not in data_type_map_cache:
         data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
