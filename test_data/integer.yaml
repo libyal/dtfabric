@@ -1,3 +1,18 @@
+name: int32
+type: integer
+attributes:
+  format: signed
+  size: 4
+  units: bytes
+---
+name: int32be
+type: integer
+attributes:
+  byte_order: big-endian
+  format: signed
+  size: 4
+  units: bytes
+---
 name: int32le
 type: integer
 attributes:

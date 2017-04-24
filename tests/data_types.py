@@ -13,54 +13,8 @@ from tests import test_lib
 # TODO: complete StructureDefinitionTest.
 
 
-class TestDataTypeDefinition(data_types.DataTypeDefinition):
-  """Data type definition for testing."""
-
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-    return [u'value']
-
-  def GetByteSize(self):
-    """Determines the byte size of the data type definition.
-
-    Returns:
-      int: data type size in bytes or None if size cannot be determined.
-    """
-    return
-
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    return
-
-
 class DataTypeDefinitionTest(test_lib.BaseTestCase):
   """Data type definition tests."""
-
-  def testGetStructByteOrderString(self):
-    """Tests the GetStructByteOrderString function."""
-    data_type_definition = data_types.DataTypeDefinition(
-        u'int32', aliases=[u'LONG', u'LONG32'],
-        description=u'signed 32-bit integer')
-
-    byte_order_string = data_type_definition.GetStructByteOrderString()
-    self.assertEqual(byte_order_string, u'=')
-
-    data_type_definition.byte_order = definitions.BYTE_ORDER_BIG_ENDIAN
-    byte_order_string = data_type_definition.GetStructByteOrderString()
-    self.assertEqual(byte_order_string, u'>')
-
-    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
-    byte_order_string = data_type_definition.GetStructByteOrderString()
-    self.assertEqual(byte_order_string, u'<')
 
   def testIsComposite(self):
     """Tests the IsComposite function."""
@@ -114,49 +68,9 @@ class BooleanDefinitionTest(test_lib.BaseTestCase):
         u'bool32', aliases=[u'BOOL'], description=u'boolean')
     self.assertIsNotNone(data_type_definition)
 
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
-    data_type_definition = data_types.BooleanDefinition(
-        u'bool32', aliases=[u'BOOL'], description=u'boolean')
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertIsNone(struct_format_string)
-
-    data_type_definition.size = 1
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'B')
-
-    data_type_definition.size = 2
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'H')
-
-    data_type_definition.size = 4
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'I')
-
 
 class CharacterDefinitionTest(test_lib.BaseTestCase):
-  """character data type definition tests."""
-
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
-    data_type_definition = data_types.CharacterDefinition(
-        u'char', aliases=[u'CHAR'], description=u'character')
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertIsNone(struct_format_string)
-
-    data_type_definition.size = 1
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'b')
-
-    data_type_definition.size = 2
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'h')
-
-    data_type_definition.size = 4
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'i')
+  """Character data type definition tests."""
 
 
 class ConstantDefinitionTest(test_lib.BaseTestCase):
@@ -183,14 +97,6 @@ class ConstantDefinitionTest(test_lib.BaseTestCase):
 
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
-
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
-    data_type_definition = data_types.ConstantDefinition(
-        u'const', description=u'contant')
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertIsNone(struct_format_string)
 
 
 class EnumerationValueTest(test_lib.BaseTestCase):
@@ -221,26 +127,6 @@ class EnumerationDefinitionTest(test_lib.BaseTestCase):
     with self.assertRaises(KeyError):
       data_type_definition.AddValue(u'enum_value', 5)
 
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
-    data_type_definition = data_types.EnumerationDefinition(
-        u'enum', description=u'enumeration')
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertIsNone(struct_format_string)
-
-    data_type_definition.size = 1
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'B')
-
-    data_type_definition.size = 2
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'H')
-
-    data_type_definition.size = 4
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'I')
-
 
 class FormatDefinitionTest(test_lib.BaseTestCase):
   """Data format definition tests."""
@@ -263,14 +149,6 @@ class FormatDefinitionTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
-    data_type_definition = data_types.FormatDefinition(
-        u'format', description=u'data format')
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertIsNone(struct_format_string)
-
   def testIsComposite(self):
     """Tests the IsComposite function."""
     data_type_definition = data_types.FormatDefinition(
@@ -283,23 +161,6 @@ class FormatDefinitionTest(test_lib.BaseTestCase):
 class FloatingPointDefinitionTest(test_lib.BaseTestCase):
   """Floating-point data type definition tests."""
 
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
-    data_type_definition = data_types.FloatingPointDefinition(
-        u'float32', aliases=[u'float', u'FLOAT'],
-        description=u'32-bit floating-point')
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertIsNone(struct_format_string)
-
-    data_type_definition.size = 4
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'f')
-
-    data_type_definition.size = 8
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'd')
-
 
 class IntegerDefinitionTest(test_lib.BaseTestCase):
   """Integer data type definition tests."""
@@ -310,55 +171,6 @@ class IntegerDefinitionTest(test_lib.BaseTestCase):
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
     self.assertIsNotNone(data_type_definition)
-
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
-    data_type_definition = data_types.IntegerDefinition(
-        u'int32', aliases=[u'LONG', u'LONG32'],
-        description=u'signed 32-bit integer')
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertIsNone(struct_format_string)
-
-    data_type_definition.format = u'signed'
-    data_type_definition.size = 1
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'b')
-
-    data_type_definition.format = u'signed'
-    data_type_definition.size = 2
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'h')
-
-    data_type_definition.format = u'signed'
-    data_type_definition.size = 4
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'i')
-
-    data_type_definition.format = u'signed'
-    data_type_definition.size = 8
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'q')
-
-    data_type_definition.format = u'unsigned'
-    data_type_definition.size = 1
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'B')
-
-    data_type_definition.format = u'unsigned'
-    data_type_definition.size = 2
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'H')
-
-    data_type_definition.format = u'unsigned'
-    data_type_definition.size = 4
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'I')
-
-    data_type_definition.format = u'unsigned'
-    data_type_definition.size = 8
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'Q')
 
 
 class SequenceDefinitionTest(test_lib.BaseTestCase):
@@ -400,41 +212,6 @@ class SequenceDefinitionTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 128)
 
-  def testGetStructByteOrderString(self):
-    """Tests the GetStructByteOrderString function."""
-    data_type_definition = data_types.SequenceDefinition(
-        u'offsets', None, description=u'offsets array')
-
-    byte_order_string = data_type_definition.GetStructByteOrderString()
-    self.assertIsNone(byte_order_string)
-
-    element_definition = data_types.IntegerDefinition(u'uint16le')
-    element_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
-    data_type_definition.element_data_type_definition = element_definition
-
-    byte_order_string = data_type_definition.GetStructByteOrderString()
-    self.assertEqual(byte_order_string, u'<')
-
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
-    data_type_definition = data_types.SequenceDefinition(
-        u'offsets', None, description=u'offsets array')
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertIsNone(struct_format_string)
-
-    element_definition = data_types.IntegerDefinition(u'int32')
-    element_definition.format = definitions.FORMAT_SIGNED
-    element_definition.size = 4
-    data_type_definition.element_data_type_definition = element_definition
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertIsNone(struct_format_string)
-
-    data_type_definition.number_of_elements = 32
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'32i')
-
   def testIsComposite(self):
     """Tests the IsComposite function."""
     data_type_definition = data_types.SequenceDefinition(
@@ -461,7 +238,7 @@ class StreamDefinitionTest(test_lib.BaseTestCase):
         u'byte_stream', element_definition, description=u'byte stream')
 
     attribute_names = data_type_definition.GetAttributeNames()
-    self.assertEqual(attribute_names, [u'elements'])
+    self.assertEqual(attribute_names, [u'stream'])
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
@@ -483,45 +260,58 @@ class StreamDefinitionTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 32)
 
-  def testGetStructByteOrderString(self):
-    """Tests the GetStructByteOrderString function."""
-    data_type_definition = data_types.StreamDefinition(
-        u'byte_stream', None, description=u'byte stream')
-
-    byte_order_string = data_type_definition.GetStructByteOrderString()
-    self.assertIsNone(byte_order_string)
-
-    element_definition = data_types.IntegerDefinition(u'uint16le')
-    element_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
-    data_type_definition.element_data_type_definition = element_definition
-
-    byte_order_string = data_type_definition.GetStructByteOrderString()
-    self.assertEqual(byte_order_string, u'<')
-
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
-    data_type_definition = data_types.StreamDefinition(
-        u'byte_stream', None, description=u'byte stream')
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertIsNone(struct_format_string)
-
-    element_definition = data_types.IntegerDefinition(u'byte')
-    element_definition.format = definitions.FORMAT_UNSIGNED
-    element_definition.size = 1
-    data_type_definition.element_data_type_definition = element_definition
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertIsNone(struct_format_string)
-
-    data_type_definition.number_of_elements = 32
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'32B')
-
   def testIsComposite(self):
     """Tests the IsComposite function."""
     data_type_definition = data_types.StreamDefinition(
         u'byte_stream', None, description=u'byte stream')
+
+    result = data_type_definition.IsComposite()
+    self.assertTrue(result)
+
+
+class StringDefinitionTest(test_lib.BaseTestCase):
+  """String data type definition tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    element_definition = data_types.IntegerDefinition(u'wchar16')
+    data_type_definition = data_types.StringDefinition(
+        u'utf16', element_definition, description=u'UTF-16 formatted string')
+    self.assertIsNotNone(data_type_definition)
+
+  def testGetAttributeNames(self):
+    """Tests the GetAttributeNames function."""
+    element_definition = data_types.IntegerDefinition(u'wchar16')
+    data_type_definition = data_types.StringDefinition(
+        u'utf16', element_definition, description=u'UTF-16 formatted string')
+
+    attribute_names = data_type_definition.GetAttributeNames()
+    self.assertEqual(attribute_names, [u'string'])
+
+  def testGetByteSize(self):
+    """Tests the GetByteSize function."""
+    data_type_definition = data_types.StringDefinition(
+        u'utf16', None, description=u'UTF-16 formatted string')
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
+
+    element_definition = data_types.IntegerDefinition(u'wchar16')
+    element_definition.format = definitions.FORMAT_SIGNED
+    element_definition.size = 2
+    data_type_definition.element_data_type_definition = element_definition
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
+
+    data_type_definition.number_of_elements = 32
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 64)
+
+  def testIsComposite(self):
+    """Tests the IsComposite function."""
+    data_type_definition = data_types.StringDefinition(
+        u'utf16', None, description=u'UTF-16 formatted string')
 
     result = data_type_definition.IsComposite()
     self.assertTrue(result)
@@ -578,46 +368,6 @@ class StructureDefinitionTest(test_lib.BaseTestCase):
 
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
-
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
-    data_type_definition = data_types.StructureDefinition(
-        u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
-        description=u'my structure type')
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertIsNone(struct_format_string)
-
-    definitions_file = self._GetTestFilePath([u'structure.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-    member_definition = definitions_registry.GetDefinitionByName(u'int32')
-
-    structure_member_definition = data_types.StructureMemberDefinition(
-        u'my_struct_member', member_definition, aliases=[u'MY_STRUCT_MEMBER'],
-        data_type=u'int32', description=u'my structure member')
-
-    data_type_definition.AddMemberDefinition(structure_member_definition)
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'i')
-
-    # Test with member without a struct format string.
-
-    data_type_definition = data_types.StructureDefinition(
-        u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
-        description=u'my structure type')
-
-    member_definition = TestDataTypeDefinition(u'test')
-
-    structure_member_definition = data_types.StructureMemberDefinition(
-        u'my_struct_member', member_definition, aliases=[u'MY_STRUCT_MEMBER'],
-        data_type=u'test', description=u'my structure member')
-
-    data_type_definition.AddMemberDefinition(structure_member_definition)
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertIsNone(struct_format_string)
 
   def testIsComposite(self):
     """Tests the IsComposite function."""
@@ -683,24 +433,6 @@ class StructureMemberDefinitionTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
 
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
-    definitions_file = self._GetTestFilePath([u'structure.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-    member_definition = definitions_registry.GetDefinitionByName(u'int32')
-
-    data_type_definition = data_types.StructureMemberDefinition(
-        u'my_struct_member', None, aliases=[u'MY_STRUCT_MEMBER'],
-        data_type=u'int32', description=u'my structure member')
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertIsNone(struct_format_string)
-
-    data_type_definition.member_data_type_definition = member_definition
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'i')
-
   def testIsComposite(self):
     """Tests the IsComposite function."""
     definitions_file = self._GetTestFilePath([u'structure.yaml'])
@@ -728,14 +460,6 @@ class UUIDDefinitionTest(test_lib.BaseTestCase):
     data_type_definition = data_types.UUIDDefinition(
         u'guid', aliases=[u'GUID'], description=u'GUID')
     self.assertIsNotNone(data_type_definition)
-
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
-    data_type_definition = data_types.UUIDDefinition(
-        u'guid', aliases=[u'GUID'], description=u'GUID')
-
-    struct_format_string = data_type_definition.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'IHH8B')
 
   def testIsComposite(self):
     """Tests the IsComposite function."""

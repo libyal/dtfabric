@@ -32,21 +32,23 @@ class EmptyDataTypeDefinition(data_types.DataTypeDefinition):
     """
     return
 
-  def GetStructByteOrderString(self):
-    """Retrieves the Python struct format string.
+
+class TestDataTypeDefinition(data_types.DataTypeDefinition):
+  """Data type definition for testing."""
+
+  def GetAttributeNames(self):
+    """Determines the attribute (or field) names of the data type definition.
 
     Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
+      list[str]: attribute names.
     """
-    return
+    return [u'value']
 
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
+  def GetByteSize(self):
+    """Determines the byte size of the data type definition.
 
     Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
+      int: data type size in bytes or None if size cannot be determined.
     """
     return
 
@@ -71,58 +73,11 @@ class DataTypeMapTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath([u'integer.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
+
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
-
     data_type_map = data_maps.DataTypeMap(data_type_definition)
-
-    operation = data_type_map._GetByteStreamOperation(data_type_definition)
-    self.assertIsInstance(operation, byte_operations.StructOperation)
-
-    with self.assertRaises(errors.FormatError):
-      data_type_map._GetByteStreamOperation(None)
-
-    with self.assertRaises(errors.FormatError):
-      data_type_definition = EmptyDataTypeDefinition(u'empty')
-      data_type_map._GetByteStreamOperation(data_type_definition)
-
-  def testGetStructByteOrderString(self):
-    """Tests the _GetStructByteOrderString function."""
-    definitions_file = self._GetTestFilePath([u'integer.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
-
-    data_type_map = data_maps.DataTypeMap(data_type_definition)
-
-    format_string = data_type_map._GetStructByteOrderString(
-        data_type_definition)
-    self.assertEqual(format_string, u'<')
-
-    with self.assertRaises(errors.FormatError):
-      data_type_map._GetStructByteOrderString(None)
-
-    with self.assertRaises(errors.FormatError):
-      data_type_definition = EmptyDataTypeDefinition(u'empty')
-      data_type_map._GetStructByteOrderString(data_type_definition)
-
-  def testGetStructFormatString(self):
-    """Tests the _GetStructFormatString function."""
-    definitions_file = self._GetTestFilePath([u'integer.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
-
-    data_type_map = data_maps.DataTypeMap(data_type_definition)
-
-    format_string = data_type_map._GetStructFormatString(data_type_definition)
-    self.assertEqual(format_string, u'i')
-
-    with self.assertRaises(errors.FormatError):
-      data_type_map._GetStructFormatString(None)
-
-    with self.assertRaises(errors.FormatError):
-      data_type_definition = EmptyDataTypeDefinition(u'empty')
-      data_type_map._GetStructFormatString(data_type_definition)
+    operation = data_type_map._GetByteStreamOperation()
+    self.assertIsNone(operation)
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
@@ -135,6 +90,38 @@ class DataTypeMapTest(test_lib.BaseTestCase):
 
     byte_size = data_type_map.GetByteSize()
     self.assertEqual(byte_size, 4)
+
+  def testGetStructByteOrderString(self):
+    """Tests the GetStructByteOrderString function."""
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
+    data_type_map = data_maps.DataTypeMap(data_type_definition)
+    byte_order_string = data_type_map.GetStructByteOrderString()
+    self.assertEqual(byte_order_string, u'=')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32be')
+    data_type_map = data_maps.DataTypeMap(data_type_definition)
+    byte_order_string = data_type_map.GetStructByteOrderString()
+    self.assertEqual(byte_order_string, u'>')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
+    data_type_map = data_maps.DataTypeMap(data_type_definition)
+    byte_order_string = data_type_map.GetStructByteOrderString()
+    self.assertEqual(byte_order_string, u'<')
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
+    data_type_map = data_maps.DataTypeMap(data_type_definition)
+    format_string = data_type_map.GetStructFormatString()
+    self.assertIsNone(format_string)
 
 
 @test_lib.skipUnlessHasTestFile([u'integer.yaml'])
@@ -150,8 +137,8 @@ class PrimitiveDataTypeMapTest(test_lib.BaseTestCase):
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
     data_type_map = data_maps.PrimitiveDataTypeMap(data_type_definition)
 
-    integer_value = data_type_map.MapByteStream(b'\x01\x00\x00\x00')
-    self.assertEqual(integer_value, 1)
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\x01\x00\x00\x00')
 
   def testMapValue(self):
     """Tests the MapValue function."""
@@ -182,6 +169,27 @@ class BooleanMapTest(test_lib.BaseTestCase):
     data_type_definition.true_value = None
     with self.assertRaises(errors.FormatError):
       data_maps.BooleanMap(data_type_definition)
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    definitions_file = self._GetTestFilePath([u'definitions', u'booleans.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'bool8')
+    data_type_map = data_maps.BooleanMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'B')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'bool16')
+    data_type_map = data_maps.BooleanMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'H')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'bool32')
+    data_type_map = data_maps.BooleanMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'I')
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
@@ -234,6 +242,28 @@ class BooleanMapTest(test_lib.BaseTestCase):
 class CharacterMapTest(test_lib.BaseTestCase):
   """Character map tests."""
 
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    definitions_file = self._GetTestFilePath([
+        u'definitions', u'characters.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'char')
+    data_type_map = data_maps.CharacterMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'b')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'wchar16')
+    data_type_map = data_maps.CharacterMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'h')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'wchar32')
+    data_type_map = data_maps.CharacterMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'i')
+
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
     definitions_file = self._GetTestFilePath([
@@ -270,6 +300,23 @@ class CharacterMapTest(test_lib.BaseTestCase):
 class FloatingPointMapTest(test_lib.BaseTestCase):
   """Floating-point map tests."""
 
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    definitions_file = self._GetTestFilePath([
+        u'definitions', u'floating-points.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'float32')
+    data_type_map = data_maps.FloatingPointMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'f')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'float64')
+    data_type_map = data_maps.FloatingPointMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'd')
+
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
     definitions_file = self._GetTestFilePath([
@@ -299,6 +346,65 @@ class FloatingPointMapTest(test_lib.BaseTestCase):
 @test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
 class IntegerMapTest(test_lib.BaseTestCase):
   """Integer map tests."""
+
+  # pylint: disable=protected-access
+
+  def testGetByteStreamOperation(self):
+    """Tests the _GetByteStreamOperation function."""
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
+    data_type_map = data_maps.IntegerMap(data_type_definition)
+    operation = data_type_map._GetByteStreamOperation()
+    self.assertIsInstance(operation, byte_operations.StructOperation)
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int8')
+    data_type_map = data_maps.IntegerMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'b')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int16')
+    data_type_map = data_maps.IntegerMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'h')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
+    data_type_map = data_maps.IntegerMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'i')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int64')
+    data_type_map = data_maps.IntegerMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'q')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'uint8')
+    data_type_map = data_maps.IntegerMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'B')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'uint16')
+    data_type_map = data_maps.IntegerMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'H')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'uint32')
+    data_type_map = data_maps.IntegerMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'I')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'uint64')
+    data_type_map = data_maps.IntegerMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'Q')
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
@@ -382,6 +488,33 @@ class SequenceMapTest(test_lib.BaseTestCase):
       data_type_definition = EmptyDataTypeDefinition(u'empty')
       data_type_map._GetElementDataTypeDefinition(data_type_definition)
 
+  def testGetStructByteOrderString(self):
+    """Tests the GetStructByteOrderString function."""
+    definitions_file = self._GetTestFilePath([u'sequence.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'vector4')
+    data_type_map = data_maps.SequenceMap(data_type_definition)
+    byte_order_string = data_type_map.GetStructByteOrderString()
+    self.assertEqual(byte_order_string, u'<')
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    definitions_file = self._GetTestFilePath([u'sequence.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'vector4')
+    data_type_map = data_maps.SequenceMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'4i')
+
+    data_type_definition.number_of_elements = 0
+    data_type_map = data_maps.SequenceMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
+
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
     definitions_file = self._GetTestFilePath([u'sequence.yaml'])
@@ -440,6 +573,35 @@ class StreamMapTest(test_lib.BaseTestCase):
       data_type_definition = EmptyDataTypeDefinition(u'empty')
       data_type_map._GetElementDataTypeDefinition(data_type_definition)
 
+  def testGetStructByteOrderString(self):
+    """Tests the GetStructByteOrderString function."""
+    definitions_file = self._GetTestFilePath([u'stream.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'utf16le_stream')
+    data_type_map = data_maps.StreamMap(data_type_definition)
+    byte_order_string = data_type_map.GetStructByteOrderString()
+    self.assertEqual(byte_order_string, u'<')
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    definitions_file = self._GetTestFilePath([u'stream.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'utf16le_stream')
+    data_type_map = data_maps.StreamMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'16B')
+
+    data_type_definition.number_of_elements = 0
+    data_type_map = data_maps.SequenceMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
+
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
     definitions_file = self._GetTestFilePath([u'stream.yaml'])
@@ -450,9 +612,49 @@ class StreamMapTest(test_lib.BaseTestCase):
 
     data_type_map = data_maps.StreamMap(data_type_definition)
 
-    stream_value = data_type_map.MapByteStream(
-        u'dtFabric'.encode(u'utf-16-le'))
+    stream_value = data_type_map.MapByteStream(u'dtFabric'.encode(u'utf-16-le'))
     self.assertEqual(stream_value, b'd\x00t\x00F\x00a\x00b\x00r\x00i\x00c\x00')
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(None)
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\x12\x34\x56')
+
+
+@test_lib.skipUnlessHasTestFile([u'string.yaml'])
+class StringMapTest(test_lib.BaseTestCase):
+  """String map tests."""
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    definitions_file = self._GetTestFilePath([u'string.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'utf16_string')
+    data_type_map = data_maps.StreamMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'16B')
+
+    data_type_definition.number_of_elements = 0
+    data_type_map = data_maps.SequenceMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
+
+  def testMapByteStream(self):
+    """Tests the MapByteStream function."""
+    definitions_file = self._GetTestFilePath([u'string.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'utf16_string')
+
+    data_type_map = data_maps.StringMap(data_type_definition)
+
+    string_value = data_type_map.MapByteStream(u'dtFabric'.encode(u'utf-16-le'))
+    self.assertEqual(string_value, u'dtFabric')
 
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(None)
@@ -518,26 +720,6 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertTrue(result)
 
   @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
-  def testGetByteStreamOperation(self):
-    """Tests the _GetByteStreamOperation function."""
-    definitions_file = self._GetTestFilePath([u'structure.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName(u'point3d')
-
-    data_type_map = data_maps.StructureMap(data_type_definition)
-
-    operation = data_type_map._GetByteStreamOperation(data_type_definition)
-    self.assertIsInstance(operation, byte_operations.StructOperation)
-
-    with self.assertRaises(errors.FormatError):
-      data_type_map._GetByteStreamOperation(None)
-
-    with self.assertRaises(errors.FormatError):
-      data_type_definition = EmptyDataTypeDefinition(u'empty')
-      data_type_map._GetByteStreamOperation(data_type_definition)
-
-  @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testGetMemberDataTypeMaps(self):
     """Tests the _GetMemberDataTypeMaps function."""
     definitions_file = self._GetTestFilePath([u'structure.yaml'])
@@ -557,6 +739,35 @@ class StructureMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.FormatError):
       data_type_definition = EmptyDataTypeDefinition(u'empty')
       data_type_map._GetMemberDataTypeMaps(data_type_definition, {})
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    definitions_file = self._GetTestFilePath([u'structure.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'point3d')
+    data_type_map = data_maps.StructureMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'iii')
+
+    # Test with member without a struct format string.
+
+    data_type_definition = data_types.StructureDefinition(
+        u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
+        description=u'my structure type')
+
+    member_definition = TestDataTypeDefinition(u'test')
+
+    structure_member_definition = data_types.StructureMemberDefinition(
+        u'my_struct_member', member_definition, aliases=[u'MY_STRUCT_MEMBER'],
+        data_type=u'test', description=u'my structure member')
+
+    data_type_definition.AddMemberDefinition(structure_member_definition)
+
+    data_type_map = data_maps.StructureMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertIsNone(struct_format_string)
 
   @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testMapByteStream(self):
@@ -677,6 +888,17 @@ class StructureMapTest(test_lib.BaseTestCase):
 @test_lib.skipUnlessHasTestFile([u'uuid.yaml'])
 class UUIDMapTest(test_lib.BaseTestCase):
   """UUID map tests."""
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    definitions_file = self._GetTestFilePath([u'uuid.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'uuid')
+    data_type_map = data_maps.UUIDMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'IHH8B')
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""

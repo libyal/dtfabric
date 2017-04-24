@@ -49,6 +49,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       definitions.TYPE_INDICATOR_INTEGER: u'_ReadIntegerDataTypeDefinition',
       definitions.TYPE_INDICATOR_SEQUENCE: u'_ReadSequenceDataTypeDefinition',
       definitions.TYPE_INDICATOR_STREAM: u'_ReadStreamDataTypeDefinition',
+      definitions.TYPE_INDICATOR_STRING: u'_ReadStringDataTypeDefinition',
       definitions.TYPE_INDICATOR_STRUCTURE: u'_ReadStructureDataTypeDefinition',
       definitions.TYPE_INDICATOR_UUID: u'_ReadUUIDDataTypeDefinition',
   }
@@ -352,7 +353,8 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     return definition_object
 
   def _ReadStreamDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      data_type_definition_class=data_types.StreamDefinition):
     """Reads a stream data type definition.
 
     Args:
@@ -360,6 +362,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      data_type_definition_class (Optional[str]): data type definition class.
 
     Returns:
       StreamDefinition: stream data type definition.
@@ -394,7 +397,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     description = definition_values.get(u'description', None)
     urls = definition_values.get(u'urls', None)
 
-    definition_object = data_types.StreamDefinition(
+    definition_object = data_type_definition_class(
         definition_name, element_data_type_definition, aliases=aliases,
         data_type=element_data_type, description=description, urls=urls)
 
@@ -402,6 +405,35 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       definition_object.number_of_elements = int(number_of_elements)
     except ValueError:
       definition_object.number_of_elements_expression = number_of_elements
+
+    return definition_object
+
+  def _ReadStringDataTypeDefinition(
+      self, definitions_registry, definition_values, definition_name):
+    """Reads a string data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      definition_name (str): name of the definition.
+
+    Returns:
+      StringDefinition: string data type definition.
+
+    Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
+    """
+    encoding = definition_values.get(u'encoding', None)
+    if not encoding:
+      error_message = u'missing encoding'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    definition_object = self._ReadStreamDataTypeDefinition(
+        definitions_registry, definition_values, definition_name,
+        data_type_definition_class=data_types.StringDefinition)
+    definition_object.encoding = encoding
 
     return definition_object
 

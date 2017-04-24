@@ -14,7 +14,7 @@ from dtfabric import runtime
 
 
 # TODO: add ConstantMap.
-# TODO: add EnumerationMap.
+# TODO: complete EnumerationMap.
 # TODO: add FormatMap.
 
 
@@ -40,6 +40,11 @@ class DataTypeMapContext(object):
 class DataTypeMap(object):
   """Data type map."""
 
+  _BYTE_ORDER_STRINGS = {
+      definitions.BYTE_ORDER_BIG_ENDIAN: u'>',
+      definitions.BYTE_ORDER_LITTLE_ENDIAN: u'<',
+      definitions.BYTE_ORDER_NATIVE: u'='}
+
   def __init__(self, data_type_definition):
     """Initializes a data type map.
 
@@ -53,86 +58,17 @@ class DataTypeMap(object):
     super(DataTypeMap, self).__init__()
     self._data_type_definition = data_type_definition
 
-  def _GetByteStreamOperation(self, data_type_definition):
+  def _GetByteStreamOperation(self):
     """Retrieves the byte stream operation.
-
-    Args:
-      data_type_definition (DataTypeDefinition): data type definition.
 
     Returns:
       ByteStreamOperation: byte stream operation or None if unable to determine.
-
-    Raises:
-      FormatError: if the byte stream operation cannot be determed from the
-          data type definition.
     """
-    byte_order_string = self._GetStructByteOrderString(data_type_definition)
-    format_string = self._GetStructFormatString(data_type_definition)
-    format_string = u''.join([byte_order_string, format_string])
-
-    return byte_operations.StructOperation(format_string)
-
-  def _GetStructByteOrderString(self, data_type_definition):
-    """Retrieves the Python struct format string.
-
-    Args:
-      data_type_definition (DataTypeDefinition): data type definition.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-
-    Raises:
-      FormatError: if the struct byte order string cannot be determed from
-          the data type definition.
-    """
-    if not data_type_definition:
-      raise errors.FormatError(u'Missing data type definition')
-
-    error_string = u''
-
-    try:
-      byte_order_string = data_type_definition.GetStructByteOrderString()
-    except (AttributeError, TypeError) as exception:
-      byte_order_string = None
-      error_string = u' with error: {0!s}'.format(exception)
-
-    if not byte_order_string:
-      raise errors.FormatError(
-          u'Unable to determine byte order string{0:s}'.format(error_string))
-
-    return byte_order_string
-
-  def _GetStructFormatString(self, data_type_definition):
-    """Retrieves the Python struct format string.
-
-    Args:
-      data_type_definition (DataTypeDefinition): data type definition.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-
-    Raises:
-      FormatError: if the struct format string cannot be determed from
-          the data type definition.
-    """
-    if not data_type_definition:
-      raise errors.FormatError(u'Missing data type definition')
-
-    error_string = u''
-
-    try:
-      format_string = data_type_definition.GetStructFormatString()
-    except (AttributeError, TypeError) as exception:
-      format_string = None
-      error_string = u' with error: {0!s}'.format(exception)
-
-    if not format_string:
-      raise errors.FormatError(
-          u'Unable to determine format string{0:s}'.format(error_string))
-
-    return format_string
+    byte_order_string = self.GetStructByteOrderString()
+    format_string = self.GetStructFormatString()
+    if format_string:
+      format_string = u''.join([byte_order_string, format_string])
+      return byte_operations.StructOperation(format_string)
 
   def GetByteSize(self):
     """Retrieves the byte size of the data type map.
@@ -140,7 +76,28 @@ class DataTypeMap(object):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    return self._data_type_definition.GetByteSize()
+    if self._data_type_definition:
+      return self._data_type_definition.GetByteSize()
+
+  def GetStructByteOrderString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    if self._data_type_definition:
+      return self._BYTE_ORDER_STRINGS.get(
+          self._data_type_definition.byte_order, None)
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return
 
   @abc.abstractmethod
   def MapByteStream(self, byte_stream, context=None, **unused_kwargs):
@@ -163,17 +120,13 @@ class PrimitiveDataTypeMap(DataTypeMap):
   """Primitive data type map."""
 
   def __init__(self, data_type_definition):
-    """Initializes a data type map.
+    """Initializes a primitive data type map.
 
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
-
-    Raises:
-      FormatError: if the data type map cannot be determed from the data
-          type definition.
     """
     super(PrimitiveDataTypeMap, self).__init__(data_type_definition)
-    self._operation = self._GetByteStreamOperation(data_type_definition)
+    self._operation = self._GetByteStreamOperation()
 
   def MapByteStream(self, byte_stream, context=None, **unused_kwargs):
     """Maps the data type on a byte stream.
@@ -217,8 +170,16 @@ class PrimitiveDataTypeMap(DataTypeMap):
 class BooleanMap(PrimitiveDataTypeMap):
   """Boolen data type map."""
 
+  # We use 'I' here instead of 'L' because 'L' behaves architecture dependent.
+
+  _FORMAT_STRINGS_UNSIGNED = {
+      1: u'B',
+      2: u'H',
+      4: u'I',
+  }
+
   def __init__(self, data_type_definition):
-    """Initializes a data type map.
+    """Initializes a boolean data type map.
 
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
@@ -233,6 +194,16 @@ class BooleanMap(PrimitiveDataTypeMap):
           u'Boolean data type has no True or False values.')
 
     super(BooleanMap, self).__init__(data_type_definition)
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return self._FORMAT_STRINGS_UNSIGNED.get(
+        self._data_type_definition.size, None)
 
   def MapValue(self, value):
     """Maps the data type on a value.
@@ -264,6 +235,24 @@ class BooleanMap(PrimitiveDataTypeMap):
 class CharacterMap(PrimitiveDataTypeMap):
   """Character data type map."""
 
+  # We use 'i' here instead of 'l' because 'l' behaves architecture dependent.
+
+  _FORMAT_STRINGS = {
+      1: u'b',
+      2: u'h',
+      4: u'i',
+  }
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return self._FORMAT_STRINGS.get(
+        self._data_type_definition.size, None)
+
   def MapValue(self, value):
     """Maps the data type on a value.
 
@@ -279,19 +268,88 @@ class CharacterMap(PrimitiveDataTypeMap):
     return py2to3.UNICHR(value)
 
 
+class EnumerationMap(PrimitiveDataTypeMap):
+  """Enumeration data type map."""
+
+  # We use 'I' here instead of 'L' because 'L' behaves architecture dependent.
+
+  _FORMAT_STRINGS_UNSIGNED = {
+      1: u'B',
+      2: u'H',
+      4: u'I',
+  }
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return self._FORMAT_STRINGS_UNSIGNED.get(
+        self._data_type_definition.size, None)
+
+
 class FloatingPointMap(PrimitiveDataTypeMap):
   """Floating-point data type map."""
+
+  _FORMAT_STRINGS = {
+      4: u'f',
+      8: u'd',
+  }
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return self._FORMAT_STRINGS.get(
+        self._data_type_definition.size, None)
 
 
 class IntegerMap(PrimitiveDataTypeMap):
   """Integer data type map."""
+
+  # We use 'i' here instead of 'l' because 'l' behaves architecture dependent.
+
+  _FORMAT_STRINGS_SIGNED = {
+      1: u'b',
+      2: u'h',
+      4: u'i',
+      8: u'q',
+  }
+
+  # We use 'I' here instead of 'L' because 'L' behaves architecture dependent.
+
+  _FORMAT_STRINGS_UNSIGNED = {
+      1: u'B',
+      2: u'H',
+      4: u'I',
+      8: u'Q',
+  }
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    if self._data_type_definition.format == definitions.FORMAT_UNSIGNED:
+      return self._FORMAT_STRINGS_UNSIGNED.get(
+          self._data_type_definition.size, None)
+
+    return self._FORMAT_STRINGS_SIGNED.get(
+        self._data_type_definition.size, None)
 
 
 class SequenceMap(DataTypeMap):
   """Sequence data type map."""
 
   def __init__(self, data_type_definition):
-    """Initializes a data type map.
+    """Initializes a sequence data type map.
 
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
@@ -299,21 +357,18 @@ class SequenceMap(DataTypeMap):
     element_data_type_definition = self._GetElementDataTypeDefinition(
         data_type_definition)
 
-    data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
+    super(SequenceMap, self).__init__(data_type_definition)
+    self._element_data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
         element_data_type_definition)
+    self._map_byte_stream = None
+    self._operation = None
 
     if (element_data_type_definition.IsComposite() or
         data_type_definition.number_of_elements_expression):
-      map_byte_stream = self._CompositeMapByteStream
-      operation = None
+      self._map_byte_stream = self._CompositeMapByteStream
     else:
-      map_byte_stream = self._LinearMapByteStream
-      operation = self._GetByteStreamOperation(data_type_definition)
-
-    super(SequenceMap, self).__init__(data_type_definition)
-    self._data_type_map = data_type_map
-    self._map_byte_stream = map_byte_stream
-    self._operation = operation
+      self._map_byte_stream = self._LinearMapByteStream
+      self._operation = self._GetByteStreamOperation()
 
   def _CompositeMapByteStream(self, byte_stream, context=None, **unused_kwargs):
     """Maps a sequence of composite data types on a byte stream.
@@ -357,7 +412,7 @@ class SequenceMap(DataTypeMap):
     byte_stream_offset = 0
     for _ in range(number_of_elements):
       try:
-        value = self._data_type_map.MapByteStream(
+        value = self._element_data_type_map.MapByteStream(
             byte_stream[byte_stream_offset:], context=subcontext)
         values.append(value)
 
@@ -416,10 +471,34 @@ class SequenceMap(DataTypeMap):
 
     try:
       struct_tuple = self._operation.ReadFrom(byte_stream)
-      return tuple(map(self._data_type_map.MapValue, struct_tuple))
+      return tuple(map(self._element_data_type_map.MapValue, struct_tuple))
 
     except Exception as exception:
       raise errors.MappingError(exception)
+
+  def GetStructByteOrderString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    if self._element_data_type_map:
+      return self._element_data_type_map.GetStructByteOrderString()
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    if (self._element_data_type_map and
+        self._data_type_definition.number_of_elements):
+      format_string = self._element_data_type_map.GetStructFormatString()
+      if format_string:
+        return u'{0:d}{1:s}'.format(
+            self._data_type_definition.number_of_elements, format_string)
 
   def MapByteStream(self, byte_stream, **kwargs):
     """Maps the data type on a byte stream.
@@ -441,7 +520,7 @@ class StreamMap(DataTypeMap):
   """Stream data type map."""
 
   def __init__(self, data_type_definition):
-    """Initializes a data type map.
+    """Initializes a stream data type map.
 
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
@@ -457,6 +536,8 @@ class StreamMap(DataTypeMap):
       raise errors.FormatError(u'Unsupported composite element data type')
 
     super(StreamMap, self).__init__(data_type_definition)
+    self._element_data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
+        element_data_type_definition)
 
   def _GetElementDataTypeDefinition(self, data_type_definition):
     """Retrieves the element data type definition.
@@ -481,6 +562,27 @@ class StreamMap(DataTypeMap):
           u'Invalid data type definition missing element')
 
     return element_data_type_definition
+
+  def GetStructByteOrderString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    if self._element_data_type_map:
+      return self._element_data_type_map.GetStructByteOrderString()
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    byte_size = self.GetByteSize()
+    if byte_size:
+      return u'{0:d}B'.format(byte_size)
 
   def MapByteStream(self, byte_stream, context=None, **unused_kwargs):
     """Maps the data type on a byte stream.
@@ -515,6 +617,33 @@ class StreamMap(DataTypeMap):
     return byte_stream[:byte_size]
 
 
+class StringMap(StreamMap):
+  """String data type map."""
+
+  def MapByteStream(self, byte_stream, context=None, **kwargs):
+    """Maps the data type on a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+      context (Optional[DataTypeMapContext]): data type map context.
+
+    Returns:
+      tuple[object, ...]: mapped values.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+    byte_stream = super(StringMap, self).MapByteStream(
+        byte_stream, context=context, **kwargs)
+
+    try:
+      return byte_stream.decode(self._data_type_definition.encoding)
+
+    except Exception as exception:
+      raise errors.MappingError(exception)
+
+
 class StructureMap(DataTypeMap):
   """Structure data type map."""
 
@@ -524,27 +653,23 @@ class StructureMap(DataTypeMap):
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
     """
-    structure_values_class = runtime.StructureValuesClassFactory.CreateClass(
-        data_type_definition)
-
-    data_type_map_cache = {}
-    data_type_maps = self._GetMemberDataTypeMaps(
-        data_type_definition, data_type_map_cache)
-
-    if self._CheckCompositeMap(data_type_definition):
-      map_byte_stream = self._CompositeMapByteStream
-      operation = None
-    else:
-      map_byte_stream = self._LinearMapByteStream
-      operation = self._GetByteStreamOperation(data_type_definition)
-
     super(StructureMap, self).__init__(data_type_definition)
     self._attribute_names = data_type_definition.GetAttributeNames()
-    self._data_type_map_cache = data_type_map_cache
-    self._data_type_maps = data_type_maps
-    self._map_byte_stream = map_byte_stream
-    self._operation = operation
-    self._structure_values_class = structure_values_class
+    self._data_type_map_cache = {}
+    self._data_type_maps = self._GetMemberDataTypeMaps(
+        data_type_definition, self._data_type_map_cache)
+    self._format_string = None
+    self._map_byte_stream = None
+    self._operation = None
+    self._structure_values_class = (
+        runtime.StructureValuesClassFactory.CreateClass(
+            data_type_definition))
+
+    if self._CheckCompositeMap(data_type_definition):
+      self._map_byte_stream = self._CompositeMapByteStream
+    else:
+      self._map_byte_stream = self._LinearMapByteStream
+      self._operation = self._GetByteStreamOperation()
 
   def _CheckCompositeMap(self, data_type_definition):
     """Determines if the data type definition needs a composite map.
@@ -604,8 +729,7 @@ class StructureMap(DataTypeMap):
         type(structure_values).__name__: structure_values})
 
     byte_stream_offset = 0
-    for index in range(len(self._attribute_names)):
-      attribute_name = self._attribute_names[index]
+    for index, attribute_name in enumerate(self._attribute_names):
       data_type_map = self._data_type_maps[index]
 
       try:
@@ -624,34 +748,6 @@ class StructureMap(DataTypeMap):
       context.byte_size = byte_stream_offset
 
     return structure_values
-
-  def _GetByteStreamOperation(self, data_type_definition):
-    """Retrieves the byte stream operation.
-
-    Args:
-      data_type_definition (DataTypeDefinition): data type definition.
-
-    Returns:
-      ByteStreamOperation: byte stream operation or None if unable to determine.
-
-    Raises:
-      FormatError: if the byte stream operation cannot be determed from the
-          data type definition.
-    """
-    if not data_type_definition:
-      raise errors.FormatError(u'Missing data type definition')
-
-    members = getattr(data_type_definition, u'members', None)
-    if not members:
-      raise errors.FormatError(u'Invalid data type definition missing members')
-
-    byte_order_string = self._GetStructByteOrderString(data_type_definition)
-    format_string = u''.join([
-        member_definition.GetStructFormatString()
-        for member_definition in members])
-    format_string = u''.join([byte_order_string, format_string])
-
-    return byte_operations.StructOperation(format_string)
 
   def _GetMemberDataTypeMaps(self, data_type_definition, data_type_map_cache):
     """Retrieves the member data type maps.
@@ -725,6 +821,29 @@ class StructureMap(DataTypeMap):
     except Exception as exception:
       raise errors.MappingError(exception)
 
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    if self._format_string is None and self._data_type_maps:
+      format_strings = []
+      for member_data_type_map in self._data_type_maps:
+        if member_data_type_map is None:
+          return
+
+        member_format_string = member_data_type_map.GetStructFormatString()
+        if member_format_string is None:
+          return
+
+        format_strings.append(member_format_string)
+
+      self._format_string = u''.join(format_strings)
+
+    return self._format_string
+
   def MapByteStream(self, byte_stream, **kwargs):
     """Maps the data type on a byte stream.
 
@@ -746,17 +865,22 @@ class UUIDMap(DataTypeMap):
   """UUID (or GUID) data type map."""
 
   def __init__(self, data_type_definition):
-    """Initializes a data type map.
+    """Initializes an UUID (or GUID) data type map.
 
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
-
-    Raises:
-      FormatError: if the data type map cannot be determed from the data
-          type definition.
     """
     super(UUIDMap, self).__init__(data_type_definition)
-    self._operation = self._GetByteStreamOperation(data_type_definition)
+    self._operation = self._GetByteStreamOperation()
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    return u'IHH8B'
 
   def MapByteStream(self, byte_stream, context=None, **unused_kwargs):
     """Maps the data type on a byte stream.
@@ -801,6 +925,7 @@ class DataTypeMapFactory(object):
       definitions.TYPE_INDICATOR_INTEGER: IntegerMap,
       definitions.TYPE_INDICATOR_SEQUENCE: SequenceMap,
       definitions.TYPE_INDICATOR_STREAM: StreamMap,
+      definitions.TYPE_INDICATOR_STRING: StringMap,
       definitions.TYPE_INDICATOR_STRUCTURE: StructureMap,
       definitions.TYPE_INDICATOR_UUID: UUIDMap}
 

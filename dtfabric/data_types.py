@@ -23,11 +23,6 @@ class DataTypeDefinition(object):
 
   TYPE_INDICATOR = None
 
-  _BYTE_ORDER_STRINGS = {
-      definitions.BYTE_ORDER_BIG_ENDIAN: u'>',
-      definitions.BYTE_ORDER_LITTLE_ENDIAN: u'<',
-      definitions.BYTE_ORDER_NATIVE: u'='}
-
   _IS_COMPOSITE = False
 
   def __init__(self, name, aliases=None, description=None, urls=None):
@@ -60,24 +55,6 @@ class DataTypeDefinition(object):
 
     Returns:
       int: data type size in bytes or None if size cannot be determined.
-    """
-
-  def GetStructByteOrderString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    return self._BYTE_ORDER_STRINGS.get(self.byte_order, None)
-
-  @abc.abstractmethod
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
     """
 
   def IsComposite(self):
@@ -130,15 +107,6 @@ class FixedSizeDataTypeDefinition(DataTypeDefinition):
     if self.units == u'bytes':
       return self.size
 
-  @abc.abstractmethod
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-
 
 class BooleanDefinition(FixedSizeDataTypeDefinition):
   """Boolean data type definition.
@@ -151,14 +119,6 @@ class BooleanDefinition(FixedSizeDataTypeDefinition):
   """
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_BOOLEAN
-
-  # We use 'I' here instead of 'L' because 'L' behaves architecture dependent.
-
-  _FORMAT_STRINGS_UNSIGNED = {
-      1: u'B',
-      2: u'H',
-      4: u'I',
-  }
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes a boolean data type definition.
@@ -174,37 +134,11 @@ class BooleanDefinition(FixedSizeDataTypeDefinition):
     self.false_value = 0
     self.true_value = None
 
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    return self._FORMAT_STRINGS_UNSIGNED.get(self.size, None)
-
 
 class CharacterDefinition(FixedSizeDataTypeDefinition):
   """Character data type definition."""
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_CHARACTER
-
-  # We use 'i' here instead of 'l' because 'l' behaves architecture dependent.
-
-  _FORMAT_STRINGS = {
-      1: u'b',
-      2: u'h',
-      4: u'i',
-  }
-
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    return self._FORMAT_STRINGS.get(self.size, None)
 
 
 class ConstantDefinition(DataTypeDefinition):
@@ -245,15 +179,6 @@ class ConstantDefinition(DataTypeDefinition):
     """
     return
 
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    return
-
 
 class EnumerationValue(object):
   """Enumeration value.
@@ -290,14 +215,6 @@ class EnumerationDefinition(FixedSizeDataTypeDefinition):
   """
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_ENUMERATION
-
-  # We use 'I' here instead of 'L' because 'L' behaves architecture dependent.
-
-  _FORMAT_STRINGS_UNSIGNED = {
-      1: u'B',
-      2: u'H',
-      4: u'I',
-  }
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes an enumeration data type definition.
@@ -340,34 +257,11 @@ class EnumerationDefinition(FixedSizeDataTypeDefinition):
     self.values.append(enumeration_value)
     self.values_per_name[name] = enumeration_value
 
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    return self._FORMAT_STRINGS_UNSIGNED.get(self.size, None)
-
 
 class FloatingPointDefinition(FixedSizeDataTypeDefinition):
   """Floating point data type definition."""
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_FLOATING_POINT
-
-  _FORMAT_STRINGS = {
-      4: u'f',
-      8: u'd',
-  }
-
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    return self._FORMAT_STRINGS.get(self.size, None)
 
 
 class FormatDefinition(DataTypeDefinition):
@@ -393,15 +287,6 @@ class FormatDefinition(DataTypeDefinition):
     """
     return
 
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    return
-
 
 class IntegerDefinition(FixedSizeDataTypeDefinition):
   """Integer data type definition.
@@ -411,24 +296,6 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
   """
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_INTEGER
-
-  # We use 'i' here instead of 'l' because 'l' behaves architecture dependent.
-
-  _FORMAT_STRINGS_SIGNED = {
-      1: u'b',
-      2: u'h',
-      4: u'i',
-      8: u'q',
-  }
-
-  # We use 'I' here instead of 'L' because 'L' behaves architecture dependent.
-
-  _FORMAT_STRINGS_UNSIGNED = {
-      1: u'B',
-      2: u'H',
-      4: u'I',
-      8: u'Q',
-  }
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes an integer data type definition.
@@ -442,18 +309,6 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
     super(IntegerDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.format = definitions.FORMAT_SIGNED
-
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    if self.format == definitions.FORMAT_UNSIGNED:
-      return self._FORMAT_STRINGS_UNSIGNED.get(self.size, None)
-
-    return self._FORMAT_STRINGS_SIGNED.get(self.size, None)
 
 
 class SequenceDefinition(DataTypeDefinition):
@@ -517,31 +372,6 @@ class SequenceDefinition(DataTypeDefinition):
       if element_byte_size:
         return element_byte_size * self.number_of_elements
 
-  def GetStructByteOrderString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    if self.element_data_type_definition:
-      return self.element_data_type_definition.GetStructByteOrderString()
-
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    if not self.element_data_type_definition:
-      return
-
-    if self.number_of_elements:
-      format_string = self.element_data_type_definition.GetStructFormatString()
-      if format_string:
-        return u'{0:d}{1:s}'.format(self.number_of_elements, format_string)
-
 
 class StreamDefinition(DataTypeDefinition):
   """Stream data type definition.
@@ -588,7 +418,7 @@ class StreamDefinition(DataTypeDefinition):
     Returns:
       list[str]: attribute names.
     """
-    return [u'elements']
+    return [u'stream']
 
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.
@@ -604,30 +434,47 @@ class StreamDefinition(DataTypeDefinition):
       if element_byte_size:
         return element_byte_size * self.number_of_elements
 
-  def GetStructByteOrderString(self):
-    """Retrieves the Python struct format string.
+
+class StringDefinition(StreamDefinition):
+  """String data type definition.
+
+  Attributes:
+    element_data_type (str): name of the string element data type.
+    element_data_type_definition (DataTypeDefinition): string element
+        data type definition.
+    number_of_elements (int): number of elements.
+    number_of_elements_expression (str): expression to determine number
+        of elements.
+  """
+
+  TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRING
+
+  def __init__(
+      self, name, data_type_definition, aliases=None, data_type=None,
+      description=None, urls=None):
+    """Initializes a string data type definition.
+
+    Args:
+      name (str): name.
+      data_type_definition (DataTypeDefinition): string element data type
+          definition.
+      aliases (Optional[list[str]]): aliases.
+      data_type (Optional[str]): name of the string element data type.
+      description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
+    """
+    super(StringDefinition, self).__init__(
+        name, data_type_definition, aliases=aliases, data_type=data_type,
+        description=description, urls=urls)
+    self.encoding = u'ascii'
+
+  def GetAttributeNames(self):
+    """Determines the attribute (or field) names of the data type definition.
 
     Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
+      list[str]: attribute names.
     """
-    if self.element_data_type_definition:
-      return self.element_data_type_definition.GetStructByteOrderString()
-
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    if not self.element_data_type_definition:
-      return
-
-    if self.number_of_elements:
-      format_string = self.element_data_type_definition.GetStructFormatString()
-      if format_string:
-        return u'{0:d}{1:s}'.format(self.number_of_elements, format_string)
+    return [u'string']
 
 
 class StructureDefinition(DataTypeDefinition):
@@ -654,7 +501,6 @@ class StructureDefinition(DataTypeDefinition):
         name, aliases=aliases, description=description, urls=urls)
     self._attribute_names = None
     self._byte_size = None
-    self._format_string = None
     self.members = []
 
   def AddMemberDefinition(self, member_definition):
@@ -666,7 +512,6 @@ class StructureDefinition(DataTypeDefinition):
     """
     self._attribute_names = None
     self._byte_size = None
-    self._format_string = None
     self.members.append(member_definition)
 
   def GetAttributeNames(self):
@@ -699,26 +544,6 @@ class StructureDefinition(DataTypeDefinition):
         self._byte_size += byte_size
 
     return self._byte_size
-
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    if self._format_string is None and self.members:
-      member_format_strings = []
-      for member_definition in self.members:
-        member_format_string = member_definition.GetStructFormatString()
-        if member_format_string is None:
-          return
-
-        member_format_strings.append(member_format_string)
-
-      self._format_string = u''.join(member_format_strings)
-
-    return self._format_string
 
 
 class StructureMemberDefinition(DataTypeDefinition):
@@ -769,16 +594,6 @@ class StructureMemberDefinition(DataTypeDefinition):
     if self.member_data_type_definition:
       return self.member_data_type_definition.GetByteSize()
 
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    if self.member_data_type_definition:
-      return self.member_data_type_definition.GetStructFormatString()
-
   def IsComposite(self):
     """Determines if the data type is composite.
 
@@ -810,12 +625,3 @@ class UUIDDefinition(FixedSizeDataTypeDefinition):
     super(UUIDDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.size = 16
-
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    return u'IHH8B'

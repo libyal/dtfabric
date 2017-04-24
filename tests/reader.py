@@ -657,7 +657,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
-    self.assertEqual(len(definitions_registry._definitions), 1)
+    self.assertEqual(len(definitions_registry._definitions), 3)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
     self.assertIsInstance(data_type_definition, data_types.IntegerDefinition)
@@ -774,6 +774,32 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertEqual(data_type_definition.element_data_type, u'wchar16')
     self.assertIsNotNone(data_type_definition.element_data_type_definition)
     self.assertEqual(data_type_definition.number_of_elements, 8)
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 16)
+
+  @test_lib.skipUnlessHasTestFile([u'string.yaml'])
+  def testReadFileObjectString(self):
+    """Tests the ReadFileObject function of a string data type."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath([u'string.yaml'])
+    with open(definitions_file, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    self.assertEqual(len(definitions_registry._definitions), 2)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'utf16_string')
+    self.assertIsInstance(data_type_definition, data_types.StringDefinition)
+    self.assertEqual(data_type_definition.name, u'utf16_string')
+    self.assertEqual(
+        data_type_definition.description, u'UTF-16 string')
+    self.assertEqual(data_type_definition.element_data_type, u'wchar16')
+    self.assertIsNotNone(data_type_definition.element_data_type_definition)
+    self.assertEqual(data_type_definition.number_of_elements, 8)
+    self.assertEqual(data_type_definition.encoding, u'utf-16-le')
 
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 16)

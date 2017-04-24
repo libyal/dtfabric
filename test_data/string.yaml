@@ -1,0 +1,15 @@
+name: wchar16
+aliases: [WCHAR]
+type: character
+description: 16-bit wide character type
+attributes:
+  byte_order: little-endian
+  size: 2
+  units: bytes
+---
+name: utf16_string
+type: string
+description: UTF-16 string
+encoding: utf-16-le
+element_data_type: wchar16
+number_of_elements: 8
