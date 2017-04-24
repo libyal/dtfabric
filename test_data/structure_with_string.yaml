@@ -1,0 +1,24 @@
+name: wchar16
+type: integer
+attributes:
+  format: signed
+  size: 2
+  units: bytes
+---
+name: uint16
+type: integer
+attributes:
+  format: unsigned
+  size: 2
+  units: bytes
+---
+name: utf16_string
+type: structure
+members:
+- name: size
+  data_type: uint16
+- name: text
+  type: string
+  encoding: utf-16-le
+  element_data_type: wchar16
+  elements_data_size: utf16_string.size

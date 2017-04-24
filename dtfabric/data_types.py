@@ -315,8 +315,8 @@ class ElementSequenceDataTypeDefinition(DataTypeDefinition):
   """Element sequence data type definition.
 
   Attributes:
-    element_data_size (int): data size of the sequence elements.
-    element_data_size_expression (str): expression to determine the data
+    elements_data_size (int): data size of the sequence elements.
+    elements_data_size_expression (str): expression to determine the data
         size of the sequenc eelements.
     element_data_type (str): name of the sequence element data type.
     element_data_type_definition (DataTypeDefinition): sequence element
@@ -346,6 +346,8 @@ class ElementSequenceDataTypeDefinition(DataTypeDefinition):
         name, aliases=aliases, description=description, urls=urls)
     self.byte_order = getattr(
         data_type_definition, u'byte_order', definitions.BYTE_ORDER_NATIVE)
+    self.elements_data_size = None
+    self.elements_data_size_expression = None
     self.element_data_type = data_type
     self.element_data_type_definition = data_type_definition
     self.number_of_elements = None
@@ -365,10 +367,14 @@ class ElementSequenceDataTypeDefinition(DataTypeDefinition):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if self.element_data_type_definition and self.number_of_elements:
-      element_byte_size = self.element_data_type_definition.GetByteSize()
-      if element_byte_size:
-        return element_byte_size * self.number_of_elements
+    if self.element_data_type_definition:
+      if self.elements_data_size:
+        return self.elements_data_size
+
+      if self.number_of_elements:
+        element_byte_size = self.element_data_type_definition.GetByteSize()
+        if element_byte_size:
+          return element_byte_size * self.number_of_elements
 
 
 class SequenceDefinition(ElementSequenceDataTypeDefinition):

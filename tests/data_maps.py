@@ -453,8 +453,8 @@ class IntegerMapTest(test_lib.BaseTestCase):
 
 
 @test_lib.skipUnlessHasTestFile([u'sequence.yaml'])
-class SequenceMapTest(test_lib.BaseTestCase):
-  """Sequence map tests."""
+class ElementSequenceDataTypeMapTest(test_lib.BaseTestCase):
+  """Element sequence data type map tests."""
 
   # pylint: disable=protected-access
 
@@ -465,8 +465,11 @@ class SequenceMapTest(test_lib.BaseTestCase):
         definitions_file)
     data_type_definition = definitions_registry.GetDefinitionByName(u'vector4')
 
-    data_type_map = data_maps.SequenceMap(data_type_definition)
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
+
+  # TODO: add tests for _EvaluateElementsDataSize.
+  # TODO: add tests for _EvaluateNumberOfElements.
 
   def testGetElementDataTypeDefinition(self):
     """Tests the _GetElementDataTypeDefinition function."""
@@ -475,7 +478,7 @@ class SequenceMapTest(test_lib.BaseTestCase):
         definitions_file)
     data_type_definition = definitions_registry.GetDefinitionByName(u'vector4')
 
-    data_type_map = data_maps.SequenceMap(data_type_definition)
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
 
     element_data_type_definition = data_type_map._GetElementDataTypeDefinition(
         data_type_definition)
@@ -495,9 +498,26 @@ class SequenceMapTest(test_lib.BaseTestCase):
         definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'vector4')
-    data_type_map = data_maps.SequenceMap(data_type_definition)
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
     byte_order_string = data_type_map.GetStructByteOrderString()
     self.assertEqual(byte_order_string, u'<')
+
+
+@test_lib.skipUnlessHasTestFile([u'sequence.yaml'])
+class SequenceMapTest(test_lib.BaseTestCase):
+  """Sequence map tests."""
+
+  # pylint: disable=protected-access
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    definitions_file = self._GetTestFilePath([u'sequence.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'vector4')
+
+    data_type_map = data_maps.SequenceMap(data_type_definition)
+    self.assertIsNotNone(data_type_map)
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
@@ -510,6 +530,13 @@ class SequenceMapTest(test_lib.BaseTestCase):
     struct_format_string = data_type_map.GetStructFormatString()
     self.assertEqual(struct_format_string, u'4i')
 
+    data_type_definition.elements_data_size = 16
+    data_type_definition.number_of_elements = 0
+    data_type_map = data_maps.SequenceMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'4i')
+
+    data_type_definition.elements_data_size = 0
     data_type_definition.number_of_elements = 0
     data_type_map = data_maps.SequenceMap(data_type_definition)
     struct_format_string = data_type_map.GetStructFormatString()
@@ -552,39 +579,6 @@ class StreamMapTest(test_lib.BaseTestCase):
     data_type_map = data_maps.StreamMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
-  def testGetElementDataTypeDefinition(self):
-    """Tests the _GetElementDataTypeDefinition function."""
-    definitions_file = self._GetTestFilePath([u'stream.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName(
-        u'utf16le_stream')
-
-    data_type_map = data_maps.StreamMap(data_type_definition)
-
-    element_data_type_definition = data_type_map._GetElementDataTypeDefinition(
-        data_type_definition)
-    self.assertIsNotNone(element_data_type_definition)
-
-    with self.assertRaises(errors.FormatError):
-      data_type_map._GetElementDataTypeDefinition(None)
-
-    with self.assertRaises(errors.FormatError):
-      data_type_definition = EmptyDataTypeDefinition(u'empty')
-      data_type_map._GetElementDataTypeDefinition(data_type_definition)
-
-  def testGetStructByteOrderString(self):
-    """Tests the GetStructByteOrderString function."""
-    definitions_file = self._GetTestFilePath([u'stream.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-
-    data_type_definition = definitions_registry.GetDefinitionByName(
-        u'utf16le_stream')
-    data_type_map = data_maps.StreamMap(data_type_definition)
-    byte_order_string = data_type_map.GetStructByteOrderString()
-    self.assertEqual(byte_order_string, u'<')
-
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
     definitions_file = self._GetTestFilePath([u'stream.yaml'])
@@ -597,8 +591,15 @@ class StreamMapTest(test_lib.BaseTestCase):
     struct_format_string = data_type_map.GetStructFormatString()
     self.assertEqual(struct_format_string, u'16B')
 
+    data_type_definition.elements_data_size = 16
     data_type_definition.number_of_elements = 0
-    data_type_map = data_maps.SequenceMap(data_type_definition)
+    data_type_map = data_maps.StreamMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'16B')
+
+    data_type_definition.elements_data_size = 0
+    data_type_definition.number_of_elements = 0
+    data_type_map = data_maps.StreamMap(data_type_definition)
     struct_format_string = data_type_map.GetStructFormatString()
     self.assertIsNone(struct_format_string)
 
@@ -638,8 +639,15 @@ class StringMapTest(test_lib.BaseTestCase):
     struct_format_string = data_type_map.GetStructFormatString()
     self.assertEqual(struct_format_string, u'16B')
 
+    data_type_definition.elements_data_size = 16
     data_type_definition.number_of_elements = 0
-    data_type_map = data_maps.SequenceMap(data_type_definition)
+    data_type_map = data_maps.StringMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'16B')
+
+    data_type_definition.elements_data_size = 0
+    data_type_definition.number_of_elements = 0
+    data_type_map = data_maps.StringMap(data_type_definition)
     struct_format_string = data_type_map.GetStructFormatString()
     self.assertIsNone(struct_format_string)
 
@@ -853,10 +861,10 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertEqual(sphere.triangles[0].c.y, 8)
     self.assertEqual(sphere.triangles[0].c.z, 9)
 
-  @test_lib.skipUnlessHasTestFile([u'structure2.yaml'])
+  @test_lib.skipUnlessHasTestFile([u'structure_with_sequence.yaml'])
   def testMapByteStreamWithSequenceWithExpression2(self):
     """Tests the MapByteStream function with a sequence with expression."""
-    definitions_file = self._GetTestFilePath([u'structure2.yaml'])
+    definitions_file = self._GetTestFilePath([u'structure_with_sequence.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
 
@@ -880,6 +888,60 @@ class StructureMapTest(test_lib.BaseTestCase):
       byte_values.extend([byte_value])
 
     byte_stream = bytes(bytearray(byte_values))
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(byte_stream)
+
+  @test_lib.skipUnlessHasTestFile([u'structure_with_stream.yaml'])
+  def testMapByteStreamWithStream(self):
+    """Tests the MapByteStream function with a stream."""
+    definitions_file = self._GetTestFilePath([u'structure_with_stream.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'extension_block')
+    data_type_map = data_maps.StructureMap(data_type_definition)
+
+    byte_values = [4, 1, 0, 0]
+    for byte_value in range(0, 256):
+      byte_values.extend([byte_value])
+
+    byte_stream = bytes(bytearray(byte_values))
+
+    extension_block = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(extension_block.size, 260)
+    self.assertEqual(extension_block.data, byte_stream[4:])
+
+    byte_values = [3, 0, 0, 0]
+    for byte_value in range(0, 256):
+      byte_values.extend([byte_value])
+
+    byte_stream = bytes(bytearray(byte_values))
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(byte_stream)
+
+  @test_lib.skipUnlessHasTestFile([u'structure_with_string.yaml'])
+  def testMapByteStreamWithString(self):
+    """Tests the MapByteStream function with a string."""
+    definitions_file = self._GetTestFilePath([u'structure_with_string.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'utf16_string')
+    data_type_map = data_maps.StructureMap(data_type_definition)
+
+    text_stream = u'dtFabric'.encode(u'utf-16-le')
+    byte_stream = b''.join([
+        bytes(bytearray([len(text_stream), 0])), text_stream])
+
+    utf16_string = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(utf16_string.size, len(text_stream))
+    self.assertEqual(utf16_string.text, u'dtFabric')
+
+    byte_stream = b''.join([bytes(bytearray([3, 0])), text_stream])
 
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(byte_stream)

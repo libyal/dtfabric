@@ -199,7 +199,13 @@ class ElementSequenceDataTypeDefinitionTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
+    data_type_definition.elements_data_size = 0
     data_type_definition.number_of_elements = 32
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 128)
+
+    data_type_definition.elements_data_size = 128
+    data_type_definition.number_of_elements = 0
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 128)
 

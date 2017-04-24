@@ -345,8 +345,8 @@ class IntegerMap(PrimitiveDataTypeMap):
         self._data_type_definition.size, None)
 
 
-class SequenceMap(DataTypeMap):
-  """Sequence data type map."""
+class ElementSequenceDataTypeMap(DataTypeMap):
+  """Element sequence data type map."""
 
   def __init__(self, data_type_definition):
     """Initializes a sequence data type map.
@@ -357,36 +357,65 @@ class SequenceMap(DataTypeMap):
     element_data_type_definition = self._GetElementDataTypeDefinition(
         data_type_definition)
 
-    super(SequenceMap, self).__init__(data_type_definition)
+    super(ElementSequenceDataTypeMap, self).__init__(data_type_definition)
     self._element_data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
         element_data_type_definition)
-    self._map_byte_stream = None
-    self._operation = None
+    self._element_data_type_definition = element_data_type_definition
 
-    if (element_data_type_definition.IsComposite() or
-        data_type_definition.number_of_elements_expression):
-      self._map_byte_stream = self._CompositeMapByteStream
-    else:
-      self._map_byte_stream = self._LinearMapByteStream
-      self._operation = self._GetByteStreamOperation()
-
-  def _CompositeMapByteStream(self, byte_stream, context=None, **unused_kwargs):
-    """Maps a sequence of composite data types on a byte stream.
+  def _EvaluateElementsDataSize(self, context):
+    """Evaluates elements data size.
 
     Args:
-      byte_stream (bytes): byte stream.
-      context (Optional[DataTypeMapContext]): data type map context.
+      context (DataTypeMapContext): data type map context.
 
     Returns:
-      tuple[object, ...]: mapped values.
+      int: elements data size.
 
     Raises:
-      MappingError: if the data type definition cannot be mapped on
-          the byte stream.
+      MappingError: if the elements data size cannot be determined.
     """
+    elements_data_size = None
+    if self._data_type_definition.elements_data_size:
+      elements_data_size = self._data_type_definition.elements_data_size
+
+    elif self._data_type_definition.elements_data_size_expression:
+      expression = self._data_type_definition.elements_data_size_expression
+      namespace = {}
+      if context and context.values:
+        namespace.update(context.values)
+      # Make sure __builtins__ contains an empty dictionary.
+      namespace[u'__builtins__'] = {}
+
+      try:
+        elements_data_size = eval(expression, namespace)  # pylint: disable=eval-used
+      except Exception as exception:
+        raise errors.MappingError(
+            u'Unable to determine elements data size with error: {0!s}'.format(
+                exception))
+
+    if elements_data_size is None or elements_data_size < 0:
+      raise errors.MappingError(
+          u'Invalid elements data size: {0!s}'.format(elements_data_size))
+
+    return elements_data_size
+
+  def _EvaluateNumberOfElements(self, context):
+    """Evaluates number of elements.
+
+    Args:
+      context (DataTypeMapContext): data type map context.
+
+    Returns:
+      int: number of elements.
+
+    Raises:
+      MappingError: if the number of elements cannot be determined.
+    """
+    number_of_elements = None
     if self._data_type_definition.number_of_elements:
       number_of_elements = self._data_type_definition.number_of_elements
-    else:
+
+    elif self._data_type_definition.number_of_elements_expression:
       expression = self._data_type_definition.number_of_elements_expression
       namespace = {}
       if context and context.values:
@@ -401,32 +430,11 @@ class SequenceMap(DataTypeMap):
             u'Unable to determine number of elements with error: {0!s}'.format(
                 exception))
 
-    if number_of_elements < 0:
+    if number_of_elements is None or number_of_elements < 0:
       raise errors.MappingError(
-          u'Invalid number of elements: {0:d}'.format(number_of_elements))
+          u'Invalid number of elements: {0!s}'.format(number_of_elements))
 
-    values = []
-
-    subcontext = DataTypeMapContext()
-
-    byte_stream_offset = 0
-    for _ in range(number_of_elements):
-      try:
-        value = self._element_data_type_map.MapByteStream(
-            byte_stream[byte_stream_offset:], context=subcontext)
-        values.append(value)
-
-      except Exception as exception:
-        raise errors.MappingError((
-            u'Unable to read byte stream at offset: {0:d} with error: '
-            u'{1!s}').format(byte_stream_offset, exception))
-
-      byte_stream_offset += subcontext.byte_size
-
-    if context:
-      context.byte_size = byte_stream_offset
-
-    return tuple(values)
+    return number_of_elements
 
   def _GetElementDataTypeDefinition(self, data_type_definition):
     """Retrieves the element data type definition.
@@ -451,6 +459,105 @@ class SequenceMap(DataTypeMap):
           u'Invalid data type definition missing element')
 
     return element_data_type_definition
+
+  def GetStructByteOrderString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    if self._element_data_type_map:
+      return self._element_data_type_map.GetStructByteOrderString()
+
+  @abc.abstractmethod
+  def MapByteStream(self, byte_stream, context=None, **unused_kwargs):
+    """Maps the data type on a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+      context (Optional[DataTypeMapContext]): data type map context.
+
+    Returns:
+      object: mapped value.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+
+
+class SequenceMap(ElementSequenceDataTypeMap):
+  """Sequence data type map."""
+
+  def __init__(self, data_type_definition):
+    """Initializes a sequence data type map.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+    """
+    super(SequenceMap, self).__init__(data_type_definition)
+    self._map_byte_stream = None
+    self._operation = None
+
+    if (self._element_data_type_definition.IsComposite() or
+        data_type_definition.elements_data_size_expression or
+        data_type_definition.number_of_elements_expression):
+      self._map_byte_stream = self._CompositeMapByteStream
+    else:
+      self._map_byte_stream = self._LinearMapByteStream
+      self._operation = self._GetByteStreamOperation()
+
+  def _CompositeMapByteStream(self, byte_stream, context=None, **unused_kwargs):
+    """Maps a sequence of composite data types on a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+      context (Optional[DataTypeMapContext]): data type map context.
+
+    Returns:
+      tuple[object, ...]: mapped values.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+    number_of_elements = None
+    if (self._data_type_definition.elements_data_size or
+        self._data_type_definition.elements_data_size_expression):
+      element_byte_size = self._element_data_type_definition.GetByteSize()
+      elements_data_size = self._EvaluateElementsDataSize(context)
+      number_of_elements, _ = divmod(elements_data_size, element_byte_size)
+
+    elif (self._data_type_definition.number_of_elements or
+          self._data_type_definition.number_of_elements_expression):
+      number_of_elements = self._EvaluateNumberOfElements(context)
+
+    if number_of_elements is None:
+      raise errors.MappingError(u'Unable to determine number of elements')
+
+    values = []
+
+    subcontext = DataTypeMapContext()
+
+    byte_stream_offset = 0
+    for _ in range(number_of_elements):
+      try:
+        value = self._element_data_type_map.MapByteStream(
+            byte_stream[byte_stream_offset:], context=subcontext)
+        values.append(value)
+
+      except Exception as exception:
+        raise errors.MappingError((
+            u'Unable to read byte stream at offset: {0:d} with error: '
+            u'{1!s}').format(byte_stream_offset, exception))
+
+      byte_stream_offset += subcontext.byte_size
+
+    if context:
+      context.byte_size = byte_stream_offset
+
+    return tuple(values)
 
   def _LinearMapByteStream(self, byte_stream, context=None, **unused_kwargs):
     """Maps a data type sequence on a byte stream.
@@ -476,16 +583,6 @@ class SequenceMap(DataTypeMap):
     except Exception as exception:
       raise errors.MappingError(exception)
 
-  def GetStructByteOrderString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    if self._element_data_type_map:
-      return self._element_data_type_map.GetStructByteOrderString()
-
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
 
@@ -493,12 +590,18 @@ class SequenceMap(DataTypeMap):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    if (self._element_data_type_map and
-        self._data_type_definition.number_of_elements):
+    if self._element_data_type_map:
+      number_of_elements = None
+      if self._data_type_definition.elements_data_size:
+        element_byte_size = self._element_data_type_definition.GetByteSize()
+        number_of_elements, _ = divmod(
+            self._data_type_definition.elements_data_size, element_byte_size)
+      elif self._data_type_definition.number_of_elements:
+        number_of_elements = self._data_type_definition.number_of_elements
+
       format_string = self._element_data_type_map.GetStructFormatString()
-      if format_string:
-        return u'{0:d}{1:s}'.format(
-            self._data_type_definition.number_of_elements, format_string)
+      if number_of_elements and format_string:
+        return u'{0:d}{1:s}'.format(number_of_elements, format_string)
 
   def MapByteStream(self, byte_stream, **kwargs):
     """Maps the data type on a byte stream.
@@ -516,7 +619,7 @@ class SequenceMap(DataTypeMap):
     return self._map_byte_stream(byte_stream, **kwargs)
 
 
-class StreamMap(DataTypeMap):
+class StreamMap(ElementSequenceDataTypeMap):
   """Stream data type map."""
 
   def __init__(self, data_type_definition):
@@ -529,63 +632,20 @@ class StreamMap(DataTypeMap):
       FormatError: if the data type map cannot be determed from the data
           type definition.
     """
-    element_data_type_definition = self._GetElementDataTypeDefinition(
-        data_type_definition)
+    super(StreamMap, self).__init__(data_type_definition)
+    self._map_byte_stream = None
 
-    if element_data_type_definition.IsComposite():
+    if self._element_data_type_definition.IsComposite():
       raise errors.FormatError(u'Unsupported composite element data type')
 
-    super(StreamMap, self).__init__(data_type_definition)
-    self._element_data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
-        element_data_type_definition)
+    if (data_type_definition.elements_data_size_expression or
+        data_type_definition.number_of_elements_expression):
+      self._map_byte_stream = self._CompositeMapByteStream
+    else:
+      self._map_byte_stream = self._LinearMapByteStream
 
-  def _GetElementDataTypeDefinition(self, data_type_definition):
-    """Retrieves the element data type definition.
-
-    Args:
-      data_type_definition (DataTypeDefinition): data type definition.
-
-    Returns:
-      DataTypeDefinition: element data type definition.
-
-    Raises:
-      FormatError: if the element data type cannot be determed from the data
-          type definition.
-    """
-    if not data_type_definition:
-      raise errors.FormatError(u'Missing data type definition')
-
-    element_data_type_definition = getattr(
-        data_type_definition, u'element_data_type_definition', None)
-    if not element_data_type_definition:
-      raise errors.FormatError(
-          u'Invalid data type definition missing element')
-
-    return element_data_type_definition
-
-  def GetStructByteOrderString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    if self._element_data_type_map:
-      return self._element_data_type_map.GetStructByteOrderString()
-
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    byte_size = self.GetByteSize()
-    if byte_size:
-      return u'{0:d}B'.format(byte_size)
-
-  def MapByteStream(self, byte_stream, context=None, **unused_kwargs):
-    """Maps the data type on a byte stream.
+  def _CompositeMapByteStream(self, byte_stream, context=None, **unused_kwargs):
+    """Maps a sequence of composite data types on a byte stream.
 
     Args:
       byte_stream (bytes): byte stream.
@@ -598,23 +658,96 @@ class StreamMap(DataTypeMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
+    elements_data_size = None
+    if (self._data_type_definition.elements_data_size or
+        self._data_type_definition.elements_data_size_expression):
+      elements_data_size = self._EvaluateElementsDataSize(context)
+
+    elif (self._data_type_definition.number_of_elements or
+          self._data_type_definition.number_of_elements_expression):
+      element_byte_size = self._element_data_type_definition.GetByteSize()
+      number_of_elements = self._EvaluateNumberOfElements(context)
+      elements_data_size = element_byte_size * number_of_elements
+
+    if elements_data_size is None:
+      raise errors.MappingError(u'Unable to determine elements data size')
+
     try:
       byte_stream_size = len(byte_stream)
 
     except Exception as exception:
       raise errors.MappingError(exception)
 
-    byte_size = self._data_type_definition.GetByteSize()
-
-    if byte_stream_size < byte_size:
+    if byte_stream_size < elements_data_size:
       raise errors.MappingError(
-          u'Byte stream too small requested: {0:s} available: {1:d}'.format(
-              byte_stream, byte_stream_size))
+          u'Byte stream too small requested: {0:d} available: {1:d}'.format(
+              elements_data_size, byte_stream_size))
 
     if context:
-      context.byte_size = byte_size
+      context.byte_size = elements_data_size
 
-    return byte_stream[:byte_size]
+    return byte_stream[:elements_data_size]
+
+  def _LinearMapByteStream(self, byte_stream, context=None, **unused_kwargs):
+    """Maps a data type sequence on a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+      context (Optional[DataTypeMapContext]): data type map context.
+
+    Returns:
+      tuple[object, ...]: mapped values.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+    elements_data_size = self._data_type_definition.GetByteSize()
+
+    if elements_data_size is None:
+      raise errors.MappingError(u'Unable to determine elements data size')
+
+    try:
+      byte_stream_size = len(byte_stream)
+
+    except Exception as exception:
+      raise errors.MappingError(exception)
+
+    if byte_stream_size < elements_data_size:
+      raise errors.MappingError(
+          u'Byte stream too small requested: {0:d} available: {1:d}'.format(
+              elements_data_size, byte_stream_size))
+
+    if context:
+      context.byte_size = elements_data_size
+
+    return byte_stream[:elements_data_size]
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    byte_size = self.GetByteSize()
+    if byte_size:
+      return u'{0:d}B'.format(byte_size)
+
+  def MapByteStream(self, byte_stream, **kwargs):
+    """Maps the data type on a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+
+    Returns:
+      tuple[object, ...]: mapped values.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+    return self._map_byte_stream(byte_stream, **kwargs)
 
 
 class StringMap(StreamMap):
