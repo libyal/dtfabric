@@ -580,6 +580,15 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertEqual(named_tuple.y, 2)
     self.assertEqual(named_tuple.z, 3)
 
+    data_type_definition = definitions_registry.GetDefinitionByName(u'point3d')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_BIG_ENDIAN
+    data_type_map = data_maps.StructureMap(data_type_definition)
+
+    named_tuple = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(named_tuple.x, 0x01000000)
+    self.assertEqual(named_tuple.y, 0x02000000)
+    self.assertEqual(named_tuple.z, 0x03000000)
+
   @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testMapByteStreamWithSequence(self):
     """Tests the MapByteStream function with a sequence."""

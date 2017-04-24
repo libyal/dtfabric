@@ -372,7 +372,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definition_values = {
         u'aliases': [u'POINT'],
         u'attributes': {
-            u'byte_order': u'little-endian',
+            u'byte_order': u'big-endian',
         },
         u'description': u'Point in 3 dimensional space.',
         u'members': [
@@ -392,6 +392,8 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(
         data_type_definition, data_types.StructureDefinition)
+    self.assertEqual(
+        data_type_definition.byte_order, definitions.BYTE_ORDER_BIG_ENDIAN)
 
     # Test with undefined data type.
     definition_values[u'members'][1][u'data_type'] = u'bogus'

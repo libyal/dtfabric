@@ -15,8 +15,6 @@ from dtfabric import runtime
 # TODO: add ConstantMap.
 # TODO: add EnumerationMap.
 # TODO: add FormatMap.
-# TODO: complete SequenceMap.
-# TODO: complete StructureMap.
 
 
 class DataTypeMapContext(object):
@@ -582,6 +580,7 @@ class StructureMap(DataTypeMap):
 
       member_byte_order = member_definition.byte_order
       if (structure_byte_order != definitions.BYTE_ORDER_NATIVE and
+          member_byte_order != definitions.BYTE_ORDER_NATIVE and
           structure_byte_order != member_byte_order):
         raise errors.FormatError((
             u'Contficting byte-order definitions in structure: {0:s} and '

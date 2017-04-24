@@ -434,6 +434,16 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     definition_object = data_types.StructureDefinition(
         definition_name, aliases=aliases, description=description, urls=urls)
 
+    attributes = definition_values.get(u'attributes')
+    if attributes:
+      byte_order = attributes.get(u'byte_order', definitions.BYTE_ORDER_NATIVE)
+      if byte_order not in definitions.BYTE_ORDERS:
+        error_message = u'unsupported byte-order attribute: {0!s}'.format(
+            byte_order)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      definition_object.byte_order = byte_order
+
     self._ReadStructureDataTypeDefinitionMembers(
         definitions_registry, members, definition_object)
 
