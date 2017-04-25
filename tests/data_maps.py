@@ -656,12 +656,13 @@ class StringMapTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath([u'string.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
+
     data_type_definition = definitions_registry.GetDefinitionByName(
         u'utf16_string')
-
     data_type_map = data_maps.StringMap(data_type_definition)
 
-    string_value = data_type_map.MapByteStream(u'dtFabric'.encode(u'utf-16-le'))
+    byte_stream = u'dtFabric'.encode(u'utf-16-le')
+    string_value = data_type_map.MapByteStream(byte_stream)
     self.assertEqual(string_value, u'dtFabric')
 
     with self.assertRaises(errors.MappingError):
@@ -669,6 +670,17 @@ class StringMapTest(test_lib.BaseTestCase):
 
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(b'\x12\x34\x56')
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'utf8_string')
+    data_type_map = data_maps.StringMap(data_type_definition)
+
+    byte_stream = u'dtFabric\x00and more'.encode(u'utf8')
+    string_value = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(string_value, u'dtFabric\x00')
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(byte_stream[:7])
 
 
 class StructureMapTest(test_lib.BaseTestCase):

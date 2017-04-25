@@ -19,7 +19,7 @@ type: string
 description: UTF-8 string
 encoding: utf8
 element_data_type: char
-elements_terminator: 0
+elements_terminator: "\x00"
 ---
 name: utf16_string
 type: string

@@ -501,8 +501,9 @@ class SequenceMap(ElementSequenceDataTypeMap):
     self._operation = None
 
     if (self._element_data_type_definition.IsComposite() or
-        data_type_definition.elements_data_size_expression or
-        data_type_definition.number_of_elements_expression):
+        data_type_definition.elements_data_size_expression is not None or
+        data_type_definition.elements_terminator is not None or
+        data_type_definition.number_of_elements_expression is not None):
       self._map_byte_stream = self._CompositeMapByteStream
     else:
       self._map_byte_stream = self._LinearMapByteStream
@@ -522,30 +523,36 @@ class SequenceMap(ElementSequenceDataTypeMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
+    elements_terminator = None
     number_of_elements = None
-    if (self._data_type_definition.elements_data_size or
-        self._data_type_definition.elements_data_size_expression):
+
+    if (self._data_type_definition.elements_data_size is not None or
+        self._data_type_definition.elements_data_size_expression is not None):
       element_byte_size = self._element_data_type_definition.GetByteSize()
       elements_data_size = self._EvaluateElementsDataSize(context)
       number_of_elements, _ = divmod(elements_data_size, element_byte_size)
 
-    elif (self._data_type_definition.number_of_elements or
-          self._data_type_definition.number_of_elements_expression):
+    elif self._data_type_definition.elements_terminator is not None:
+      elements_terminator = self._data_type_definition.elements_terminator
+
+    elif (self._data_type_definition.number_of_elements is not None or
+          self._data_type_definition.number_of_elements_expression is not None):
       number_of_elements = self._EvaluateNumberOfElements(context)
 
-    if number_of_elements is None:
+    if elements_terminator is None and number_of_elements is None:
       raise errors.MappingError(u'Unable to determine number of elements')
-
-    values = []
 
     subcontext = DataTypeMapContext()
 
     byte_stream_offset = 0
-    for _ in range(number_of_elements):
+    element_index = 0
+    element_value = None
+    values = []
+
+    while byte_stream[byte_stream_offset:]:
       try:
-        value = self._element_data_type_map.MapByteStream(
+        element_value = self._element_data_type_map.MapByteStream(
             byte_stream[byte_stream_offset:], context=subcontext)
-        values.append(value)
 
       except Exception as exception:
         raise errors.MappingError((
@@ -553,6 +560,19 @@ class SequenceMap(ElementSequenceDataTypeMap):
             u'{1!s}').format(byte_stream_offset, exception))
 
       byte_stream_offset += subcontext.byte_size
+      element_index += 1
+      values.append(element_value)
+
+      if (elements_terminator is not None and
+          element_value == elements_terminator):
+        break
+
+      if number_of_elements is not None and element_index == number_of_elements:
+        break
+
+    if elements_terminator is not None and element_value != elements_terminator:
+      raise errors.MappingError(
+          u'Byte stream too small unable to find elements terminator.')
 
     if context:
       context.byte_size = byte_stream_offset
@@ -638,8 +658,9 @@ class StreamMap(ElementSequenceDataTypeMap):
     if self._element_data_type_definition.IsComposite():
       raise errors.FormatError(u'Unsupported composite element data type')
 
-    if (data_type_definition.elements_data_size_expression or
-        data_type_definition.number_of_elements_expression):
+    if (data_type_definition.elements_data_size_expression is not None or
+        data_type_definition.elements_terminator is not None or
+        data_type_definition.number_of_elements_expression is not None):
       self._map_byte_stream = self._CompositeMapByteStream
     else:
       self._map_byte_stream = self._LinearMapByteStream
@@ -659,17 +680,22 @@ class StreamMap(ElementSequenceDataTypeMap):
           the byte stream.
     """
     elements_data_size = None
-    if (self._data_type_definition.elements_data_size or
-        self._data_type_definition.elements_data_size_expression):
+    elements_terminator = None
+
+    if (self._data_type_definition.elements_data_size is not None or
+        self._data_type_definition.elements_data_size_expression is not None):
       elements_data_size = self._EvaluateElementsDataSize(context)
 
-    elif (self._data_type_definition.number_of_elements or
-          self._data_type_definition.number_of_elements_expression):
+    elif self._data_type_definition.elements_terminator is not None:
+      elements_terminator = self._data_type_definition.elements_terminator
+
+    elif (self._data_type_definition.number_of_elements is not None or
+          self._data_type_definition.number_of_elements_expression is not None):
       element_byte_size = self._element_data_type_definition.GetByteSize()
       number_of_elements = self._EvaluateNumberOfElements(context)
       elements_data_size = element_byte_size * number_of_elements
 
-    if elements_data_size is None:
+    if elements_terminator is None and elements_data_size is None:
       raise errors.MappingError(u'Unable to determine elements data size')
 
     try:
@@ -678,10 +704,27 @@ class StreamMap(ElementSequenceDataTypeMap):
     except Exception as exception:
       raise errors.MappingError(exception)
 
-    if byte_stream_size < elements_data_size:
+    if elements_data_size is not None and byte_stream_size < elements_data_size:
       raise errors.MappingError(
           u'Byte stream too small requested: {0:d} available: {1:d}'.format(
               elements_data_size, byte_stream_size))
+
+    elif elements_terminator is not None:
+      element_byte_size = self._element_data_type_definition.GetByteSize()
+      element_value = byte_stream[:element_byte_size]
+      elements_data_size = 0
+
+      while byte_stream[elements_data_size:]:
+        elements_data_size += element_byte_size
+        if element_value == elements_terminator:
+          break
+
+        element_value = byte_stream[
+            elements_data_size:elements_data_size + element_byte_size]
+
+      if element_value != elements_terminator:
+        raise errors.MappingError(
+            u'Byte stream too small unable to find elements terminator.')
 
     if context:
       context.byte_size = elements_data_size

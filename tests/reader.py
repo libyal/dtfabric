@@ -807,7 +807,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
         data_type_definition.description, u'UTF-8 string')
     self.assertEqual(data_type_definition.element_data_type, u'char')
     self.assertIsNotNone(data_type_definition.element_data_type_definition)
-    self.assertEqual(data_type_definition.elements_terminator, 0)
+    self.assertEqual(data_type_definition.elements_terminator, '\x00')
     self.assertEqual(data_type_definition.encoding, u'utf8')
 
     byte_size = data_type_definition.GetByteSize()

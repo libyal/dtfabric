@@ -321,6 +321,7 @@ class ElementSequenceDataTypeDefinition(DataTypeDefinition):
     element_data_type (str): name of the sequence element data type.
     element_data_type_definition (DataTypeDefinition): sequence element
         data type definition.
+    elements_terminator (int): element value that indicates the end-of-sequence.
     number_of_elements (int): number of sequence elements.
     number_of_elements_expression (str): expression to determine the number
         of sequence elements.
@@ -350,6 +351,7 @@ class ElementSequenceDataTypeDefinition(DataTypeDefinition):
     self.elements_data_size_expression = None
     self.element_data_type = data_type
     self.element_data_type_definition = data_type_definition
+    self.elements_terminator = None
     self.number_of_elements = None
     self.number_of_elements_expression = None
 
@@ -410,7 +412,6 @@ class StringDefinition(ElementSequenceDataTypeDefinition):
 
   Attributes:
     encoding (str): string encoding.
-    string_terminator (int): element value that indicates the end-of-string.
   """
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRING
@@ -435,7 +436,6 @@ class StringDefinition(ElementSequenceDataTypeDefinition):
         name, data_type_definition, aliases=aliases, data_type=data_type,
         description=description, urls=urls)
     self.encoding = u'ascii'
-    self.string_terminator = None
 
   def GetAttributeNames(self):
     """Determines the attribute (or field) names of the data type definition.
