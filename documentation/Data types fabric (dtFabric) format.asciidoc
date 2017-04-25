@@ -284,6 +284,7 @@ Sequence data type specfic attributes:
 | element_data_type | string | Data type of sequence element
 | elements_data_size | integer or string | Integer value or expression to determine the data size of the elements in the sequence
 | number_of_elements | integer or string | Integer value or expression to determine the number of elements in the sequence
+| elements_terminator | integer | element value that indicates the end-of-string
 |===
 
 [yellow-background]*TODO: describe expressions and the map context*
@@ -308,6 +309,7 @@ Stream data type specfic attributes:
 | element_data_type | string | Data type of stream element
 | elements_data_size | integer or string | Integer value or expression to determine the data size of the elements in the stream
 | number_of_elements | integer or string | Integer value or expression to determine the number of elements in the stream
+| elements_terminator | integer | element value that indicates the end-of-string
 |===
 
 [yellow-background]*TODO: describe expressions and the map context*
@@ -330,10 +332,11 @@ Stream data type specfic attributes:
 [cols="1,1,5",options="header"]
 |===
 | Attribute name | Attribute type | Description
-| encodign | string | Encoding of the string
+| encoding | string | Encoding of the string
 | element_data_type | string | Data type of string element
 | elements_data_size | integer or string | Integer value or expression to determine the data size of the elements in the string
 | number_of_elements | integer or string | Integer value or expression to determine the number of elements in the string
+| elements_terminator | integer | element value that indicates the end-of-string
 |===
 
 [yellow-background]*TODO: describe expressions and the map context*

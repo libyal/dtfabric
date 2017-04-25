@@ -797,21 +797,21 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
-    self.assertEqual(len(definitions_registry._definitions), 2)
+    self.assertEqual(len(definitions_registry._definitions), 4)
 
     data_type_definition = definitions_registry.GetDefinitionByName(
-        u'utf16_string')
+        u'utf8_string')
     self.assertIsInstance(data_type_definition, data_types.StringDefinition)
-    self.assertEqual(data_type_definition.name, u'utf16_string')
+    self.assertEqual(data_type_definition.name, u'utf8_string')
     self.assertEqual(
-        data_type_definition.description, u'UTF-16 string')
-    self.assertEqual(data_type_definition.element_data_type, u'wchar16')
+        data_type_definition.description, u'UTF-8 string')
+    self.assertEqual(data_type_definition.element_data_type, u'char')
     self.assertIsNotNone(data_type_definition.element_data_type_definition)
-    self.assertEqual(data_type_definition.number_of_elements, 8)
-    self.assertEqual(data_type_definition.encoding, u'utf-16-le')
+    self.assertEqual(data_type_definition.elements_terminator, 0)
+    self.assertEqual(data_type_definition.encoding, u'utf8')
 
     byte_size = data_type_definition.GetByteSize()
-    self.assertEqual(byte_size, 16)
+    self.assertIsNone(byte_size)
 
   @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testReadFileObjectStructure(self):

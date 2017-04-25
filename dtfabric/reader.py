@@ -199,7 +199,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     """
     attributes = definition_values.get(u'attributes')
     if attributes:
-      error_message = u'attributes not supported by sequence data type'
+      error_message = u'attributes not supported by element sequence data type'
       raise errors.DefinitionReaderError(definition_name, error_message)
 
     element_data_type = definition_values.get(u'element_data_type', None)
@@ -208,16 +208,22 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       raise errors.DefinitionReaderError(definition_name, error_message)
 
     elements_data_size = definition_values.get(u'elements_data_size', None)
+    elements_terminator = definition_values.get(u'elements_terminator', None)
     number_of_elements = definition_values.get(u'number_of_elements', None)
 
-    if elements_data_size is None and number_of_elements is None:
-      error_message = u'missing element data size and number of elements'
+    size_values = filter(lambda value: value is not None, (
+        elements_data_size, elements_terminator, number_of_elements))
+
+    if not size_values:
+      error_message = (
+          u'missing element data size, elements terminator and number of '
+          u'elements')
       raise errors.DefinitionReaderError(definition_name, error_message)
 
-    if elements_data_size is not None and number_of_elements is not None:
+    if len(size_values) > 1:
       error_message = (
-          u'both element data size: {0!s} and number of elements: {1!s} '
-          u'are set').format(elements_data_size, number_of_elements)
+          u'element data size, elements terminator and number of elements '
+          u'not allowed to be set at the same time')
       raise errors.DefinitionReaderError(definition_name, error_message)
 
     element_data_type_definition = definitions_registry.GetDefinitionByName(
@@ -235,13 +241,16 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
         definition_name, element_data_type_definition, aliases=aliases,
         data_type=element_data_type, description=description, urls=urls)
 
-    if elements_data_size:
+    if elements_data_size is not None:
       try:
         definition_object.elements_data_size = int(elements_data_size)
       except ValueError:
         definition_object.elements_data_size_expression = elements_data_size
 
-    elif number_of_elements:
+    elif elements_terminator is not None:
+      definition_object.elements_terminator = elements_terminator
+
+    elif number_of_elements is not None:
       try:
         definition_object.number_of_elements = int(number_of_elements)
       except ValueError:
@@ -515,23 +524,26 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     data_type = definition_values.get(u'data_type', None)
     type_indicator = definition_values.get(u'type', None)
 
-    if data_type is None and type_indicator is None:
+    type_values = filter(lambda value: value is not None, (
+        data_type, type_indicator))
+
+    if not type_values:
       error_message = (
           u'invalid structure member: {0:s} both data type and type are '
           u'missing').format(name)
       raise errors.DefinitionReaderError(definition_name, error_message)
 
-    if data_type is not None and type_indicator is not None:
+    if len(type_values) > 1:
       error_message = (
-          u'invalid structure member: {0:s} both data type: {1:s} and '
-          u'type: {2:s} are set').format(name, data_type, type_indicator)
+          u'invalid structure member: {0:s} data type and type not allowed to '
+          u'be set at the same time').format(name)
       raise errors.DefinitionReaderError(definition_name, error_message)
 
     if type_indicator is not None:
       definition_object = self.ReadDefinitionFromDict(
           definitions_registry, definition_values)
 
-    else:
+    if data_type is not None:
       data_type_definition = definitions_registry.GetDefinitionByName(
           data_type)
       if not data_type_definition:

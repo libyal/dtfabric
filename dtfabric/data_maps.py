@@ -761,7 +761,7 @@ class StringMap(StreamMap):
       context (Optional[DataTypeMapContext]): data type map context.
 
     Returns:
-      tuple[object, ...]: mapped values.
+      str: mapped values.
 
     Raises:
       MappingError: if the data type definition cannot be mapped on

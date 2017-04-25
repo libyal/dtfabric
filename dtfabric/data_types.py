@@ -410,6 +410,7 @@ class StringDefinition(ElementSequenceDataTypeDefinition):
 
   Attributes:
     encoding (str): string encoding.
+    string_terminator (int): element value that indicates the end-of-string.
   """
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRING
@@ -434,6 +435,7 @@ class StringDefinition(ElementSequenceDataTypeDefinition):
         name, data_type_definition, aliases=aliases, data_type=data_type,
         description=description, urls=urls)
     self.encoding = u'ascii'
+    self.string_terminator = None
 
   def GetAttributeNames(self):
     """Determines the attribute (or field) names of the data type definition.

@@ -1,3 +1,10 @@
+name: char
+type: character
+attributes:
+  byte_order: little-endian
+  size: 1
+  units: bytes
+---
 name: wchar16
 aliases: [WCHAR]
 type: character
@@ -6,6 +13,13 @@ attributes:
   byte_order: little-endian
   size: 2
   units: bytes
+---
+name: utf8_string
+type: string
+description: UTF-8 string
+encoding: utf8
+element_data_type: char
+elements_terminator: 0
 ---
 name: utf16_string
 type: string
