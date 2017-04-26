@@ -343,12 +343,12 @@ class FloatingPointMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\xa4\x70\x45\x41')
 
 
-@test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
 class IntegerMapTest(test_lib.BaseTestCase):
   """Integer map tests."""
 
   # pylint: disable=protected-access
 
+  @test_lib.skipUnlessHasTestFile([u'integer.yaml'])
   def testGetByteStreamOperation(self):
     """Tests the _GetByteStreamOperation function."""
     definitions_file = self._GetTestFilePath([u'integer.yaml'])
@@ -360,6 +360,7 @@ class IntegerMapTest(test_lib.BaseTestCase):
     operation = data_type_map._GetByteStreamOperation()
     self.assertIsInstance(operation, byte_operations.StructOperation)
 
+  @test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
@@ -406,6 +407,7 @@ class IntegerMapTest(test_lib.BaseTestCase):
     struct_format_string = data_type_map.GetStructFormatString()
     self.assertEqual(struct_format_string, u'Q')
 
+  @test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
@@ -450,6 +452,68 @@ class IntegerMapTest(test_lib.BaseTestCase):
 
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(b'\x12\x34\x56\x78')
+
+
+@test_lib.skipUnlessHasTestFile([u'enumeration.yaml'])
+class EnumerationMapTest(test_lib.BaseTestCase):
+  """Enumeration map tests."""
+
+  # pylint: disable=protected-access
+
+  def testGetByteStreamOperation(self):
+    """Tests the _GetByteStreamOperation function."""
+    definitions_file = self._GetTestFilePath([u'enumeration.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'object_information_type')
+    data_type_map = data_maps.EnumerationMap(data_type_definition)
+    operation = data_type_map._GetByteStreamOperation()
+    self.assertIsInstance(operation, byte_operations.StructOperation)
+
+  def testGetStructFormatString(self):
+    """Tests the GetStructFormatString function."""
+    definitions_file = self._GetTestFilePath([u'enumeration.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'object_information_type')
+    data_type_map = data_maps.EnumerationMap(data_type_definition)
+    struct_format_string = data_type_map.GetStructFormatString()
+    self.assertEqual(struct_format_string, u'I')
+
+  def testGetName(self):
+    """Tests the GetName function."""
+    definitions_file = self._GetTestFilePath([u'enumeration.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'object_information_type')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
+    data_type_map = data_maps.EnumerationMap(data_type_definition)
+
+    name = data_type_map.GetName(2)
+    self.assertEqual(name, u'MiniMutantInformation1')
+
+    name = data_type_map.GetName(-1)
+    self.assertIsNone(name)
+
+  def testMapByteStream(self):
+    """Tests the MapByteStream function."""
+    definitions_file = self._GetTestFilePath([u'enumeration.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'object_information_type')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
+    data_type_map = data_maps.EnumerationMap(data_type_definition)
+
+    enumeration_value = data_type_map.MapByteStream(b'\x01\x00\x00\x00')
+    self.assertEqual(enumeration_value, 1)
 
 
 @test_lib.skipUnlessHasTestFile([u'sequence.yaml'])

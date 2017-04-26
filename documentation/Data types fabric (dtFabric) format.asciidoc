@@ -206,18 +206,40 @@ description: Application verifier resource enumeration handle trace operation ty
 urls: ['https://msdn.microsoft.com/en-us/library/bb432251(v=vs.85).aspx']
 values:
 - name: OperationDbUnused
-  value: 0
+  number: 0
   description: Unused
 - name: OperationDbOPEN
-  value: 1
+  number: 1
   description: Open (create) handle operation
 - name: OperationDbCLOSE
-  value: 2
+  number: 2
   description: Close handle operation
 - name: OperationDbBADREF
-  value: 3
+  number: 3
   description: Invalid handle operation
 ----
+
+Enumeration data type specfic attributes:
+
+[cols="1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Description
+| format | string | Signed or unsiged +
+The default is signed
+|===
+
+Enumeration value attributes:
+
+[cols="1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Description
+| aliases | list of strings | Optional aliases the enumeration value maps to
+| description | string | Optional description of the enumeration value
+| name | string | Name the enumeration value maps to
+| number | integer | Number the enumeration value maps to
+|===
+
+[yellow-background]*TODO: add description*
 
 === Fixed-point
 A fixed-point is a data type to represent elements of fixed-point values.

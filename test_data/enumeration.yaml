@@ -10,20 +10,20 @@ attributes:
   units: bytes
 values:
 - name: MiniHandleObjectInformationNone
-  value: 0
+  number: 0
   description: No object-specific information available
 - name: MiniThreadInformation1
-  value: 1
+  number: 1
   description: Thread object information
 - name: MiniMutantInformation1
-  value: 2
+  number: 2
   description: Mutant object information
 - name: MiniMutantInformation2
-  value: 3
+  number: 3
   description: Mutant object information
 - name: MiniProcessInformation1
-  value: 4
+  number: 4
   description: Process object information
 - name: MiniProcessInformation2
-  value: 5
+  number: 5
   description: Process object information

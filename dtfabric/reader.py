@@ -150,28 +150,38 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
         definitions_registry, definition_values,
         data_types.EnumerationDefinition, definition_name)
 
+    attributes = definition_values.get(u'attributes')
+    if attributes:
+      format_attribute = attributes.get(u'format', definitions.FORMAT_SIGNED)
+      if format_attribute not in self._INTEGER_FORMAT_ATTRIBUTES:
+        error_message = u'unsupported format attribute: {0!s}'.format(
+            format_attribute)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      definition_object.format = format_attribute
+
     last_name = None
     for enumeration_value in values:
       aliases = enumeration_value.get(u'aliases', None)
       description = enumeration_value.get(u'description', None)
       name = enumeration_value.get(u'name', None)
-      value = enumeration_value.get(u'value', None)
+      number = enumeration_value.get(u'number', None)
 
-      if not name or value is None:
+      if not name or number is None:
         if last_name:
           error_location = u'after: {0:s}'.format(last_name)
         else:
           error_location = u'at start'
 
-        error_message = u'{0:s} missing name or value'.format(error_location)
+        error_message = u'{0:s} missing name or number'.format(error_location)
         raise errors.DefinitionReaderError(definition_name, error_message)
 
       else:
         try:
           definition_object.AddValue(
-              name, value, aliases=aliases, description=description)
-        except KeyError:
-          error_message = u'value: {0:s} already exists'.format(name)
+              name, number, aliases=aliases, description=description)
+        except KeyError as exception:
+          error_message = u'{0!s}'.format(exception)
           raise errors.DefinitionReaderError(definition_name, error_message)
 
       last_name = name

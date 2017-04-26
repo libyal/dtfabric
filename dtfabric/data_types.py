@@ -6,7 +6,6 @@ import abc
 from dtfabric import definitions
 
 # TODO: BooleanDefinition allow to set false_value to None in definition.
-# TODO: complete EnumerationDefinition.
 # TODO: complete FormatDefinition.
 
 
@@ -180,84 +179,6 @@ class ConstantDefinition(DataTypeDefinition):
     return
 
 
-class EnumerationValue(object):
-  """Enumeration value.
-
-  Attributes:
-    aliases (list[str]): aliases.
-    description (str): description.
-    name (str): name.
-    value (int): value.
-  """
-
-  def __init__(self, name, value, aliases=None, description=None):
-    """Initializes an enumeration value.
-
-    Args:
-      name (str): name.
-      value (int): value.
-      aliases (Optional[list[str]]): aliases.
-      description (Optional[str]): description.
-    """
-    super(EnumerationValue, self).__init__()
-    self.aliases = aliases or []
-    self.description = description
-    self.name = name
-    self.value = value
-
-
-class EnumerationDefinition(FixedSizeDataTypeDefinition):
-  """Enumeration data type definition.
-
-  Attributes:
-    values_per_name (dict[str, EnumerationValue]): enumeration values per name.
-    values(list[EnumerationValue]): enumeration values.
-  """
-
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_ENUMERATION
-
-  def __init__(self, name, aliases=None, description=None, urls=None):
-    """Initializes an enumeration data type definition.
-
-    Args:
-      name (str): name.
-      aliases (Optional[list[str]]): aliases.
-      description (Optional[str]): description.
-      urls (Optional[list[str]]): URLs.
-    """
-    super(EnumerationDefinition, self).__init__(
-        name, aliases=aliases, description=description, urls=urls)
-    self.values = []
-    self.values_per_name = {}
-
-    # TODO: support lookup of enumeration value by alias.
-    # TODO: support lookup of enumeration value by value.
-
-  def AddValue(self, name, value, aliases=None, description=None):
-    """Adds an enumeration value.
-
-    Args:
-      name (str): name.
-      value (int): value.
-      aliases (Optional[list[str]]): aliases.
-      description (Optional[str]): description.
-
-    Raises:
-      KeyError: if the enumeration value already exists.
-    """
-    if name in self.values_per_name:
-      raise KeyError(u'Value: {0:s} already exists.'.format(name))
-
-    # TODO: check if aliases already exist.
-    # TODO: check if value already exists.
-
-    enumeration_value = EnumerationValue(
-        name, value, aliases=aliases, description=description)
-
-    self.values.append(enumeration_value)
-    self.values_per_name[name] = enumeration_value
-
-
 class FloatingPointDefinition(FixedSizeDataTypeDefinition):
   """Floating point data type definition."""
 
@@ -309,6 +230,95 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
     super(IntegerDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.format = definitions.FORMAT_SIGNED
+
+
+class EnumerationValue(object):
+  """Enumeration value.
+
+  Attributes:
+    aliases (list[str]): aliases.
+    description (str): description.
+    name (str): name.
+    number (int): number.
+  """
+
+  def __init__(self, name, number, aliases=None, description=None):
+    """Initializes an enumeration value.
+
+    Args:
+      name (str): name.
+      number (int): number.
+      aliases (Optional[list[str]]): aliases.
+      description (Optional[str]): description.
+    """
+    super(EnumerationValue, self).__init__()
+    self.aliases = aliases or []
+    self.description = description
+    self.name = name
+    self.number = number
+
+
+class EnumerationDefinition(IntegerDefinition):
+  """Enumeration data type definition.
+
+  Attributes:
+    values_per_alias (dict[str, EnumerationValue]): enumeration values per
+        alias.
+    values_per_name (dict[str, EnumerationValue]): enumeration values per name.
+    values_per_number (dict[str, EnumerationValue]): enumeration values per
+        number.
+    values(list[EnumerationValue]): enumeration values.
+  """
+
+  TYPE_INDICATOR = definitions.TYPE_INDICATOR_ENUMERATION
+
+  def __init__(self, name, aliases=None, description=None, urls=None):
+    """Initializes an enumeration data type definition.
+
+    Args:
+      name (str): name.
+      aliases (Optional[list[str]]): aliases.
+      description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
+    """
+    super(EnumerationDefinition, self).__init__(
+        name, aliases=aliases, description=description, urls=urls)
+    self.values = []
+    self.values_per_alias = {}
+    self.values_per_name = {}
+    self.values_per_number = {}
+
+  def AddValue(self, name, number, aliases=None, description=None):
+    """Adds an enumeration value.
+
+    Args:
+      name (str): name.
+      number (int): number.
+      aliases (Optional[list[str]]): aliases.
+      description (Optional[str]): description.
+
+    Raises:
+      KeyError: if the enumeration value already exists.
+    """
+    if name in self.values_per_name:
+      raise KeyError(u'Value with name: {0:s} already exists.'.format(name))
+
+    if number in self.values_per_number:
+      raise KeyError(u'Value with number: {0!s} already exists.'.format(number))
+
+    for alias in aliases or []:
+      if alias in self.values_per_alias:
+        raise KeyError(u'Value with alias: {0:s} already exists.'.format(alias))
+
+    enumeration_value = EnumerationValue(
+        name, number, aliases=aliases, description=description)
+
+    self.values.append(enumeration_value)
+    self.values_per_name[name] = enumeration_value
+    self.values_per_number[number] = enumeration_value
+
+    for alias in aliases or []:
+      self.values_per_alias[alias] = enumeration_value
 
 
 class ElementSequenceDataTypeDefinition(DataTypeDefinition):

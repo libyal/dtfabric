@@ -149,13 +149,17 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     """Tests the _ReadEnumerationDataTypeDefinition function."""
     definition_values = {
         u'description': u'Minidump object information type',
+        u'attributes': {
+            u'format': u'signed',
+            u'size': 4,
+        },
         u'values': [
             {u'description': u'No object-specific information available',
              u'name': u'MiniHandleObjectInformationNone',
-             u'value': 0},
+             u'number': 0},
             {u'description': u'Thread object information',
              u'name': u'MiniThreadInformation1',
-             u'value': 1},
+             u'number': 1},
         ],
     }
 
@@ -169,6 +173,15 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertIsInstance(
         data_type_definition, data_types.EnumerationDefinition)
 
+    # Test with unsupported format attribute.
+    definition_values[u'attributes'][u'format'] = u'bogus'
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadEnumerationDataTypeDefinition(
+          definitions_registry, definition_values, u'enum')
+
+    definition_values[u'attributes'][u'format'] = u'signed'
+
     # Test with missing name in enumeration value definition.
     del definition_values[u'values'][-1][u'name']
 
@@ -178,20 +191,20 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     definition_values[u'values'][-1][u'name'] = u'MiniThreadInformation1'
 
-    # Test with missing value in enumeration value definition.
-    del definition_values[u'values'][-1][u'value']
+    # Test with missing value in enumeration number definition.
+    del definition_values[u'values'][-1][u'number']
 
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadEnumerationDataTypeDefinition(
           definitions_registry, definition_values, u'enum')
 
-    definition_values[u'values'][-1][u'value'] = 1
+    definition_values[u'values'][-1][u'number'] = 1
 
-    # Test with duplicate enumeration value definition.
+    # Test with duplicate enumeration number definition.
     definition_values[u'values'].append({
         u'description': u'Thread object information',
         u'name': u'MiniThreadInformation1',
-        u'value': 1})
+        u'number': 1})
 
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadEnumerationDataTypeDefinition(
@@ -199,7 +212,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     del definition_values[u'values'][-1]
 
-    # Test with missing enumeration value definitions.
+    # Test with missing enumeration values definitions.
     del definition_values[u'values']
 
     with self.assertRaises(errors.DefinitionReaderError):

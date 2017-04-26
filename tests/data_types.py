@@ -99,35 +99,6 @@ class ConstantDefinitionTest(test_lib.BaseTestCase):
     self.assertIsNone(byte_size)
 
 
-class EnumerationValueTest(test_lib.BaseTestCase):
-  """Enumeration value tests."""
-
-  def testInitialize(self):
-    """Tests the __init__ function."""
-    enumeration_value = data_types.EnumerationValue(u'enum_value', 5)
-    self.assertIsNotNone(enumeration_value)
-
-
-class EnumerationDefinitionTest(test_lib.BaseTestCase):
-  """Enumeration data type definition tests."""
-
-  def testInitialize(self):
-    """Tests the __init__ function."""
-    data_type_definition = data_types.EnumerationDefinition(
-        u'enum', description=u'enumeration')
-    self.assertIsNotNone(data_type_definition)
-
-  def testAddValue(self):
-    """Tests the AddValue function."""
-    data_type_definition = data_types.EnumerationDefinition(
-        u'enum', description=u'enumeration')
-
-    data_type_definition.AddValue(u'enum_value', 5)
-
-    with self.assertRaises(KeyError):
-      data_type_definition.AddValue(u'enum_value', 5)
-
-
 class FormatDefinitionTest(test_lib.BaseTestCase):
   """Data format definition tests."""
 
@@ -171,6 +142,41 @@ class IntegerDefinitionTest(test_lib.BaseTestCase):
         u'int32', aliases=[u'LONG', u'LONG32'],
         description=u'signed 32-bit integer')
     self.assertIsNotNone(data_type_definition)
+
+
+class EnumerationValueTest(test_lib.BaseTestCase):
+  """Enumeration value tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    enumeration_value = data_types.EnumerationValue(u'enum_value', 5)
+    self.assertIsNotNone(enumeration_value)
+
+
+class EnumerationDefinitionTest(test_lib.BaseTestCase):
+  """Enumeration data type definition tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    data_type_definition = data_types.EnumerationDefinition(
+        u'enum', description=u'enumeration')
+    self.assertIsNotNone(data_type_definition)
+
+  def testAddValue(self):
+    """Tests the AddValue function."""
+    data_type_definition = data_types.EnumerationDefinition(
+        u'enum', description=u'enumeration')
+
+    data_type_definition.AddValue(u'enum_value', 5, aliases=[u'value5'])
+
+    with self.assertRaises(KeyError):
+      data_type_definition.AddValue(u'enum_value', 7, aliases=[u'value7'])
+
+    with self.assertRaises(KeyError):
+      data_type_definition.AddValue(u'myenum', 5, aliases=[u'value7'])
+
+    with self.assertRaises(KeyError):
+      data_type_definition.AddValue(u'myenum', 7, aliases=[u'value5'])
 
 
 class ElementSequenceDataTypeDefinitionTest(test_lib.BaseTestCase):

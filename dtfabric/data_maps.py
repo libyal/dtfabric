@@ -14,7 +14,6 @@ from dtfabric import runtime
 
 
 # TODO: add ConstantMap.
-# TODO: complete EnumerationMap.
 # TODO: add FormatMap.
 
 
@@ -268,28 +267,6 @@ class CharacterMap(PrimitiveDataTypeMap):
     return py2to3.UNICHR(value)
 
 
-class EnumerationMap(PrimitiveDataTypeMap):
-  """Enumeration data type map."""
-
-  # We use 'I' here instead of 'L' because 'L' behaves architecture dependent.
-
-  _FORMAT_STRINGS_UNSIGNED = {
-      1: u'B',
-      2: u'H',
-      4: u'I',
-  }
-
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    return self._FORMAT_STRINGS_UNSIGNED.get(
-        self._data_type_definition.size, None)
-
-
 class FloatingPointMap(PrimitiveDataTypeMap):
   """Floating-point data type map."""
 
@@ -343,6 +320,24 @@ class IntegerMap(PrimitiveDataTypeMap):
 
     return self._FORMAT_STRINGS_SIGNED.get(
         self._data_type_definition.size, None)
+
+
+class EnumerationMap(IntegerMap):
+  """Enumeration data type map."""
+
+  def GetName(self, number):
+    """Retrieves the name of an enumeration value by number.
+
+    Args:
+      number (int): number.
+
+    Returns:
+      str: name of the enumeration value or None if no corresponding
+          enumeration value was found.
+    """
+    value = self._data_type_definition.values_per_number.get(number, None)
+    if value:
+      return value.name
 
 
 class ElementSequenceDataTypeMap(DataTypeMap):
