@@ -93,7 +93,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
         data_types.CharacterDefinition, definition_name)
 
   def _ReadConstantDataTypeDefinition(
-      self, unused_definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name):
     """Reads a constant data type definition.
 
     Args:
@@ -114,15 +114,38 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       error_message = u'missing value'
       raise errors.DefinitionReaderError(definition_name, error_message)
 
+    definition_object = self._ReadSemanticDataTypeDefinition(
+        definitions_registry, definition_values, data_types.ConstantDefinition,
+        definition_name)
+    definition_object.value = value
+
+    return definition_object
+
+  def _ReadDataTypeDefinition(
+      self, unused_definitions_registry, definition_values,
+      data_type_definition_class, definition_name):
+    """Reads a data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      data_type_definition_class (str): data type definition class.
+      definition_name (str): name of the definition.
+
+    Returns:
+      DataTypeDefinition: data type definition.
+
+    Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
+    """
     aliases = definition_values.get(u'aliases', None)
     description = definition_values.get(u'description', None)
     urls = definition_values.get(u'urls', None)
 
-    definition_object = data_types.ConstantDefinition(
+    return data_type_definition_class(
         definition_name, aliases=aliases, description=description, urls=urls)
-    definition_object.value = value
-
-    return definition_object
 
   def _ReadEnumerationDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
@@ -146,19 +169,9 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       error_message = u'missing values'
       raise errors.DefinitionReaderError(definition_name, error_message)
 
-    definition_object = self._ReadFixedSizeDataTypeDefinition(
+    definition_object = self._ReadSemanticDataTypeDefinition(
         definitions_registry, definition_values,
         data_types.EnumerationDefinition, definition_name)
-
-    attributes = definition_values.get(u'attributes')
-    if attributes:
-      format_attribute = attributes.get(u'format', definitions.FORMAT_SIGNED)
-      if format_attribute not in self._INTEGER_FORMAT_ATTRIBUTES:
-        error_message = u'unsupported format attribute: {0!s}'.format(
-            format_attribute)
-        raise errors.DefinitionReaderError(definition_name, error_message)
-
-      definition_object.format = format_attribute
 
     last_name = None
     for enumeration_value in values:
@@ -208,7 +221,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
           the format is incorrect.
     """
     attributes = definition_values.get(u'attributes')
-    if attributes:
+    if attributes is not None:
       error_message = u'attributes not supported by element sequence data type'
       raise errors.DefinitionReaderError(definition_name, error_message)
 
@@ -269,9 +282,8 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     return definition_object
 
   def _ReadFixedSizeDataTypeDefinition(
-      self, unused_definitions_registry, definition_values,
-      data_type_definition_class, definition_name, default_size=None,
-      default_units=u'bytes'):
+      self, definitions_registry, definition_values, data_type_definition_class,
+      definition_name, default_size=None, default_units=u'bytes'):
     """Reads a fixed-size data type definition.
 
     Args:
@@ -290,21 +302,12 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
-    aliases = definition_values.get(u'aliases', None)
-    description = definition_values.get(u'description', None)
-    urls = definition_values.get(u'urls', None)
-
-    definition_object = data_type_definition_class(
-        definition_name, aliases=aliases, description=description, urls=urls)
+    definition_object = self._ReadStorageDataTypeDefinition(
+        definitions_registry, definition_values, data_type_definition_class,
+        definition_name)
 
     attributes = definition_values.get(u'attributes')
     if attributes:
-      byte_order = attributes.get(u'byte_order', definitions.BYTE_ORDER_NATIVE)
-      if byte_order not in definitions.BYTE_ORDERS:
-        error_message = u'unsupported byte-order attribute: {0!s}'.format(
-            byte_order)
-        raise errors.DefinitionReaderError(definition_name, error_message)
-
       size = attributes.get(u'size', default_size)
       try:
         int(size)
@@ -312,7 +315,6 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
         error_message = u'unuspported size attribute: {0!s}'.format(size)
         raise errors.DefinitionReaderError(definition_name, error_message)
 
-      definition_object.byte_order = byte_order
       definition_object.size = size
       definition_object.units = attributes.get(u'units', default_units)
 
@@ -388,6 +390,34 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     return definition_object
 
+  def _ReadSemanticDataTypeDefinition(
+      self, definitions_registry, definition_values, data_type_definition_class,
+      definition_name):
+    """Reads a semantic data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      data_type_definition_class (str): data type definition class.
+      definition_name (str): name of the definition.
+
+    Returns:
+      SemanticDataTypeDefinition: semantic data type definition.
+
+    Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
+    """
+    attributes = definition_values.get(u'attributes')
+    if attributes is not None:
+      error_message = u'attributes not supported by semantic data type'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    return self._ReadDataTypeDefinition(
+        definitions_registry, definition_values, data_type_definition_class,
+        definition_name)
+
   def _ReadSequenceDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
     """Reads a sequence data type definition.
@@ -408,6 +438,41 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     return self._ReadElementSequenceDataTypeDefinition(
         definitions_registry, definition_values, data_types.SequenceDefinition,
         definition_name)
+
+  def _ReadStorageDataTypeDefinition(
+      self, definitions_registry, definition_values, data_type_definition_class,
+      definition_name):
+    """Reads a storage data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      data_type_definition_class (str): data type definition class.
+      definition_name (str): name of the definition.
+
+    Returns:
+      StorageDataTypeDefinition: storage data type definition.
+
+    Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
+    """
+    definition_object = self._ReadDataTypeDefinition(
+        definitions_registry, definition_values, data_type_definition_class,
+        definition_name)
+
+    attributes = definition_values.get(u'attributes')
+    if attributes:
+      byte_order = attributes.get(u'byte_order', definitions.BYTE_ORDER_NATIVE)
+      if byte_order not in definitions.BYTE_ORDERS:
+        error_message = u'unsupported byte-order attribute: {0!s}'.format(
+            byte_order)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      definition_object.byte_order = byte_order
+
+    return definition_object
 
   def _ReadStreamDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):

@@ -66,18 +66,15 @@ class DataTypeMapContextTest(test_lib.BaseTestCase):
 class DataTypeMapTest(test_lib.BaseTestCase):
   """Data type map tests."""
 
-  # pylint: disable=protected-access
-
-  def testGetByteStreamOperation(self):
-    """Tests the _GetByteStreamOperation function."""
+  def testInitialize(self):
+    """Tests the __init__ function."""
     definitions_file = self._GetTestFilePath([u'integer.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
+
     data_type_map = data_maps.DataTypeMap(data_type_definition)
-    operation = data_type_map._GetByteStreamOperation()
-    self.assertIsNone(operation)
+    self.assertIsNotNone(data_type_map)
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
@@ -91,6 +88,24 @@ class DataTypeMapTest(test_lib.BaseTestCase):
     byte_size = data_type_map.GetByteSize()
     self.assertEqual(byte_size, 4)
 
+
+@test_lib.skipUnlessHasTestFile([u'integer.yaml'])
+class StorageDataTypeMapTest(test_lib.BaseTestCase):
+  """Storage data type map tests."""
+
+  # pylint: disable=protected-access
+
+  def testGetByteStreamOperation(self):
+    """Tests the _GetByteStreamOperation function."""
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
+    data_type_map = data_maps.StorageDataTypeMap(data_type_definition)
+    operation = data_type_map._GetByteStreamOperation()
+    self.assertIsNone(operation)
+
   def testGetStructByteOrderString(self):
     """Tests the GetStructByteOrderString function."""
     definitions_file = self._GetTestFilePath([u'integer.yaml'])
@@ -98,17 +113,17 @@ class DataTypeMapTest(test_lib.BaseTestCase):
         definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32')
-    data_type_map = data_maps.DataTypeMap(data_type_definition)
+    data_type_map = data_maps.StorageDataTypeMap(data_type_definition)
     byte_order_string = data_type_map.GetStructByteOrderString()
     self.assertEqual(byte_order_string, u'=')
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32be')
-    data_type_map = data_maps.DataTypeMap(data_type_definition)
+    data_type_map = data_maps.StorageDataTypeMap(data_type_definition)
     byte_order_string = data_type_map.GetStructByteOrderString()
     self.assertEqual(byte_order_string, u'>')
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
-    data_type_map = data_maps.DataTypeMap(data_type_definition)
+    data_type_map = data_maps.StorageDataTypeMap(data_type_definition)
     byte_order_string = data_type_map.GetStructByteOrderString()
     self.assertEqual(byte_order_string, u'<')
 
@@ -119,7 +134,7 @@ class DataTypeMapTest(test_lib.BaseTestCase):
         definitions_file)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
-    data_type_map = data_maps.DataTypeMap(data_type_definition)
+    data_type_map = data_maps.StorageDataTypeMap(data_type_definition)
     format_string = data_type_map.GetStructFormatString()
     self.assertIsNone(format_string)
 
@@ -454,66 +469,35 @@ class IntegerMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\x12\x34\x56\x78')
 
 
-@test_lib.skipUnlessHasTestFile([u'enumeration.yaml'])
-class EnumerationMapTest(test_lib.BaseTestCase):
-  """Enumeration map tests."""
-
-  # pylint: disable=protected-access
-
-  def testGetByteStreamOperation(self):
-    """Tests the _GetByteStreamOperation function."""
-    definitions_file = self._GetTestFilePath([u'enumeration.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-
-    data_type_definition = definitions_registry.GetDefinitionByName(
-        u'object_information_type')
-    data_type_map = data_maps.EnumerationMap(data_type_definition)
-    operation = data_type_map._GetByteStreamOperation()
-    self.assertIsInstance(operation, byte_operations.StructOperation)
+@test_lib.skipUnlessHasTestFile([u'uuid.yaml'])
+class UUIDMapTest(test_lib.BaseTestCase):
+  """UUID map tests."""
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
-    definitions_file = self._GetTestFilePath([u'enumeration.yaml'])
+    definitions_file = self._GetTestFilePath([u'uuid.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
 
-    data_type_definition = definitions_registry.GetDefinitionByName(
-        u'object_information_type')
-    data_type_map = data_maps.EnumerationMap(data_type_definition)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'uuid')
+    data_type_map = data_maps.UUIDMap(data_type_definition)
     struct_format_string = data_type_map.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'I')
-
-  def testGetName(self):
-    """Tests the GetName function."""
-    definitions_file = self._GetTestFilePath([u'enumeration.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-
-    data_type_definition = definitions_registry.GetDefinitionByName(
-        u'object_information_type')
-    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
-    data_type_map = data_maps.EnumerationMap(data_type_definition)
-
-    name = data_type_map.GetName(2)
-    self.assertEqual(name, u'MiniMutantInformation1')
-
-    name = data_type_map.GetName(-1)
-    self.assertIsNone(name)
+    self.assertEqual(struct_format_string, u'IHH8B')
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
-    definitions_file = self._GetTestFilePath([u'enumeration.yaml'])
+    definitions_file = self._GetTestFilePath([u'uuid.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
 
-    data_type_definition = definitions_registry.GetDefinitionByName(
-        u'object_information_type')
+    data_type_definition = definitions_registry.GetDefinitionByName(u'uuid')
     data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
-    data_type_map = data_maps.EnumerationMap(data_type_definition)
+    data_type_map = data_maps.UUIDMap(data_type_definition)
 
-    enumeration_value = data_type_map.MapByteStream(b'\x01\x00\x00\x00')
-    self.assertEqual(enumeration_value, 1)
+    expected_uuid_value = uuid.UUID(u'{00021401-0000-0000-c000-000000000046}')
+    uuid_value = data_type_map.MapByteStream(
+        b'\x01\x14\x02\x00\x00\x00\x00\x00\xc0\x00\x00\x00\x00\x00\x00\x46')
+    self.assertEqual(uuid_value, expected_uuid_value)
 
 
 @test_lib.skipUnlessHasTestFile([u'sequence.yaml'])
@@ -1023,35 +1007,57 @@ class StructureMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(byte_stream)
 
 
-@test_lib.skipUnlessHasTestFile([u'uuid.yaml'])
-class UUIDMapTest(test_lib.BaseTestCase):
-  """UUID map tests."""
-
-  def testGetStructFormatString(self):
-    """Tests the GetStructFormatString function."""
-    definitions_file = self._GetTestFilePath([u'uuid.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-
-    data_type_definition = definitions_registry.GetDefinitionByName(u'uuid')
-    data_type_map = data_maps.UUIDMap(data_type_definition)
-    struct_format_string = data_type_map.GetStructFormatString()
-    self.assertEqual(struct_format_string, u'IHH8B')
+@test_lib.skipUnlessHasTestFile([u'constant.yaml'])
+class ConstantMapTest(test_lib.BaseTestCase):
+  """Constant map tests."""
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
-    definitions_file = self._GetTestFilePath([u'uuid.yaml'])
+    definitions_file = self._GetTestFilePath([u'constant.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
 
-    data_type_definition = definitions_registry.GetDefinitionByName(u'uuid')
-    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
-    data_type_map = data_maps.UUIDMap(data_type_definition)
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'maximum_number_of_back_traces')
+    data_type_map = data_maps.ConstantMap(data_type_definition)
 
-    expected_uuid_value = uuid.UUID(u'{00021401-0000-0000-c000-000000000046}')
-    uuid_value = data_type_map.MapByteStream(
-        b'\x01\x14\x02\x00\x00\x00\x00\x00\xc0\x00\x00\x00\x00\x00\x00\x46')
-    self.assertEqual(uuid_value, expected_uuid_value)
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\x01\x00\x00\x00')
+
+
+@test_lib.skipUnlessHasTestFile([u'enumeration.yaml'])
+class EnumerationMapTest(test_lib.BaseTestCase):
+  """Enumeration map tests."""
+
+  def testGetName(self):
+    """Tests the GetName function."""
+    definitions_file = self._GetTestFilePath([u'enumeration.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'object_information_type')
+    data_type_definition.byte_order = definitions.BYTE_ORDER_LITTLE_ENDIAN
+    data_type_map = data_maps.EnumerationMap(data_type_definition)
+
+    name = data_type_map.GetName(2)
+    self.assertEqual(name, u'MiniMutantInformation1')
+
+    name = data_type_map.GetName(-1)
+    self.assertIsNone(name)
+
+  def testMapByteStream(self):
+    """Tests the MapByteStream function."""
+    definitions_file = self._GetTestFilePath([u'enumeration.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'object_information_type')
+    data_type_map = data_maps.EnumerationMap(data_type_definition)
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\x01\x00\x00\x00')
 
 
 @test_lib.skipUnlessHasTestFile([u'integer.yaml'])

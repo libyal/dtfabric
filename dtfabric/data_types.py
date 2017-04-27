@@ -35,7 +35,6 @@ class DataTypeDefinition(object):
     """
     super(DataTypeDefinition, self).__init__()
     self.aliases = aliases or []
-    self.byte_order = definitions.BYTE_ORDER_NATIVE
     self.description = description
     self.name = name
     self.urls = urls
@@ -67,7 +66,44 @@ class DataTypeDefinition(object):
     return self._IS_COMPOSITE
 
 
-class FixedSizeDataTypeDefinition(DataTypeDefinition):
+class StorageDataTypeDefinition(DataTypeDefinition):
+  """Storage data type definition interface.
+
+  Attributes:
+    byte_order (str): byte-order the data type.
+  """
+
+  def __init__(self, name, aliases=None, description=None, urls=None):
+    """Initializes a storage data type definition.
+
+    Args:
+      name (str): name.
+      aliases (Optional[list[str]]): aliases.
+      description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
+    """
+    super(StorageDataTypeDefinition, self).__init__(
+        name, aliases=aliases, description=description, urls=urls)
+    self.byte_order = definitions.BYTE_ORDER_NATIVE
+
+  @abc.abstractmethod
+  def GetAttributeNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+
+  @abc.abstractmethod
+  def GetByteSize(self):
+    """Retrieves the byte size of the data type definition.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+
+
+class FixedSizeDataTypeDefinition(StorageDataTypeDefinition):
   """Fixed-size data type definition.
 
   Attributes:
@@ -140,73 +176,10 @@ class CharacterDefinition(FixedSizeDataTypeDefinition):
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_CHARACTER
 
 
-class ConstantDefinition(DataTypeDefinition):
-  """Constant data type definition.
-
-  Attributes:
-    value (int): constant value.
-  """
-
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_CONSTANT
-
-  def __init__(self, name, aliases=None, description=None, urls=None):
-    """Initializes an enumeration data type definition.
-
-    Args:
-      name (str): name.
-      aliases (Optional[list[str]]): aliases.
-      description (Optional[str]): description.
-      urls (Optional[list[str]]): URLs.
-    """
-    super(ConstantDefinition, self).__init__(
-        name, aliases=aliases, description=description, urls=urls)
-    self.value = None
-
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-    return [u'constant']
-
-  def GetByteSize(self):
-    """Retrieves the byte size of the data type definition.
-
-    Returns:
-      int: data type size in bytes or None if size cannot be determined.
-    """
-    return
-
-
 class FloatingPointDefinition(FixedSizeDataTypeDefinition):
   """Floating point data type definition."""
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_FLOATING_POINT
-
-
-class FormatDefinition(DataTypeDefinition):
-  """Data format definition."""
-
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_FORMAT
-
-  _IS_COMPOSITE = True
-
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-    return []
-
-  def GetByteSize(self):
-    """Retrieves the byte size of the data type definition.
-
-    Returns:
-      int: data type size in bytes or None if size cannot be determined.
-    """
-    return
 
 
 class IntegerDefinition(FixedSizeDataTypeDefinition):
@@ -232,48 +205,15 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
     self.format = definitions.FORMAT_SIGNED
 
 
-class EnumerationValue(object):
-  """Enumeration value.
+class UUIDDefinition(FixedSizeDataTypeDefinition):
+  """UUID (or GUID) data type definition."""
 
-  Attributes:
-    aliases (list[str]): aliases.
-    description (str): description.
-    name (str): name.
-    number (int): number.
-  """
+  TYPE_INDICATOR = definitions.TYPE_INDICATOR_UUID
 
-  def __init__(self, name, number, aliases=None, description=None):
-    """Initializes an enumeration value.
-
-    Args:
-      name (str): name.
-      number (int): number.
-      aliases (Optional[list[str]]): aliases.
-      description (Optional[str]): description.
-    """
-    super(EnumerationValue, self).__init__()
-    self.aliases = aliases or []
-    self.description = description
-    self.name = name
-    self.number = number
-
-
-class EnumerationDefinition(IntegerDefinition):
-  """Enumeration data type definition.
-
-  Attributes:
-    values_per_alias (dict[str, EnumerationValue]): enumeration values per
-        alias.
-    values_per_name (dict[str, EnumerationValue]): enumeration values per name.
-    values_per_number (dict[str, EnumerationValue]): enumeration values per
-        number.
-    values(list[EnumerationValue]): enumeration values.
-  """
-
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_ENUMERATION
+  _IS_COMPOSITE = True
 
   def __init__(self, name, aliases=None, description=None, urls=None):
-    """Initializes an enumeration data type definition.
+    """Initializes an UUID data type definition.
 
     Args:
       name (str): name.
@@ -281,47 +221,12 @@ class EnumerationDefinition(IntegerDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(EnumerationDefinition, self).__init__(
+    super(UUIDDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.values = []
-    self.values_per_alias = {}
-    self.values_per_name = {}
-    self.values_per_number = {}
-
-  def AddValue(self, name, number, aliases=None, description=None):
-    """Adds an enumeration value.
-
-    Args:
-      name (str): name.
-      number (int): number.
-      aliases (Optional[list[str]]): aliases.
-      description (Optional[str]): description.
-
-    Raises:
-      KeyError: if the enumeration value already exists.
-    """
-    if name in self.values_per_name:
-      raise KeyError(u'Value with name: {0:s} already exists.'.format(name))
-
-    if number in self.values_per_number:
-      raise KeyError(u'Value with number: {0!s} already exists.'.format(number))
-
-    for alias in aliases or []:
-      if alias in self.values_per_alias:
-        raise KeyError(u'Value with alias: {0:s} already exists.'.format(alias))
-
-    enumeration_value = EnumerationValue(
-        name, number, aliases=aliases, description=description)
-
-    self.values.append(enumeration_value)
-    self.values_per_name[name] = enumeration_value
-    self.values_per_number[number] = enumeration_value
-
-    for alias in aliases or []:
-      self.values_per_alias[alias] = enumeration_value
+    self.size = 16
 
 
-class ElementSequenceDataTypeDefinition(DataTypeDefinition):
+class ElementSequenceDataTypeDefinition(StorageDataTypeDefinition):
   """Element sequence data type definition.
 
   Attributes:
@@ -456,7 +361,7 @@ class StringDefinition(ElementSequenceDataTypeDefinition):
     return [u'string']
 
 
-class StructureDefinition(DataTypeDefinition):
+class StructureDefinition(StorageDataTypeDefinition):
   """Structure data type definition.
 
   Attributes:
@@ -525,7 +430,7 @@ class StructureDefinition(DataTypeDefinition):
     return self._byte_size
 
 
-class StructureMemberDefinition(DataTypeDefinition):
+class StructureMemberDefinition(StorageDataTypeDefinition):
   """Structure data type member definition.
 
   Attributes:
@@ -585,15 +490,41 @@ class StructureMemberDefinition(DataTypeDefinition):
             self.member_data_type_definition.IsComposite())
 
 
-class UUIDDefinition(FixedSizeDataTypeDefinition):
-  """UUID (or GUID) data type definition."""
+class SemanticDataTypeDefinition(DataTypeDefinition):
+  """Semantic data type definition interface.
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_UUID
+  Attributes:
+    byte_order (str): byte-order the data type.
+  """
 
-  _IS_COMPOSITE = True
+  @abc.abstractmethod
+  def GetAttributeNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+
+  def GetByteSize(self):
+    """Retrieves the byte size of the data type definition.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    return
+
+
+class ConstantDefinition(SemanticDataTypeDefinition):
+  """Constant data type definition.
+
+  Attributes:
+    value (int): constant value.
+  """
+
+  TYPE_INDICATOR = definitions.TYPE_INDICATOR_CONSTANT
 
   def __init__(self, name, aliases=None, description=None, urls=None):
-    """Initializes an UUID data type definition.
+    """Initializes an enumeration data type definition.
 
     Args:
       name (str): name.
@@ -601,6 +532,135 @@ class UUIDDefinition(FixedSizeDataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(UUIDDefinition, self).__init__(
+    super(ConstantDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.size = 16
+    self.value = None
+
+  def GetAttributeNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+    return [u'constant']
+
+
+class EnumerationValue(object):
+  """Enumeration value.
+
+  Attributes:
+    aliases (list[str]): aliases.
+    description (str): description.
+    name (str): name.
+    number (int): number.
+  """
+
+  def __init__(self, name, number, aliases=None, description=None):
+    """Initializes an enumeration value.
+
+    Args:
+      name (str): name.
+      number (int): number.
+      aliases (Optional[list[str]]): aliases.
+      description (Optional[str]): description.
+    """
+    super(EnumerationValue, self).__init__()
+    self.aliases = aliases or []
+    self.description = description
+    self.name = name
+    self.number = number
+
+
+class EnumerationDefinition(SemanticDataTypeDefinition):
+  """Enumeration data type definition.
+
+  Attributes:
+    values_per_alias (dict[str, EnumerationValue]): enumeration values per
+        alias.
+    values_per_name (dict[str, EnumerationValue]): enumeration values per name.
+    values_per_number (dict[str, EnumerationValue]): enumeration values per
+        number.
+    values(list[EnumerationValue]): enumeration values.
+  """
+
+  TYPE_INDICATOR = definitions.TYPE_INDICATOR_ENUMERATION
+
+  def __init__(self, name, aliases=None, description=None, urls=None):
+    """Initializes an enumeration data type definition.
+
+    Args:
+      name (str): name.
+      aliases (Optional[list[str]]): aliases.
+      description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
+    """
+    super(EnumerationDefinition, self).__init__(
+        name, aliases=aliases, description=description, urls=urls)
+    self.values = []
+    self.values_per_alias = {}
+    self.values_per_name = {}
+    self.values_per_number = {}
+
+  def AddValue(self, name, number, aliases=None, description=None):
+    """Adds an enumeration value.
+
+    Args:
+      name (str): name.
+      number (int): number.
+      aliases (Optional[list[str]]): aliases.
+      description (Optional[str]): description.
+
+    Raises:
+      KeyError: if the enumeration value already exists.
+    """
+    if name in self.values_per_name:
+      raise KeyError(u'Value with name: {0:s} already exists.'.format(name))
+
+    if number in self.values_per_number:
+      raise KeyError(u'Value with number: {0!s} already exists.'.format(number))
+
+    for alias in aliases or []:
+      if alias in self.values_per_alias:
+        raise KeyError(u'Value with alias: {0:s} already exists.'.format(alias))
+
+    enumeration_value = EnumerationValue(
+        name, number, aliases=aliases, description=description)
+
+    self.values.append(enumeration_value)
+    self.values_per_name[name] = enumeration_value
+    self.values_per_number[number] = enumeration_value
+
+    for alias in aliases or []:
+      self.values_per_alias[alias] = enumeration_value
+
+  def GetAttributeNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+    return [u'enumeration']
+
+
+class FormatDefinition(DataTypeDefinition):
+  """Data format definition."""
+
+  TYPE_INDICATOR = definitions.TYPE_INDICATOR_FORMAT
+
+  _IS_COMPOSITE = True
+
+  def GetAttributeNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+    return []
+
+  def GetByteSize(self):
+    """Retrieves the byte size of the data type definition.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    return

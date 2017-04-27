@@ -26,6 +26,17 @@ class DataTypeDefinitionTest(test_lib.BaseTestCase):
     self.assertFalse(result)
 
 
+class StorageDataTypeDefinitionTest(test_lib.BaseTestCase):
+  """Storage data type definition tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    data_type_definition = data_types.StorageDataTypeDefinition(
+        u'int32', aliases=[u'LONG', u'LONG32'],
+        description=u'signed 32-bit integer')
+    self.assertIsNotNone(data_type_definition)
+
+
 class FixedSizeDataTypeDefinitionTest(test_lib.BaseTestCase):
   """Fixed-size data type definition tests."""
 
@@ -73,62 +84,6 @@ class CharacterDefinitionTest(test_lib.BaseTestCase):
   """Character data type definition tests."""
 
 
-class ConstantDefinitionTest(test_lib.BaseTestCase):
-  """Constant data type definition tests."""
-
-  def testInitialize(self):
-    """Tests the __init__ function."""
-    data_type_definition = data_types.ConstantDefinition(
-        u'const', description=u'contant')
-    self.assertIsNotNone(data_type_definition)
-
-  def testGetAttributeNames(self):
-    """Tests the GetAttributeNames function."""
-    data_type_definition = data_types.ConstantDefinition(
-        u'const', description=u'contant')
-
-    attribute_names = data_type_definition.GetAttributeNames()
-    self.assertEqual(attribute_names, [u'constant'])
-
-  def testGetByteSize(self):
-    """Tests the GetByteSize function."""
-    data_type_definition = data_types.ConstantDefinition(
-        u'const', description=u'contant')
-
-    byte_size = data_type_definition.GetByteSize()
-    self.assertIsNone(byte_size)
-
-
-class FormatDefinitionTest(test_lib.BaseTestCase):
-  """Data format definition tests."""
-
-  def testGetAttributeNames(self):
-    """Tests the GetAttributeNames function."""
-    data_type_definition = data_types.FormatDefinition(
-        u'format', description=u'data format')
-
-    attribute_names = data_type_definition.GetAttributeNames()
-    self.assertEqual(attribute_names, [])
-
-    # TODO: implement
-
-  def testGetByteSize(self):
-    """Tests the GetByteSize function."""
-    data_type_definition = data_types.FormatDefinition(
-        u'format', description=u'data format')
-
-    byte_size = data_type_definition.GetByteSize()
-    self.assertIsNone(byte_size)
-
-  def testIsComposite(self):
-    """Tests the IsComposite function."""
-    data_type_definition = data_types.FormatDefinition(
-        u'format', description=u'data format')
-
-    result = data_type_definition.IsComposite()
-    self.assertTrue(result)
-
-
 class FloatingPointDefinitionTest(test_lib.BaseTestCase):
   """Floating-point data type definition tests."""
 
@@ -144,39 +99,22 @@ class IntegerDefinitionTest(test_lib.BaseTestCase):
     self.assertIsNotNone(data_type_definition)
 
 
-class EnumerationValueTest(test_lib.BaseTestCase):
-  """Enumeration value tests."""
+class UUIDDefinitionTest(test_lib.BaseTestCase):
+  """UUID data type definition tests."""
 
   def testInitialize(self):
     """Tests the __init__ function."""
-    enumeration_value = data_types.EnumerationValue(u'enum_value', 5)
-    self.assertIsNotNone(enumeration_value)
-
-
-class EnumerationDefinitionTest(test_lib.BaseTestCase):
-  """Enumeration data type definition tests."""
-
-  def testInitialize(self):
-    """Tests the __init__ function."""
-    data_type_definition = data_types.EnumerationDefinition(
-        u'enum', description=u'enumeration')
+    data_type_definition = data_types.UUIDDefinition(
+        u'guid', aliases=[u'GUID'], description=u'GUID')
     self.assertIsNotNone(data_type_definition)
 
-  def testAddValue(self):
-    """Tests the AddValue function."""
-    data_type_definition = data_types.EnumerationDefinition(
-        u'enum', description=u'enumeration')
+  def testIsComposite(self):
+    """Tests the IsComposite function."""
+    data_type_definition = data_types.UUIDDefinition(
+        u'guid', aliases=[u'GUID'], description=u'GUID')
 
-    data_type_definition.AddValue(u'enum_value', 5, aliases=[u'value5'])
-
-    with self.assertRaises(KeyError):
-      data_type_definition.AddValue(u'enum_value', 7, aliases=[u'value7'])
-
-    with self.assertRaises(KeyError):
-      data_type_definition.AddValue(u'myenum', 5, aliases=[u'value7'])
-
-    with self.assertRaises(KeyError):
-      data_type_definition.AddValue(u'myenum', 7, aliases=[u'value5'])
+    result = data_type_definition.IsComposite()
+    self.assertTrue(result)
 
 
 class ElementSequenceDataTypeDefinitionTest(test_lib.BaseTestCase):
@@ -227,7 +165,6 @@ class SequenceDefinitionTest(test_lib.BaseTestCase):
 
     attribute_names = data_type_definition.GetAttributeNames()
     self.assertEqual(attribute_names, [u'elements'])
-
 
 
 class StreamDefinitionTest(test_lib.BaseTestCase):
@@ -426,19 +363,110 @@ class StructureMemberDefinitionTest(test_lib.BaseTestCase):
     self.assertFalse(result)
 
 
-class UUIDDefinitionTest(test_lib.BaseTestCase):
-  """UUID data type definition tests."""
+class SemanticDataTypeDefinitionTest(test_lib.BaseTestCase):
+  """Semantic data type definition tests."""
 
   def testInitialize(self):
     """Tests the __init__ function."""
-    data_type_definition = data_types.UUIDDefinition(
-        u'guid', aliases=[u'GUID'], description=u'GUID')
+    data_type_definition = data_types.SemanticDataTypeDefinition(
+        u'enum', description=u'enumeration')
     self.assertIsNotNone(data_type_definition)
+
+  def testGetByteSize(self):
+    """Tests the GetByteSize function."""
+    data_type_definition = data_types.SemanticDataTypeDefinition(
+        u'enum', description=u'enumeration')
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
+
+
+class ConstantDefinitionTest(test_lib.BaseTestCase):
+  """Constant data type definition tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    data_type_definition = data_types.ConstantDefinition(
+        u'const', description=u'contant')
+    self.assertIsNotNone(data_type_definition)
+
+  def testGetAttributeNames(self):
+    """Tests the GetAttributeNames function."""
+    data_type_definition = data_types.ConstantDefinition(
+        u'const', description=u'contant')
+
+    attribute_names = data_type_definition.GetAttributeNames()
+    self.assertEqual(attribute_names, [u'constant'])
+
+
+class EnumerationValueTest(test_lib.BaseTestCase):
+  """Enumeration value tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    enumeration_value = data_types.EnumerationValue(u'enum_value', 5)
+    self.assertIsNotNone(enumeration_value)
+
+
+class EnumerationDefinitionTest(test_lib.BaseTestCase):
+  """Enumeration data type definition tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    data_type_definition = data_types.EnumerationDefinition(
+        u'enum', description=u'enumeration')
+    self.assertIsNotNone(data_type_definition)
+
+  def testAddValue(self):
+    """Tests the AddValue function."""
+    data_type_definition = data_types.EnumerationDefinition(
+        u'enum', description=u'enumeration')
+
+    data_type_definition.AddValue(u'enum_value', 5, aliases=[u'value5'])
+
+    with self.assertRaises(KeyError):
+      data_type_definition.AddValue(u'enum_value', 7, aliases=[u'value7'])
+
+    with self.assertRaises(KeyError):
+      data_type_definition.AddValue(u'myenum', 5, aliases=[u'value7'])
+
+    with self.assertRaises(KeyError):
+      data_type_definition.AddValue(u'myenum', 7, aliases=[u'value5'])
+
+  def testGetAttributeNames(self):
+    """Tests the GetAttributeNames function."""
+    data_type_definition = data_types.EnumerationDefinition(
+        u'enum', description=u'enumeration')
+
+    attribute_names = data_type_definition.GetAttributeNames()
+    self.assertEqual(attribute_names, [u'enumeration'])
+
+
+class FormatDefinitionTest(test_lib.BaseTestCase):
+  """Data format definition tests."""
+
+  def testGetAttributeNames(self):
+    """Tests the GetAttributeNames function."""
+    data_type_definition = data_types.FormatDefinition(
+        u'format', description=u'data format')
+
+    attribute_names = data_type_definition.GetAttributeNames()
+    self.assertEqual(attribute_names, [])
+
+    # TODO: implement
+
+  def testGetByteSize(self):
+    """Tests the GetByteSize function."""
+    data_type_definition = data_types.FormatDefinition(
+        u'format', description=u'data format')
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
 
   def testIsComposite(self):
     """Tests the IsComposite function."""
-    data_type_definition = data_types.UUIDDefinition(
-        u'guid', aliases=[u'GUID'], description=u'GUID')
+    data_type_definition = data_types.FormatDefinition(
+        u'format', description=u'data format')
 
     result = data_type_definition.IsComposite()
     self.assertTrue(result)

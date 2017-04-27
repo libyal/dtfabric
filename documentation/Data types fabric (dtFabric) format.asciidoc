@@ -47,7 +47,11 @@ in the section entitled "GNU Free Documentation License".
 Data types fabric (dtFabric) is a proof-of-concept YAML-based definition
 language to specify format and data types.
 
-== Data type definition
+* storage data types, such as integers, characters, structures
+* semantic data types, such as constants, enumerations
+* layout data types, such as format, vectors, trees
+
+== [[data_type_definition]]Data type definition
 
 [cols="1,1,5",options="header"]
 |===
@@ -57,8 +61,6 @@ language to specify format and data types.
 See section: <<data_type_definition_types,Data type definition types>>
 | description | string | Description of the format
 | urls | List of strings | List of URLS that contain more information about the format
-| attributes | | Data type attributes +
-See section: <<data_type_definition_attributes,Data type definition attributes>>
 |===
 
 === [[data_type_definition_types]]Data type definition types
@@ -91,7 +93,19 @@ See section: <<data_format,Data format>>
 | union | Union data type
 |===
 
-=== [[data_type_definition_attributes]]Data type definition attributes
+== Storage data types
+Storage data types are data types that represent stored (or serialized) values.
+In addition to the <<data_type_definition,Data type definition attributes>>
+storage data types also define:
+
+[cols="1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Description
+| attributes | | Data type attributes +
+See section: <<storage_data_type_definition_attributes,Storage data type definition attributes>>
+|===
+
+=== [[storage_data_type_definition_attributes]]Storage data type definition attributes
 
 [cols="1,1,5",options="header"]
 |===
@@ -103,33 +117,20 @@ The default is native
 
 [NOTE] middle-endian is a valid byte-ordering but currently not supported.
 
-== [[data_format]]Data format
+=== Fixed-size data types
+
+In addition to the <<storage_data_type_definition_attributes,Storage data type definition attributes>>
+fixed-size data types also define the following attributes:
 
 [cols="1,1,5",options="header"]
 |===
 | Attribute name | Attribute type | Description
-| name | string | Name of the format
-| type | string | Definition type +
-See section: <<data_type_definition_types,Data type definition types>>
-| description | string | Description of the format
-| urls | List of strings | List of URLS that contain more information about the format
-| layout | [yellow-background]*TODO* | Format layout definition
+| size | integer | size of data type in number of units
+| units | string | units of the size of the data type +
+The default is bytes
 |===
 
-Example:
-
-[source,yaml]
-----
-name: mdmp
-type: format
-description: Minidump file format
-urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680369(v=vs.85).aspx']
-layout:
-----
-
-== Data types
-
-=== Boolean
+==== Boolean
 A boolean is a data type to represent true-or-false values. 
 
 [source,yaml]
@@ -169,77 +170,6 @@ attributes:
 - size: 2
   units: byte
 ----
-
-=== Constant
-A constant is a data type to provide meaning (semantic value) to a single
-predefined value. The value of a constant is typically not stored in a byte
-stream but used at compile time.
-
-[source,yaml]
-----
-name: maximum_number_of_back_traces
-aliases: [AVRF_MAX_TRACES]
-type: constant
-description: Application verifier resource enumeration maximum number of back traces
-urls: ['https://msdn.microsoft.com/en-us/library/bb432193(v=vs.85).aspx']
-value: 13
-----
-
-Constant data type specfic attributes:
-
-[cols="1,1,5",options="header"]
-|===
-| Attribute name | Attribute type | Description
-| value | integer or string | Integer or string value that the constant represents
-|===
-
-=== Enumeration
-An enumeration is a data type to provide meaning (semantic value) to one or more
-predefined values.
-
-[source,yaml]
-----
-name: handle_trace_operation_types
-aliases: [eHANDLE_TRACE_OPERATIONS]
-type: enumeration
-description: Application verifier resource enumeration handle trace operation types
-urls: ['https://msdn.microsoft.com/en-us/library/bb432251(v=vs.85).aspx']
-values:
-- name: OperationDbUnused
-  number: 0
-  description: Unused
-- name: OperationDbOPEN
-  number: 1
-  description: Open (create) handle operation
-- name: OperationDbCLOSE
-  number: 2
-  description: Close handle operation
-- name: OperationDbBADREF
-  number: 3
-  description: Invalid handle operation
-----
-
-Enumeration data type specfic attributes:
-
-[cols="1,1,5",options="header"]
-|===
-| Attribute name | Attribute type | Description
-| format | string | Signed or unsiged +
-The default is signed
-|===
-
-Enumeration value attributes:
-
-[cols="1,1,5",options="header"]
-|===
-| Attribute name | Attribute type | Description
-| aliases | list of strings | Optional aliases the enumeration value maps to
-| description | string | Optional description of the enumeration value
-| name | string | Name the enumeration value maps to
-| number | integer | Number the enumeration value maps to
-|===
-
-[yellow-background]*TODO: add description*
 
 === Fixed-point
 A fixed-point is a data type to represent elements of fixed-point values.
@@ -284,6 +214,21 @@ Integer data type specfic attributes:
 | format | string | Signed or unsiged +
 The default is signed
 |===
+
+=== UUID (or GUID)
+An UUID (or GUID) is a data type to represent a Globally or Universal unique
+identifier (GUID or UUID) data types.
+
+[source,yaml]
+----
+name: known_folder_identifier
+type: uuid
+description: Known folder identifier.
+attributes:
+  byte_order: little-endian
+----
+
+=== Variable-sized data types
 
 === Sequence
 A sequence is a data type to represent a sequence of individual elements such
@@ -413,17 +358,94 @@ A member definition needs to specify either 'type' or 'data_type'
 
 [yellow-background]*TODO: describe short-hand and long form*
 
-=== UUID (or GUID)
-An UUID (or GUID) is a data type to represent a Globally or Universal unique
-identifier (GUID or UUID) data types.
+== Semantic types
+
+=== Constant
+A constant is a data type to provide meaning (semantic value) to a single
+predefined value. The value of a constant is typically not stored in a byte
+stream but used at compile time.
 
 [source,yaml]
 ----
-name: known_folder_identifier
-type: uuid
-description: Known folder identifier.
-attributes:
-  byte_order: little-endian
+name: maximum_number_of_back_traces
+aliases: [AVRF_MAX_TRACES]
+type: constant
+description: Application verifier resource enumeration maximum number of back traces
+urls: ['https://msdn.microsoft.com/en-us/library/bb432193(v=vs.85).aspx']
+value: 13
+----
+
+Constant data type specfic attributes:
+
+[cols="1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Description
+| value | integer or string | Integer or string value that the constant represents
+|===
+
+=== Enumeration
+An enumeration is a data type to provide meaning (semantic value) to one or more
+predefined values.
+
+[source,yaml]
+----
+name: handle_trace_operation_types
+aliases: [eHANDLE_TRACE_OPERATIONS]
+type: enumeration
+description: Application verifier resource enumeration handle trace operation types
+urls: ['https://msdn.microsoft.com/en-us/library/bb432251(v=vs.85).aspx']
+values:
+- name: OperationDbUnused
+  number: 0
+  description: Unused
+- name: OperationDbOPEN
+  number: 1
+  description: Open (create) handle operation
+- name: OperationDbCLOSE
+  number: 2
+  description: Close handle operation
+- name: OperationDbBADREF
+  number: 3
+  description: Invalid handle operation
+----
+
+Enumeration value attributes:
+
+[cols="1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Description
+| aliases | list of strings | Optional aliases the enumeration value maps to
+| description | string | Optional description of the enumeration value
+| name | string | Name the enumeration value maps to
+| number | integer | Number the enumeration value maps to
+|===
+
+[yellow-background]*TODO: add description*
+
+== Layout types
+
+=== [[data_format]]Data format
+
+[cols="1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Description
+| name | string | Name of the format
+| type | string | Definition type +
+See section: <<data_type_definition_types,Data type definition types>>
+| description | string | Description of the format
+| urls | List of strings | List of URLS that contain more information about the format
+| layout | [yellow-background]*TODO* | Format layout definition
+|===
+
+Example:
+
+[source,yaml]
+----
+name: mdmp
+type: format
+description: Minidump file format
+urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680369(v=vs.85).aspx']
+layout:
 ----
 
 :numbered!:

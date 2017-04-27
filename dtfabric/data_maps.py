@@ -13,7 +13,6 @@ from dtfabric import py2to3
 from dtfabric import runtime
 
 
-# TODO: add ConstantMap.
 # TODO: add FormatMap.
 
 
@@ -39,11 +38,6 @@ class DataTypeMapContext(object):
 class DataTypeMap(object):
   """Data type map."""
 
-  _BYTE_ORDER_STRINGS = {
-      definitions.BYTE_ORDER_BIG_ENDIAN: u'>',
-      definitions.BYTE_ORDER_LITTLE_ENDIAN: u'<',
-      definitions.BYTE_ORDER_NATIVE: u'='}
-
   def __init__(self, data_type_definition):
     """Initializes a data type map.
 
@@ -57,6 +51,40 @@ class DataTypeMap(object):
     super(DataTypeMap, self).__init__()
     self._data_type_definition = data_type_definition
 
+  def GetByteSize(self):
+    """Retrieves the byte size of the data type map.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    if self._data_type_definition:
+      return self._data_type_definition.GetByteSize()
+
+  @abc.abstractmethod
+  def MapByteStream(self, byte_stream, context=None, **unused_kwargs):
+    """Maps the data type on a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+      context (Optional[DataTypeMapContext]): data type map context.
+
+    Returns:
+      object: mapped value.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+
+
+class StorageDataTypeMap(DataTypeMap):
+  """Storage data type map."""
+
+  _BYTE_ORDER_STRINGS = {
+      definitions.BYTE_ORDER_BIG_ENDIAN: u'>',
+      definitions.BYTE_ORDER_LITTLE_ENDIAN: u'<',
+      definitions.BYTE_ORDER_NATIVE: u'='}
+
   def _GetByteStreamOperation(self):
     """Retrieves the byte stream operation.
 
@@ -68,15 +96,6 @@ class DataTypeMap(object):
     if format_string:
       format_string = u''.join([byte_order_string, format_string])
       return byte_operations.StructOperation(format_string)
-
-  def GetByteSize(self):
-    """Retrieves the byte size of the data type map.
-
-    Returns:
-      int: data type size in bytes or None if size cannot be determined.
-    """
-    if self._data_type_definition:
-      return self._data_type_definition.GetByteSize()
 
   def GetStructByteOrderString(self):
     """Retrieves the Python struct format string.
@@ -115,7 +134,7 @@ class DataTypeMap(object):
     """
 
 
-class PrimitiveDataTypeMap(DataTypeMap):
+class PrimitiveDataTypeMap(StorageDataTypeMap):
   """Primitive data type map."""
 
   def __init__(self, data_type_definition):
@@ -322,25 +341,57 @@ class IntegerMap(PrimitiveDataTypeMap):
         self._data_type_definition.size, None)
 
 
-class EnumerationMap(IntegerMap):
-  """Enumeration data type map."""
+class UUIDMap(StorageDataTypeMap):
+  """UUID (or GUID) data type map."""
 
-  def GetName(self, number):
-    """Retrieves the name of an enumeration value by number.
+  def __init__(self, data_type_definition):
+    """Initializes an UUID (or GUID) data type map.
 
     Args:
-      number (int): number.
+      data_type_definition (DataTypeDefinition): data type definition.
+    """
+    super(UUIDMap, self).__init__(data_type_definition)
+    self._operation = self._GetByteStreamOperation()
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
 
     Returns:
-      str: name of the enumeration value or None if no corresponding
-          enumeration value was found.
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
     """
-    value = self._data_type_definition.values_per_number.get(number, None)
-    if value:
-      return value.name
+    return u'IHH8B'
+
+  def MapByteStream(self, byte_stream, context=None, **unused_kwargs):
+    """Maps the data type on a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+      context (Optional[DataTypeMapContext]): data type map context.
+
+    Returns:
+      uuid.UUID: mapped value.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+    if context:
+      context.byte_size = self._data_type_definition.GetByteSize()
+
+    try:
+      struct_tuple = self._operation.ReadFrom(byte_stream)
+      uuid_string = (
+          u'{{{0:08x}-{1:04x}-{2:04x}-{3:02x}{4:02x}-'
+          u'{5:02x}{6:02x}{7:02x}{8:02x}{9:02x}{10:02x}}}').format(
+              *struct_tuple)
+      return uuid.UUID(uuid_string)
+
+    except Exception as exception:
+      raise errors.MappingError(exception)
 
 
-class ElementSequenceDataTypeMap(DataTypeMap):
+class ElementSequenceDataTypeMap(StorageDataTypeMap):
   """Element sequence data type map."""
 
   def __init__(self, data_type_definition):
@@ -815,7 +866,7 @@ class StringMap(StreamMap):
       raise errors.MappingError(exception)
 
 
-class StructureMap(DataTypeMap):
+class StructureMap(StorageDataTypeMap):
   """Structure data type map."""
 
   def __init__(self, data_type_definition):
@@ -1032,26 +1083,8 @@ class StructureMap(DataTypeMap):
     return self._map_byte_stream(byte_stream, **kwargs)
 
 
-class UUIDMap(DataTypeMap):
-  """UUID (or GUID) data type map."""
-
-  def __init__(self, data_type_definition):
-    """Initializes an UUID (or GUID) data type map.
-
-    Args:
-      data_type_definition (DataTypeDefinition): data type definition.
-    """
-    super(UUIDMap, self).__init__(data_type_definition)
-    self._operation = self._GetByteStreamOperation()
-
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
-
-    Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
-    """
-    return u'IHH8B'
+class ConstantMap(DataTypeMap):
+  """Constant data type map."""
 
   def MapByteStream(self, byte_stream, context=None, **unused_kwargs):
     """Maps the data type on a byte stream.
@@ -1061,37 +1094,61 @@ class UUIDMap(DataTypeMap):
       context (Optional[DataTypeMapContext]): data type map context.
 
     Returns:
-      uuid.UUID: mapped value.
+      object: mapped value.
 
     Raises:
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
-    if context:
-      context.byte_size = self._data_type_definition.GetByteSize()
+    raise errors.MappingError(
+        u'Unable to map constant data type to byte stream')
 
-    try:
-      struct_tuple = self._operation.ReadFrom(byte_stream)
-      uuid_string = (
-          u'{{{0:08x}-{1:04x}-{2:04x}-{3:02x}{4:02x}-'
-          u'{5:02x}{6:02x}{7:02x}{8:02x}{9:02x}{10:02x}}}').format(
-              *struct_tuple)
-      return uuid.UUID(uuid_string)
 
-    except Exception as exception:
-      raise errors.MappingError(exception)
+class EnumerationMap(DataTypeMap):
+  """Enumeration data type map."""
+
+  def GetName(self, number):
+    """Retrieves the name of an enumeration value by number.
+
+    Args:
+      number (int): number.
+
+    Returns:
+      str: name of the enumeration value or None if no corresponding
+          enumeration value was found.
+    """
+    value = self._data_type_definition.values_per_number.get(number, None)
+    if value:
+      return value.name
+
+  def MapByteStream(self, byte_stream, context=None, **unused_kwargs):
+    """Maps the data type on a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+      context (Optional[DataTypeMapContext]): data type map context.
+
+    Returns:
+      object: mapped value.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+    raise errors.MappingError(
+        u'Unable to map enumeration data type to byte stream')
 
 
 class DataTypeMapFactory(object):
   """Factory for data type maps."""
 
-  # TODO: add support for definitions.TYPE_INDICATOR_CONSTANT
-  # TODO: add support for definitions.TYPE_INDICATOR_ENUMERATION
   # TODO: add support for definitions.TYPE_INDICATOR_FORMAT
 
   _MAP_PER_DEFINITION = {
       definitions.TYPE_INDICATOR_BOOLEAN: BooleanMap,
       definitions.TYPE_INDICATOR_CHARACTER: CharacterMap,
+      definitions.TYPE_INDICATOR_CONSTANT: ConstantMap,
+      definitions.TYPE_INDICATOR_ENUMERATION: EnumerationMap,
       definitions.TYPE_INDICATOR_FLOATING_POINT: FloatingPointMap,
       definitions.TYPE_INDICATOR_INTEGER: IntegerMap,
       definitions.TYPE_INDICATOR_SEQUENCE: SequenceMap,
