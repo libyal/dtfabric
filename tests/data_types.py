@@ -366,12 +366,6 @@ class StructureMemberDefinitionTest(test_lib.BaseTestCase):
 class SemanticDataTypeDefinitionTest(test_lib.BaseTestCase):
   """Semantic data type definition tests."""
 
-  def testInitialize(self):
-    """Tests the __init__ function."""
-    data_type_definition = data_types.SemanticDataTypeDefinition(
-        u'enum', description=u'enumeration')
-    self.assertIsNotNone(data_type_definition)
-
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
     data_type_definition = data_types.SemanticDataTypeDefinition(
@@ -440,6 +434,18 @@ class EnumerationDefinitionTest(test_lib.BaseTestCase):
 
     attribute_names = data_type_definition.GetAttributeNames()
     self.assertEqual(attribute_names, [u'enumeration'])
+
+
+class LayoutDataTypeDefinitionTest(test_lib.BaseTestCase):
+  """Layout data type definition tests."""
+
+  def testGetByteSize(self):
+    """Tests the GetByteSize function."""
+    data_type_definition = data_types.LayoutDataTypeDefinition(
+        u'format', description=u'data format')
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
 
 
 class FormatDefinitionTest(test_lib.BaseTestCase):

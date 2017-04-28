@@ -642,20 +642,22 @@ class EnumerationDefinition(SemanticDataTypeDefinition):
     return [u'enumeration']
 
 
-class FormatDefinition(DataTypeDefinition):
-  """Data format definition."""
+class LayoutDataTypeDefinition(DataTypeDefinition):
+  """Layout data type definition interface.
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_FORMAT
+  Attributes:
+    byte_order (str): byte-order the data type.
+  """
 
   _IS_COMPOSITE = True
 
+  @abc.abstractmethod
   def GetAttributeNames(self):
     """Determines the attribute (or field) names of the data type definition.
 
     Returns:
       list[str]: attribute names.
     """
-    return []
 
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.
@@ -664,3 +666,17 @@ class FormatDefinition(DataTypeDefinition):
       int: data type size in bytes or None if size cannot be determined.
     """
     return
+
+
+class FormatDefinition(LayoutDataTypeDefinition):
+  """Data format definition."""
+
+  TYPE_INDICATOR = definitions.TYPE_INDICATOR_FORMAT
+
+  def GetAttributeNames(self):
+    """Determines the attribute (or field) names of the data type definition.
+
+    Returns:
+      list[str]: attribute names.
+    """
+    return []

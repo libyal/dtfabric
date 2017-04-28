@@ -11,9 +11,6 @@ from dtfabric import definitions
 from dtfabric import errors
 
 
-# TODO: complete _ReadFormatDefinition
-
-
 class DataTypeDefinitionsReader(object):
   """Data type definitions reader interface."""
 
@@ -47,6 +44,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       definitions.TYPE_INDICATOR_FLOATING_POINT: (
           u'_ReadFloatingPointDataTypeDefinition'),
       definitions.TYPE_INDICATOR_INTEGER: u'_ReadIntegerDataTypeDefinition',
+      definitions.TYPE_INDICATOR_FORMAT: u'_ReadFormatDataTypeDefinition',
       definitions.TYPE_INDICATOR_SEQUENCE: u'_ReadSequenceDataTypeDefinition',
       definitions.TYPE_INDICATOR_STREAM: u'_ReadStreamDataTypeDefinition',
       definitions.TYPE_INDICATOR_STRING: u'_ReadStringDataTypeDefinition',
@@ -337,25 +335,22 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
         definitions_registry, definition_values,
         data_types.FloatingPointDefinition, definition_name)
 
-  def _ReadFormatDefinition(self, definition_values, definition_name):
+  def _ReadFormatDefinition(
+      self, definitions_registry, definition_values, definition_name):
     """Reads a format definition.
 
     Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
 
     Returns:
       FormatDefinition: format definition.
     """
-    description = definition_values.get(u'description', None)
-    urls = definition_values.get(u'urls', None)
-
-    definition_object = data_types.FormatDefinition(
-        definition_name, description=description, urls=urls)
-
-    # TODO: implement.
-
-    return definition_object
+    return self._ReadLayoutDataTypeDefinition(
+        definitions_registry, definition_values, data_types.FormatDefinition,
+        definition_name)
 
   def _ReadIntegerDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
@@ -389,6 +384,34 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       definition_object.format = format_attribute
 
     return definition_object
+
+  def _ReadLayoutDataTypeDefinition(
+      self, definitions_registry, definition_values, data_type_definition_class,
+      definition_name):
+    """Reads a layout data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      data_type_definition_class (str): data type definition class.
+      definition_name (str): name of the definition.
+
+    Returns:
+      LayoutDataTypeDefinition: layout data type definition.
+
+    Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
+    """
+    attributes = definition_values.get(u'attributes')
+    if attributes is not None:
+      error_message = u'attributes not supported by layout data type'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    return self._ReadDataTypeDefinition(
+        definitions_registry, definition_values, data_type_definition_class,
+        definition_name)
 
   def _ReadSemanticDataTypeDefinition(
       self, definitions_registry, definition_values, data_type_definition_class,
@@ -706,9 +729,6 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     if not type_indicator:
       error_message = u'invalid definition missing type'
       raise errors.DefinitionReaderError(name, error_message)
-
-    if type_indicator == u'format':
-      return self._ReadFormatDefinition(definition_values, name)
 
     data_type_callback = self._DATA_TYPE_CALLBACKS.get(type_indicator, None)
     if data_type_callback:

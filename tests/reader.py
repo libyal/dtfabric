@@ -13,7 +13,6 @@ from dtfabric import registry
 from tests import test_lib
 
 
-# TODO: complete testReadFormatDefinition.
 # TODO: test errors, such as duplicate structure members.
 
 
@@ -293,11 +292,8 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.DataTypeDefinitionsFileReader()
 
-    # TODO: implement.
-    _ = definitions_registry
-
     data_type_definition = definitions_reader._ReadFormatDefinition(
-        definition_values, u'lnk')
+        definitions_registry, definition_values, u'lnk')
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.FormatDefinition)
 
@@ -326,6 +322,32 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadIntegerDataTypeDefinition(
           definitions_registry, definition_values, u'int32')
+
+  def testReadLayoutDataTypeDefinition(self):
+    """Tests the _ReadLayoutDataTypeDefinition function."""
+    definition_values = {
+        u'description': u'layout data type',
+    }
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.DataTypeDefinitionsFileReader()
+
+    data_type_definition = definitions_reader._ReadLayoutDataTypeDefinition(
+        definitions_registry, definition_values,
+        data_types.EnumerationDefinition, u'format')
+    self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(
+        data_type_definition, data_types.EnumerationDefinition)
+
+    # Test with attributes.
+    definition_values[u'attributes'] = {}
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadLayoutDataTypeDefinition(
+          definitions_registry, definition_values,
+          data_types.EnumerationDefinition, u'format')
+
+    definition_values[u'attributes'] = None
 
   def testReadSemanticDataTypeDefinition(self):
     """Tests the _ReadSemanticDataTypeDefinition function."""
