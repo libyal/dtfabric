@@ -876,7 +876,7 @@ class StructureMap(StorageDataTypeMap):
       data_type_definition (DataTypeDefinition): data type definition.
     """
     super(StructureMap, self).__init__(data_type_definition)
-    self._attribute_names = data_type_definition.GetAttributeNames()
+    self._attribute_names = self._GetAttributeNames(data_type_definition)
     self._data_type_map_cache = {}
     self._data_type_maps = self._GetMemberDataTypeMaps(
         data_type_definition, self._data_type_map_cache)
@@ -970,6 +970,28 @@ class StructureMap(StorageDataTypeMap):
       context.byte_size = byte_stream_offset
 
     return structure_values
+
+  def _GetAttributeNames(self, data_type_definition):
+    """Determines the attribute (or field) names of the members.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Returns:
+      list[str]: attribute names.
+
+    Raises:
+      FormatError: if the attribute names cannot be determed from the data
+          type definition.
+    """
+    if not data_type_definition:
+      raise errors.FormatError(u'Missing data type definition')
+
+    attribute_names = []
+    for member_definition in data_type_definition.members:
+      attribute_names.append(member_definition.name)
+
+    return attribute_names
 
   def _GetMemberDataTypeMaps(self, data_type_definition, data_type_map_cache):
     """Retrieves the member data type maps.

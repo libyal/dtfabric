@@ -135,9 +135,17 @@ class StructureValuesClassFactory(object):
           u'Data type definition name: {0!s} matches keyword'.format(
               data_type_definition.name))
 
+    members = getattr(data_type_definition, u'members', None)
+    if not members:
+      raise ValueError(
+          u'Data type definition name: {0!s} missing members'.format(
+              data_type_definition.name))
+
     defined_attribute_names = set()
 
-    for attribute_name in data_type_definition.GetAttributeNames():
+    for member_definition in members:
+      attribute_name = member_definition.name
+
       if not cls._IsIdentifier(attribute_name):
         raise ValueError(u'Attribute name: {0!s} not a valid identifier'.format(
             attribute_name))

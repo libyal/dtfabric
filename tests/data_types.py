@@ -47,15 +47,6 @@ class FixedSizeDataTypeDefinitionTest(test_lib.BaseTestCase):
         description=u'signed 32-bit integer')
     self.assertIsNotNone(data_type_definition)
 
-  def testGetAttributeNames(self):
-    """Tests the GetAttributeNames function."""
-    data_type_definition = data_types.FixedSizeDataTypeDefinition(
-        u'int32', aliases=[u'LONG', u'LONG32'],
-        description=u'signed 32-bit integer')
-
-    attribute_names = data_type_definition.GetAttributeNames()
-    self.assertEqual(attribute_names, [u'value'])
-
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
     data_type_definition = data_types.FixedSizeDataTypeDefinition(
@@ -157,27 +148,9 @@ class ElementSequenceDataTypeDefinitionTest(test_lib.BaseTestCase):
 class SequenceDefinitionTest(test_lib.BaseTestCase):
   """Sequence data type definition tests."""
 
-  def testGetAttributeNames(self):
-    """Tests the GetAttributeNames function."""
-    element_definition = data_types.IntegerDefinition(u'int32')
-    data_type_definition = data_types.SequenceDefinition(
-        u'offsets', element_definition, description=u'offsets array')
-
-    attribute_names = data_type_definition.GetAttributeNames()
-    self.assertEqual(attribute_names, [u'elements'])
-
 
 class StreamDefinitionTest(test_lib.BaseTestCase):
   """Stream data type definition tests."""
-
-  def testGetAttributeNames(self):
-    """Tests the GetAttributeNames function."""
-    element_definition = data_types.IntegerDefinition(u'byte')
-    data_type_definition = data_types.StreamDefinition(
-        u'byte_stream', element_definition, description=u'byte stream')
-
-    attribute_names = data_type_definition.GetAttributeNames()
-    self.assertEqual(attribute_names, [u'stream'])
 
 
 class StringDefinitionTest(test_lib.BaseTestCase):
@@ -189,15 +162,6 @@ class StringDefinitionTest(test_lib.BaseTestCase):
     data_type_definition = data_types.StringDefinition(
         u'utf16', element_definition, description=u'UTF-16 formatted string')
     self.assertIsNotNone(data_type_definition)
-
-  def testGetAttributeNames(self):
-    """Tests the GetAttributeNames function."""
-    element_definition = data_types.IntegerDefinition(u'wchar16')
-    data_type_definition = data_types.StringDefinition(
-        u'utf16', element_definition, description=u'UTF-16 formatted string')
-
-    attribute_names = data_type_definition.GetAttributeNames()
-    self.assertEqual(attribute_names, [u'string'])
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
@@ -228,35 +192,12 @@ class StringDefinitionTest(test_lib.BaseTestCase):
     self.assertTrue(result)
 
 
-@test_lib.skipUnlessHasTestFile([u'structure.yaml'])
 class StructureDefinitionTest(test_lib.BaseTestCase):
   """Structure data type definition tests."""
 
-  # pylint: disable=protected-access
+  # TODO: add tests for AddMemberDefinition
 
-  def testGetAttributeNames(self):
-    """Tests the GetAttributeNames function."""
-    data_type_definition = data_types.StructureDefinition(
-        u'my_struct_type', aliases=[u'MY_STRUCT_TYPE'],
-        description=u'my structure type')
-
-    attribute_names = data_type_definition.GetAttributeNames()
-    self.assertEqual(attribute_names, [])
-
-    definitions_file = self._GetTestFilePath([u'structure.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-    member_definition = definitions_registry.GetDefinitionByName(u'int32')
-
-    structure_member_definition = data_types.StructureMemberDefinition(
-        u'my_struct_member', member_definition, aliases=[u'MY_STRUCT_MEMBER'],
-        data_type=u'int32', description=u'my structure member')
-
-    data_type_definition.AddMemberDefinition(structure_member_definition)
-
-    attribute_names = data_type_definition.GetAttributeNames()
-    self.assertEqual(attribute_names, [u'my_struct_member'])
-
+  @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
     data_type_definition = data_types.StructureDefinition(
@@ -307,24 +248,6 @@ class StructureMemberDefinitionTest(test_lib.BaseTestCase):
         u'my_struct_member', member_definition, aliases=[u'MY_STRUCT_MEMBER'],
         data_type=u'int32', description=u'my structure member')
     self.assertIsNotNone(data_type_definition)
-
-  def testGetAttributeNames(self):
-    """Tests the GetAttributeNames function."""
-    definitions_file = self._GetTestFilePath([u'structure.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-    member_definition = definitions_registry.GetDefinitionByName(u'int32')
-
-    data_type_definition = data_types.StructureMemberDefinition(
-        u'my_struct_member', None, aliases=[u'MY_STRUCT_MEMBER'],
-        data_type=u'int32', description=u'my structure member')
-
-    attribute_names = data_type_definition.GetAttributeNames()
-    self.assertIsNone(attribute_names)
-
-    data_type_definition.member_data_type_definition = member_definition
-    attribute_names = data_type_definition.GetAttributeNames()
-    self.assertEqual(attribute_names, [u'value'])
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
@@ -384,14 +307,6 @@ class ConstantDefinitionTest(test_lib.BaseTestCase):
         u'const', description=u'contant')
     self.assertIsNotNone(data_type_definition)
 
-  def testGetAttributeNames(self):
-    """Tests the GetAttributeNames function."""
-    data_type_definition = data_types.ConstantDefinition(
-        u'const', description=u'contant')
-
-    attribute_names = data_type_definition.GetAttributeNames()
-    self.assertEqual(attribute_names, [u'constant'])
-
 
 class EnumerationValueTest(test_lib.BaseTestCase):
   """Enumeration value tests."""
@@ -427,14 +342,6 @@ class EnumerationDefinitionTest(test_lib.BaseTestCase):
     with self.assertRaises(KeyError):
       data_type_definition.AddValue(u'myenum', 7, aliases=[u'value5'])
 
-  def testGetAttributeNames(self):
-    """Tests the GetAttributeNames function."""
-    data_type_definition = data_types.EnumerationDefinition(
-        u'enum', description=u'enumeration')
-
-    attribute_names = data_type_definition.GetAttributeNames()
-    self.assertEqual(attribute_names, [u'enumeration'])
-
 
 class LayoutDataTypeDefinitionTest(test_lib.BaseTestCase):
   """Layout data type definition tests."""
@@ -450,16 +357,6 @@ class LayoutDataTypeDefinitionTest(test_lib.BaseTestCase):
 
 class FormatDefinitionTest(test_lib.BaseTestCase):
   """Data format definition tests."""
-
-  def testGetAttributeNames(self):
-    """Tests the GetAttributeNames function."""
-    data_type_definition = data_types.FormatDefinition(
-        u'format', description=u'data format')
-
-    attribute_names = data_type_definition.GetAttributeNames()
-    self.assertEqual(attribute_names, [])
-
-    # TODO: implement
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""

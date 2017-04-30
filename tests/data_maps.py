@@ -16,14 +16,6 @@ from tests import test_lib
 class EmptyDataTypeDefinition(data_types.DataTypeDefinition):
   """Empty data type definition for testing."""
 
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-    return [u'empty']
-
   def GetByteSize(self):
     """Determines the byte size of the data type definition.
 
@@ -35,14 +27,6 @@ class EmptyDataTypeDefinition(data_types.DataTypeDefinition):
 
 class TestDataTypeDefinition(data_types.DataTypeDefinition):
   """Data type definition for testing."""
-
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-    return [u'value']
 
   def GetByteSize(self):
     """Determines the byte size of the data type definition.
@@ -786,6 +770,21 @@ class StructureMapTest(test_lib.BaseTestCase):
 
     result = data_type_map._CheckCompositeMap(data_type_definition)
     self.assertTrue(result)
+
+  @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
+  def testGetAttributeNames(self):
+    """Tests the _GetAttributeNames function."""
+    definitions_file = self._GetTestFilePath([u'structure.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'point3d')
+
+    data_type_map = data_maps.StructureMap(data_type_definition)
+    attribute_names = data_type_map._GetAttributeNames(data_type_definition)
+    self.assertEqual(attribute_names, [u'x', u'y', u'z'])
+
+    with self.assertRaises(errors.FormatError):
+      data_type_map._GetAttributeNames(None)
 
   @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testGetMemberDataTypeMaps(self):

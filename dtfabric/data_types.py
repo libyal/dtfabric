@@ -40,14 +40,6 @@ class DataTypeDefinition(object):
     self.urls = urls
 
   @abc.abstractmethod
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-
-  @abc.abstractmethod
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.
 
@@ -87,14 +79,6 @@ class StorageDataTypeDefinition(DataTypeDefinition):
     self.byte_order = definitions.BYTE_ORDER_NATIVE
 
   @abc.abstractmethod
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-
-  @abc.abstractmethod
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.
 
@@ -124,14 +108,6 @@ class FixedSizeDataTypeDefinition(StorageDataTypeDefinition):
         name, aliases=aliases, description=description, urls=urls)
     self.size = None
     self.units = u'bytes'
-
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-    return [u'value']
 
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.
@@ -270,14 +246,6 @@ class ElementSequenceDataTypeDefinition(StorageDataTypeDefinition):
     self.number_of_elements = None
     self.number_of_elements_expression = None
 
-  @abc.abstractmethod
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.
 
@@ -299,27 +267,11 @@ class SequenceDefinition(ElementSequenceDataTypeDefinition):
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_SEQUENCE
 
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-    return [u'elements']
-
 
 class StreamDefinition(ElementSequenceDataTypeDefinition):
   """Stream data type definition."""
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_STREAM
-
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-    return [u'stream']
 
 
 class StringDefinition(ElementSequenceDataTypeDefinition):
@@ -352,14 +304,6 @@ class StringDefinition(ElementSequenceDataTypeDefinition):
         description=description, urls=urls)
     self.encoding = u'ascii'
 
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-    return [u'string']
-
 
 class StructureDefinition(StorageDataTypeDefinition):
   """Structure data type definition.
@@ -383,33 +327,18 @@ class StructureDefinition(StorageDataTypeDefinition):
     """
     super(StructureDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self._attribute_names = None
     self._byte_size = None
     self.members = []
 
   def AddMemberDefinition(self, member_definition):
-    """Adds structure member definition.
+    """Adds a structure member definition.
 
     Args:
       member_definition (DataTypeDefinition): structure member data type
           definition.
     """
-    self._attribute_names = None
     self._byte_size = None
     self.members.append(member_definition)
-
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-    if self._attribute_names is None:
-      self._attribute_names = []
-      for member_definition in self.members:
-        self._attribute_names.append(member_definition.name)
-
-    return self._attribute_names
 
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.
@@ -460,15 +389,6 @@ class StructureMemberDefinition(StorageDataTypeDefinition):
     self.member_data_type = data_type
     self.member_data_type_definition = data_type_definition
 
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-    if self.member_data_type_definition:
-      return self.member_data_type_definition.GetAttributeNames()
-
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.
 
@@ -496,14 +416,6 @@ class SemanticDataTypeDefinition(DataTypeDefinition):
   Attributes:
     byte_order (str): byte-order the data type.
   """
-
-  @abc.abstractmethod
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
 
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.
@@ -535,14 +447,6 @@ class ConstantDefinition(SemanticDataTypeDefinition):
     super(ConstantDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.value = None
-
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-    return [u'constant']
 
 
 class EnumerationValue(object):
@@ -633,14 +537,6 @@ class EnumerationDefinition(SemanticDataTypeDefinition):
     for alias in aliases or []:
       self.values_per_alias[alias] = enumeration_value
 
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-    return [u'enumeration']
-
 
 class LayoutDataTypeDefinition(DataTypeDefinition):
   """Layout data type definition interface.
@@ -650,14 +546,6 @@ class LayoutDataTypeDefinition(DataTypeDefinition):
   """
 
   _IS_COMPOSITE = True
-
-  @abc.abstractmethod
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
 
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.
@@ -672,11 +560,3 @@ class FormatDefinition(LayoutDataTypeDefinition):
   """Data format definition."""
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_FORMAT
-
-  def GetAttributeNames(self):
-    """Determines the attribute (or field) names of the data type definition.
-
-    Returns:
-      list[str]: attribute names.
-    """
-    return []

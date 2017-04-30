@@ -853,8 +853,8 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
         last_definition_object = definition_object
 
     except errors.DefinitionReaderError as exception:
-      error_location = u'In: {0:s}'.format(exception.name)
-      error_message = u''.join(exception.message)
+      error_message = u'In: {0:s} {1:s}'.format(
+          exception.name, exception.message)
       raise errors.FormatError(error_message)
 
     except yaml.scanner.ScannerError as exception:
