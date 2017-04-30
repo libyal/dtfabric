@@ -798,6 +798,28 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
     super(YAMLDataTypeDefinitionsFileReader, self).ReadDirectory(
         definitions_registry, path, extension=extension)
 
+  def _GetFormatErrorLocation(
+      self, yaml_definition, last_definition_object):
+    """Retrieves a format error location.
+
+    Args:
+      yaml_definition (dict[str, object]): current YAML definition.
+      last_definition_object (DataTypeDefinition): previous data type
+          definition.
+
+    Returns:
+      str: format error location.
+    """
+    name = yaml_definition.get(u'name', None)
+    if name:
+      error_location = u'In: {0:s}'.format(name)
+    elif last_definition_object:
+      error_location = u'After: {0:s}'.format(last_definition_object.name)
+    else:
+      error_location = u'At start'
+
+    return error_location
+
   def ReadFileObject(self, definitions_registry, file_object):
     """Reads data type definitions from a file-like object into the registry.
 
@@ -815,32 +837,27 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
     last_definition_object = None
     error_location = None
     error_message = None
-    for yaml_definition in yaml_generator:
-      try:
+
+    try:
+      for yaml_definition in yaml_generator:
         definition_object = self.ReadDefinitionFromDict(
             definitions_registry, yaml_definition)
+        if not definition_object:
+          error_location = self._GetFormatErrorLocation(
+              yaml_definition, last_definition_object)
+          error_message = u'{0:s} Missing definition object.'.format(
+              error_location)
+          raise errors.FormatError(error_message)
 
-      except errors.DefinitionReaderError as exception:
-        definition_object = None
-        if exception.name:
-          error_location = u'In: {0:s}'.format(exception.name)
-        error_message = u''.join(exception.message)
+        definitions_registry.RegisterDefinition(definition_object)
+        last_definition_object = definition_object
 
-      if not definition_object:
-        if not error_location:
-          name = yaml_definition.get(u'name', None)
-          if name:
-            error_location = u'In: {0:s}'.format(name)
-          elif last_definition_object:
-            error_location = u'After: {0:s}'.format(last_definition_object.name)
-          else:
-            error_location = u'At start'
+    except errors.DefinitionReaderError as exception:
+      error_location = u'In: {0:s}'.format(exception.name)
+      error_message = u''.join(exception.message)
+      raise errors.FormatError(error_message)
 
-        if not error_message:
-          error_message = u'Missing definition object.'
-
-        error_message = u'{0:s} {1:s}'.format(error_location, error_message)
-        raise errors.FormatError(error_message)
-
-      definitions_registry.RegisterDefinition(definition_object)
-      last_definition_object = definition_object
+    except yaml.scanner.ScannerError as exception:
+      error_location = self._GetFormatErrorLocation({}, last_definition_object)
+      error_message = u'{0:s} {1!s}'.format(error_location, exception)
+      raise errors.FormatError(error_message)
