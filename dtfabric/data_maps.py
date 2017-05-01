@@ -62,6 +62,14 @@ class DataTypeMap(object):
     if self._data_type_definition:
       return self._data_type_definition.GetByteSize()
 
+  def GetSizeHint(self, **unused_kwargs):
+    """Retrieves size hints.
+
+    Returns:
+      int: hint of the number of bytes needed from the byte stream or None.
+    """
+    return self.GetByteSize()
+
   @abc.abstractmethod
   def MapByteStream(self, byte_stream, **unused_kwargs):
     """Maps the data type on a byte stream.
@@ -550,6 +558,41 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
           u'Invalid data type definition missing element')
 
     return element_data_type_definition
+
+  def GetSizeHint(self, context=None, **unused_kwargs):
+    """Retrieves size hints.
+
+    Args:
+      context (Optional[DataTypeMapContext]): data type map context.
+
+    Returns:
+      int: hint of the number of bytes needed from the byte stream or None.
+    """
+    elements_data_size = self.GetByteSize()
+    if elements_data_size:
+      return elements_data_size
+
+    if (self._data_type_definition.elements_data_size is not None or
+        self._data_type_definition.elements_data_size_expression is not None):
+
+      try:
+        elements_data_size = self._EvaluateElementsDataSize(context)
+      except errors.MappingError:
+        pass
+
+    elif self._data_type_definition.elements_terminator is not None:
+      elements_data_size = self._element_data_type_definition.GetByteSize()
+
+    elif (self._data_type_definition.number_of_elements is not None or
+          self._data_type_definition.number_of_elements_expression is not None):
+      element_byte_size = self._element_data_type_definition.GetByteSize()
+      try:
+        number_of_elements = self._EvaluateNumberOfElements(context)
+        elements_data_size = number_of_elements * element_byte_size
+      except errors.MappingError:
+        pass
+
+    return elements_data_size
 
   def GetStructByteOrderString(self):
     """Retrieves the Python struct format string.
@@ -1183,6 +1226,28 @@ class StructureMap(StorageDataTypeMap):
       context.byte_size = members_data_size
 
     return mapped_value
+
+  def GetSizeHint(self, context=None, **unused_kwargs):
+    """Retrieves size hints.
+
+    Args:
+      context (Optional[DataTypeMapContext]): data type map context.
+
+    Returns:
+      int: hint of the number of bytes needed from the byte stream or None.
+    """
+    context_state = getattr(context, u'state', {})
+    subcontext = context_state.get(u'context', None)
+
+    size_hint = 0
+    for data_type_map in self._data_type_maps:
+      data_type_size = data_type_map.GetSizeHint(context=subcontext)
+      if not data_type_size:
+        break
+
+      size_hint += data_type_size
+
+    return size_hint
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.

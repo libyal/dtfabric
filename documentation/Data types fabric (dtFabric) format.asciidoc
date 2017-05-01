@@ -315,6 +315,8 @@ Stream data type specfic attributes:
 A structure is a data type to represent a composition of members of other
 data types.
 
+[yellow-background]*TODO: add structure size hint?*
+
 [source,yaml]
 ----
 name: point3d

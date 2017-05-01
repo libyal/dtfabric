@@ -72,6 +72,18 @@ class DataTypeMapTest(test_lib.BaseTestCase):
     byte_size = data_type_map.GetByteSize()
     self.assertEqual(byte_size, 4)
 
+  def testGetSizeHint(self):
+    """Tests the GetSizeHint function."""
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
+
+    data_type_map = data_maps.DataTypeMap(data_type_definition)
+
+    size_hint = data_type_map.GetSizeHint()
+    self.assertEqual(size_hint, 4)
+
 
 @test_lib.skipUnlessHasTestFile([u'integer.yaml'])
 class StorageDataTypeMapTest(test_lib.BaseTestCase):
@@ -524,6 +536,8 @@ class ElementSequenceDataTypeMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.FormatError):
       data_type_definition = EmptyDataTypeDefinition(u'empty')
       data_type_map._GetElementDataTypeDefinition(data_type_definition)
+
+  # TODO: add tests for GetSizeHint.
 
   def testGetStructByteOrderString(self):
     """Tests the GetStructByteOrderString function."""
@@ -1024,6 +1038,32 @@ class StructureMapTest(test_lib.BaseTestCase):
 
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(byte_stream)
+
+  @test_lib.skipUnlessHasTestFile([u'structure_with_string.yaml'])
+  def testGetSizeHint(self):
+    """Tests the GetSizeHint function with a string."""
+    definitions_file = self._GetTestFilePath([u'structure_with_string.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'utf16_string')
+    data_type_map = data_maps.StructureMap(data_type_definition)
+
+    context = data_maps.DataTypeMapContext()
+
+    text_stream = u'dtFabric'.encode(u'utf-16-le')
+    byte_stream = b''.join([
+        bytes(bytearray([len(text_stream), 0])), text_stream])
+
+    size_hint = data_type_map.GetSizeHint(context=context)
+    self.assertEqual(size_hint, 2)
+
+    with self.assertRaises(errors.ByteStreamTooSmallError):
+      data_type_map.MapByteStream(byte_stream[:size_hint], context=context)
+
+    size_hint = data_type_map.GetSizeHint(context=context)
+    self.assertEqual(size_hint, 18)
 
 
 @test_lib.skipUnlessHasTestFile([u'constant.yaml'])
