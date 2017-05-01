@@ -539,8 +539,6 @@ class ElementSequenceDataTypeMapTest(test_lib.BaseTestCase):
 class SequenceMapTest(test_lib.BaseTestCase):
   """Sequence map tests."""
 
-  # pylint: disable=protected-access
-
   def testInitialize(self):
     """Tests the __init__ function."""
     definitions_file = self._GetTestFilePath([u'sequence.yaml'])
@@ -597,8 +595,6 @@ class SequenceMapTest(test_lib.BaseTestCase):
 @test_lib.skipUnlessHasTestFile([u'stream.yaml'])
 class StreamMapTest(test_lib.BaseTestCase):
   """Stream map tests."""
-
-  # pylint: disable=protected-access
 
   def testInitialize(self):
     """Tests the __init__ function."""

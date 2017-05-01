@@ -857,7 +857,7 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
           exception.name, exception.message)
       raise errors.FormatError(error_message)
 
-    except yaml.scanner.ScannerError as exception:
+    except (yaml.reader.ReaderError, yaml.scanner.ScannerError) as exception:
       error_location = self._GetFormatErrorLocation({}, last_definition_object)
       error_message = u'{0:s} {1!s}'.format(error_location, exception)
       raise errors.FormatError(error_message)

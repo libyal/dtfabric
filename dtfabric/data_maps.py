@@ -596,6 +596,9 @@ class SequenceMap(ElementSequenceDataTypeMap):
     values = []
 
     while byte_stream[byte_stream_offset:]:
+      if number_of_elements is not None and element_index == number_of_elements:
+        break
+
       try:
         element_value = self._element_data_type_map.MapByteStream(
             byte_stream[byte_stream_offset:], context=subcontext)
@@ -611,9 +614,6 @@ class SequenceMap(ElementSequenceDataTypeMap):
 
       if (elements_terminator is not None and
           element_value == elements_terminator):
-        break
-
-      if number_of_elements is not None and element_index == number_of_elements:
         break
 
     if elements_terminator is not None and element_value != elements_terminator:
@@ -1025,7 +1025,7 @@ class StructureMap(StorageDataTypeMap):
         # Make a copy of the data type definition where byte-order can be
         # safely changed.
         member_definition = copy.copy(member_definition)
-        member_definition.name = u'{0:s}.{1:s}'.format(
+        member_definition.name = u'_{0:s}_{1:s}'.format(
             data_type_definition.name, member_definition.name)
         member_definition.byte_order = data_type_definition.byte_order
 
