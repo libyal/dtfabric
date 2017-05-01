@@ -20,7 +20,9 @@ class DataTypeMapContext(object):
   """Data type map context.
 
   Attributes:
+    byte_offset (int): byte offset.
     byte_size (int): byte size.
+    state (dict[str, object]): state values per name.
     values (dict[str, object]): values per name.
   """
 
@@ -31,7 +33,9 @@ class DataTypeMapContext(object):
       values (dict[str, object]): values per name.
     """
     super(DataTypeMapContext, self).__init__()
+    self.byte_offset = None
     self.byte_size = None
+    self.state = {}
     self.values = values or {}
 
 
@@ -84,6 +88,28 @@ class StorageDataTypeMap(DataTypeMap):
       definitions.BYTE_ORDER_BIG_ENDIAN: u'>',
       definitions.BYTE_ORDER_LITTLE_ENDIAN: u'<',
       definitions.BYTE_ORDER_NATIVE: u'='}
+
+  def _CheckByteStreamSize(self, byte_stream, data_type_size):
+    """Checks if the byte stream is large enough for the data type.
+
+    Args:
+      byte_stream (bytes): byte stream.
+      data_type_size (int): data type size.
+
+    Raises:
+      ByteStreamTooSmallError: if the byte stream is too small.
+      MappingError: if the size of the byte stream cannot be determined.
+    """
+    try:
+      byte_stream_size = len(byte_stream)
+
+    except Exception as exception:
+      raise errors.MappingError(exception)
+
+    if byte_stream_size < data_type_size:
+      raise errors.ByteStreamTooSmallError(
+          u'Byte stream too small requested: {0:d} available: {1:d}'.format(
+              data_type_size, byte_stream_size))
 
   def _GetByteStreamOperation(self):
     """Retrieves the byte stream operation.
@@ -160,15 +186,20 @@ class PrimitiveDataTypeMap(StorageDataTypeMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
-    if context:
-      context.byte_size = self._data_type_definition.GetByteSize()
+    byte_size = self._data_type_definition.GetByteSize()
+    self._CheckByteStreamSize(byte_stream, byte_size)
 
     try:
       struct_tuple = self._operation.ReadFrom(byte_stream)
-      return self.MapValue(*struct_tuple)
+      mapped_value = self.MapValue(*struct_tuple)
 
     except Exception as exception:
       raise errors.MappingError(exception)
+
+    if context:
+      context.byte_size = byte_size
+
+    return mapped_value
 
   def MapValue(self, value):
     """Maps the data type on a value.
@@ -376,8 +407,8 @@ class UUIDMap(StorageDataTypeMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
-    if context:
-      context.byte_size = self._data_type_definition.GetByteSize()
+    byte_size = self._data_type_definition.GetByteSize()
+    self._CheckByteStreamSize(byte_stream, byte_size)
 
     try:
       struct_tuple = self._operation.ReadFrom(byte_stream)
@@ -385,10 +416,15 @@ class UUIDMap(StorageDataTypeMap):
           u'{{{0:08x}-{1:04x}-{2:04x}-{3:02x}{4:02x}-'
           u'{5:02x}{6:02x}{7:02x}{8:02x}{9:02x}{10:02x}}}').format(
               *struct_tuple)
-      return uuid.UUID(uuid_string)
+      mapped_value = uuid.UUID(uuid_string)
 
     except Exception as exception:
       raise errors.MappingError(exception)
+
+    if context:
+      context.byte_size = byte_size
+
+    return mapped_value
 
 
 class ElementSequenceDataTypeMap(StorageDataTypeMap):
@@ -566,6 +602,7 @@ class SequenceMap(ElementSequenceDataTypeMap):
       tuple[object, ...]: mapped values.
 
     Raises:
+      ByteStreamTooSmallError: if the byte stream is too small.
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
@@ -588,12 +625,16 @@ class SequenceMap(ElementSequenceDataTypeMap):
     if elements_terminator is None and number_of_elements is None:
       raise errors.MappingError(u'Unable to determine number of elements')
 
-    subcontext = DataTypeMapContext()
+    context_state = getattr(context, u'state', {})
 
     byte_stream_offset = 0
-    element_index = 0
+    element_index = context_state.get(u'element_index', 0)
     element_value = None
-    values = []
+    mapped_values = context_state.get(u'mapped_values', [])
+    subcontext = context_state.get(u'context', None)
+
+    if not subcontext:
+      subcontext = DataTypeMapContext()
 
     while byte_stream[byte_stream_offset:]:
       if number_of_elements is not None and element_index == number_of_elements:
@@ -603,27 +644,61 @@ class SequenceMap(ElementSequenceDataTypeMap):
         element_value = self._element_data_type_map.MapByteStream(
             byte_stream[byte_stream_offset:], context=subcontext)
 
+      except errors.ByteStreamTooSmallError as exception:
+        context_state[u'context'] = subcontext
+        context_state[u'element_index'] = element_index
+        context_state[u'mapped_values'] = mapped_values
+
+        error_string = (
+            u'Unable to read: {0:s} from byte stream at offset: {1:d} '
+            u'with error: {2!s}').format(
+                self._data_type_definition.name, byte_stream_offset,
+                exception)
+        raise errors.ByteStreamTooSmallError(error_string)
+
       except Exception as exception:
-        raise errors.MappingError((
-            u'Unable to read byte stream at offset: {0:d} with error: '
-            u'{1!s}').format(byte_stream_offset, exception))
+        error_string = (
+            u'Unable to read: {0:s} from byte stream at offset: {1:d} '
+            u'with error: {2!s}').format(
+                self._data_type_definition.name, byte_stream_offset,
+                exception)
+        raise errors.MappingError(error_string)
 
       byte_stream_offset += subcontext.byte_size
       element_index += 1
-      values.append(element_value)
+      mapped_values.append(element_value)
 
       if (elements_terminator is not None and
           element_value == elements_terminator):
         break
 
+    if number_of_elements is not None and element_index != number_of_elements:
+      context_state[u'context'] = subcontext
+      context_state[u'element_index'] = element_index
+      context_state[u'mapped_values'] = mapped_values
+
+      error_string = (
+          u'Unable to read: {0:s} from byte stream at offset: {1:d} '
+          u'with error: missing element: {2:d}').format(
+              self._data_type_definition.name, byte_stream_offset,
+              element_index - 1)
+      raise errors.ByteStreamTooSmallError(error_string)
+
     if elements_terminator is not None and element_value != elements_terminator:
-      raise errors.MappingError(
-          u'Byte stream too small unable to find elements terminator.')
+      context_state[u'context'] = subcontext
+      context_state[u'mapped_values'] = mapped_values
+
+      error_string = (
+          u'Unable to read: {0:s} from byte stream at offset: {1:d} '
+          u'with error: unable to find elements terminator').format(
+              self._data_type_definition.name, byte_stream_offset)
+      raise errors.ByteStreamTooSmallError(error_string)
 
     if context:
       context.byte_size = byte_stream_offset
+      context.state = {}
 
-    return tuple(values)
+    return tuple(mapped_values)
 
   def _LinearMapByteStream(self, byte_stream, context=None, **unused_kwargs):
     """Maps a data type sequence on a byte stream.
@@ -639,15 +714,20 @@ class SequenceMap(ElementSequenceDataTypeMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
-    if context:
-      context.byte_size = self._data_type_definition.GetByteSize()
+    byte_size = self._data_type_definition.GetByteSize()
+    self._CheckByteStreamSize(byte_stream, byte_size)
 
     try:
       struct_tuple = self._operation.ReadFrom(byte_stream)
-      return tuple(map(self._element_data_type_map.MapValue, struct_tuple))
+      mapped_values = map(self._element_data_type_map.MapValue, struct_tuple)
 
     except Exception as exception:
       raise errors.MappingError(exception)
+
+    if context:
+      context.byte_size = byte_size
+
+    return tuple(mapped_values)
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -725,6 +805,8 @@ class StreamMap(ElementSequenceDataTypeMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
+    # TODO: check byte stream size
+
     elements_data_size = None
     elements_terminator = None
 
@@ -744,16 +826,8 @@ class StreamMap(ElementSequenceDataTypeMap):
     if elements_terminator is None and elements_data_size is None:
       raise errors.MappingError(u'Unable to determine elements data size')
 
-    try:
-      byte_stream_size = len(byte_stream)
-
-    except Exception as exception:
-      raise errors.MappingError(exception)
-
-    if elements_data_size is not None and byte_stream_size < elements_data_size:
-      raise errors.MappingError(
-          u'Byte stream too small requested: {0:d} available: {1:d}'.format(
-              elements_data_size, byte_stream_size))
+    if elements_data_size is not None:
+      self._CheckByteStreamSize(byte_stream, elements_data_size)
 
     elif elements_terminator is not None:
       element_byte_size = self._element_data_type_definition.GetByteSize()
@@ -792,20 +866,10 @@ class StreamMap(ElementSequenceDataTypeMap):
           the byte stream.
     """
     elements_data_size = self._data_type_definition.GetByteSize()
-
     if elements_data_size is None:
       raise errors.MappingError(u'Unable to determine elements data size')
 
-    try:
-      byte_stream_size = len(byte_stream)
-
-    except Exception as exception:
-      raise errors.MappingError(exception)
-
-    if byte_stream_size < elements_data_size:
-      raise errors.MappingError(
-          u'Byte stream too small requested: {0:d} available: {1:d}'.format(
-              elements_data_size, byte_stream_size))
+    self._CheckByteStreamSize(byte_stream, elements_data_size)
 
     if context:
       context.byte_size = elements_data_size
@@ -882,6 +946,7 @@ class StructureMap(StorageDataTypeMap):
         data_type_definition, self._data_type_map_cache)
     self._format_string = None
     self._map_byte_stream = None
+    self._number_of_attributes = len(self._attribute_names)
     self._operation = None
     self._structure_values_class = (
         runtime.StructureValuesClassFactory.CreateClass(
@@ -945,31 +1010,68 @@ class StructureMap(StorageDataTypeMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
-    structure_values = self._structure_values_class()
+    context_state = getattr(context, u'state', {})
 
-    subcontext = DataTypeMapContext(values={
-        type(structure_values).__name__: structure_values})
-
+    attribute_index = context_state.get(u'attribute_index', 0)
     byte_stream_offset = 0
-    for index, attribute_name in enumerate(self._attribute_names):
-      data_type_map = self._data_type_maps[index]
+    mapped_values = context_state.get(u'mapped_values', None)
+    subcontext = context_state.get(u'context', None)
+
+    if not mapped_values:
+      mapped_values = self._structure_values_class()
+    if not subcontext:
+      subcontext = DataTypeMapContext(values={
+          type(mapped_values).__name__: mapped_values})
+
+    for attribute_index in range(attribute_index, self._number_of_attributes):
+      attribute_name = self._attribute_names[attribute_index]
+      data_type_map = self._data_type_maps[attribute_index]
+      subcontext.byte_offset = byte_stream_offset
 
       try:
         value = data_type_map.MapByteStream(
             byte_stream[byte_stream_offset:], context=subcontext)
-        setattr(structure_values, attribute_name, value)
+        setattr(mapped_values, attribute_name, value)
+
+      except errors.ByteStreamTooSmallError as exception:
+        context_state[u'attribute_index'] = attribute_index
+        context_state[u'context'] = subcontext
+        context_state[u'mapped_values'] = mapped_values
+
+        error_string = (
+            u'Unable to read: {0:s} from byte stream at offset: {1:d} '
+            u'with error: {2!s}').format(
+                self._data_type_definition.name, byte_stream_offset,
+                exception)
+        raise errors.ByteStreamTooSmallError(error_string)
 
       except Exception as exception:
-        raise errors.MappingError((
-            u'Unable to read byte stream at offset: {0:d} with error: '
-            u'{1!s}').format(byte_stream_offset, exception))
+        error_string = (
+            u'Unable to read: {0:s} from byte stream at offset: {1:d} '
+            u'with error: {2!s}').format(
+                self._data_type_definition.name, byte_stream_offset,
+                exception)
+        raise errors.MappingError(error_string)
 
       byte_stream_offset += subcontext.byte_size
 
+    if attribute_index != (self._number_of_attributes - 1):
+      context_state[u'attribute_index'] = attribute_index
+      context_state[u'context'] = subcontext
+      context_state[u'mapped_values'] = mapped_values
+
+      error_string = (
+          u'Unable to read: {0:s} from byte stream at offset: {1:d} '
+          u'with error: missing attribute: {2:d}').format(
+              self._data_type_definition.name, byte_stream_offset,
+              attribute_index)
+      raise errors.ByteStreamTooSmallError(error_string)
+
     if context:
       context.byte_size = byte_stream_offset
+      context.state = {}
 
-    return structure_values
+    return mapped_values
 
   def _GetAttributeNames(self, data_type_definition):
     """Determines the attribute (or field) names of the members.
@@ -1052,18 +1154,23 @@ class StructureMap(StorageDataTypeMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
-    if context:
-      context.byte_size = self._data_type_definition.GetByteSize()
+    byte_size = self._data_type_definition.GetByteSize()
+    self._CheckByteStreamSize(byte_stream, byte_size)
 
     try:
       struct_tuple = self._operation.ReadFrom(byte_stream)
       values = [
           self._data_type_maps[index].MapValue(value)
           for index, value in enumerate(struct_tuple)]
-      return self._structure_values_class(*values)
+      mapped_value = self._structure_values_class(*values)
 
     except Exception as exception:
       raise errors.MappingError(exception)
+
+    if context:
+      context.byte_size = byte_size
+
+    return mapped_value
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.

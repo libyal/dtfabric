@@ -6,6 +6,10 @@ class Error(Exception):
   """The error interface."""
 
 
+class ByteStreamTooSmallError(Error):
+  """Error that is raised when the byte stream is too small."""
+
+
 class DefinitionReaderError(Error):
   """Error that is raised by the definition reader.
 

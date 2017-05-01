@@ -79,6 +79,8 @@ class StorageDataTypeMapTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
+  # TODO: add tests for _CheckByteStreamSize
+
   def testGetByteStreamOperation(self):
     """Tests the _GetByteStreamOperation function."""
     definitions_file = self._GetTestFilePath([u'integer.yaml'])
@@ -233,7 +235,7 @@ class BooleanMapTest(test_lib.BaseTestCase):
     bool_value = data_type_map.MapByteStream(b'\xff\xff\xff\xff')
     self.assertTrue(bool_value)
 
-    with self.assertRaises(errors.MappingError):
+    with self.assertRaises(errors.ByteStreamTooSmallError):
       data_type_map.MapByteStream(b'\x01\x00')
 
 
@@ -291,7 +293,7 @@ class CharacterMapTest(test_lib.BaseTestCase):
     string_value = data_type_map.MapByteStream(b'\xb6\x24\x00\x00')
     self.assertEqual(string_value, u'\u24b6')
 
-    with self.assertRaises(errors.MappingError):
+    with self.assertRaises(errors.ByteStreamTooSmallError):
       data_type_map.MapByteStream(b'\xb6\x24')
 
 
@@ -338,7 +340,7 @@ class FloatingPointMapTest(test_lib.BaseTestCase):
         b'\xae\x47\xe1\x7a\x14\xae\x28\x40')
     self.assertEqual(float_value, 12.34)
 
-    with self.assertRaises(errors.MappingError):
+    with self.assertRaises(errors.ByteStreamTooSmallError):
       data_type_map.MapByteStream(b'\xa4\x70\x45\x41')
 
 
@@ -449,7 +451,7 @@ class IntegerMapTest(test_lib.BaseTestCase):
         b'\x12\x34\x56\x78\x9a\xbc\xde\xf0')
     self.assertEqual(integer_value, 0xf0debc9a78563412)
 
-    with self.assertRaises(errors.MappingError):
+    with self.assertRaises(errors.ByteStreamTooSmallError):
       data_type_map.MapByteStream(b'\x12\x34\x56\x78')
 
 
@@ -588,7 +590,7 @@ class SequenceMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(None)
 
-    with self.assertRaises(errors.MappingError):
+    with self.assertRaises(errors.ByteStreamTooSmallError):
       data_type_map.MapByteStream(b'\x12\x34\x56')
 
 
@@ -647,7 +649,7 @@ class StreamMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(None)
 
-    with self.assertRaises(errors.MappingError):
+    with self.assertRaises(errors.ByteStreamTooSmallError):
       data_type_map.MapByteStream(b'\x12\x34\x56')
 
 
@@ -696,7 +698,7 @@ class StringMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(None)
 
-    with self.assertRaises(errors.MappingError):
+    with self.assertRaises(errors.ByteStreamTooSmallError):
       data_type_map.MapByteStream(b'\x12\x34\x56')
 
     data_type_definition = definitions_registry.GetDefinitionByName(
@@ -904,6 +906,7 @@ class StructureMapTest(test_lib.BaseTestCase):
 
     sphere = data_type_map.MapByteStream(byte_stream)
     self.assertEqual(sphere.number_of_triangles, 3)
+
     self.assertEqual(sphere.triangles[0].a.x, 1)
     self.assertEqual(sphere.triangles[0].a.y, 2)
     self.assertEqual(sphere.triangles[0].a.z, 3)
@@ -915,6 +918,27 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertEqual(sphere.triangles[0].c.x, 7)
     self.assertEqual(sphere.triangles[0].c.y, 8)
     self.assertEqual(sphere.triangles[0].c.z, 9)
+
+    self.assertEqual(sphere.triangles[2].c.x, 25)
+    self.assertEqual(sphere.triangles[2].c.y, 26)
+    self.assertEqual(sphere.triangles[2].c.z, 27)
+
+    # Test incremental map.
+    context = data_maps.DataTypeMapContext()
+
+    with self.assertRaises(errors.ByteStreamTooSmallError):
+      data_type_map.MapByteStream(byte_stream[:64], context=context)
+
+    sphere = data_type_map.MapByteStream(byte_stream[64:], context=context)
+    self.assertEqual(sphere.number_of_triangles, 3)
+
+    self.assertEqual(sphere.triangles[0].a.x, 1)
+    self.assertEqual(sphere.triangles[0].a.y, 2)
+    self.assertEqual(sphere.triangles[0].a.z, 3)
+
+    self.assertEqual(sphere.triangles[2].c.x, 25)
+    self.assertEqual(sphere.triangles[2].c.y, 26)
+    self.assertEqual(sphere.triangles[2].c.z, 27)
 
   @test_lib.skipUnlessHasTestFile([u'structure_with_sequence.yaml'])
   def testMapByteStreamWithSequenceWithExpression2(self):
