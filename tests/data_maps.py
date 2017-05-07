@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for the data type maps."""
 
-from collections import namedtuple
 import unittest
 import uuid
 
@@ -1123,8 +1122,7 @@ class StructureMapTest(test_lib.BaseTestCase):
       byte_value_upper, byte_value_lower = divmod(value, 256)
       byte_values.extend([byte_value_lower, byte_value_upper, 0, 0])
 
-    point3d_class = namedtuple(u'point3d', 'x y z')
-    point3d = point3d_class(1, 2, 3)
+    point3d = data_type_map.CreateStructureValues(x=1, y=2, z=3)
 
     expected_byte_stream = bytes(bytearray(byte_values))
     byte_stream = data_type_map._LinearFoldByteStream(point3d)
@@ -1160,6 +1158,8 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertEqual(point3d.x, 0x01000000)
     self.assertEqual(point3d.y, 0x02000000)
     self.assertEqual(point3d.z, 0x03000000)
+
+  # TODO: add tests for CreateStructureValues.
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""

@@ -546,9 +546,11 @@ class UUIDMap(StorageDataTypeMap):
 
     try:
       if self._byte_order == definitions.BYTE_ORDER_BIG_ENDIAN:
-        mapped_value = uuid.UUID(bytes=byte_stream[byte_offset:])
+        mapped_value = uuid.UUID(
+            bytes=byte_stream[byte_offset:byte_offset + 16])
       elif self._byte_order == definitions.BYTE_ORDER_LITTLE_ENDIAN:
-        mapped_value = uuid.UUID(bytes_le=byte_stream[byte_offset:])
+        mapped_value = uuid.UUID(
+            bytes_le=byte_stream[byte_offset:byte_offset + 16])
 
     except Exception as exception:
       error_string = (
@@ -1552,6 +1554,14 @@ class StructureMap(StorageDataTypeMap):
       context.byte_size = members_data_size
 
     return mapped_value
+
+  def CreateStructureValues(self, *args, **kwargs):
+    """Creates a structure values object.
+
+    Returns:
+      object: structure values.
+    """
+    return self._structure_values_class(*args, **kwargs)
 
   def FoldByteStream(self, mapped_value, **kwargs):
     """Folds the data type into a byte stream.
