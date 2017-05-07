@@ -10,6 +10,13 @@ attributes:
 name: vector4
 aliases: [VECTOR]
 type: sequence
-description: vector with 4 elements
+description: 4-dimensional vector
 element_data_type: int32
 number_of_elements: 4
+---
+name: triangle4
+aliases: [TRIANGLE]
+type: sequence
+description: 4-dimensional triangle
+element_data_type: vector4
+number_of_elements: 3

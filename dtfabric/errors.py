@@ -31,6 +31,10 @@ class DefinitionReaderError(Error):
     self.message = message
 
 
+class FoldingError(Error):
+  """Error that is raised when the definition cannot be folded."""
+
+
 class FormatError(Error):
   """Error that is raised when the definition format is incorrect."""
 

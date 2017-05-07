@@ -71,6 +71,21 @@ class DataTypeMap(object):
     return self.GetByteSize()
 
   @abc.abstractmethod
+  def FoldByteStream(self, mapped_value, **unused_kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+
+  @abc.abstractmethod
   def MapByteStream(self, byte_stream, **unused_kwargs):
     """Maps the data type on a byte stream.
 
@@ -150,6 +165,21 @@ class StorageDataTypeMap(DataTypeMap):
     return
 
   @abc.abstractmethod
+  def FoldByteStream(self, mapped_value, **unused_kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+
+  @abc.abstractmethod
   def MapByteStream(self, byte_stream, **unused_kwargs):
     """Maps the data type on a byte stream.
 
@@ -176,6 +206,45 @@ class PrimitiveDataTypeMap(StorageDataTypeMap):
     """
     super(PrimitiveDataTypeMap, self).__init__(data_type_definition)
     self._operation = self._GetByteStreamOperation()
+
+  def FoldByteStream(self, mapped_value, byte_offset=0, **unused_kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+      byte_offset (Optional[int]): offset into the byte stream where to start.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+    try:
+      value = self.FoldValue(mapped_value)
+      return self._operation.WriteTo(tuple([value]))
+
+    except Exception as exception:
+      error_string = (
+          u'Unable to write: {0:s} to byte stream at offset: {1:d} '
+          u'with error: {2!s}').format(
+              self._data_type_definition.name, byte_offset, exception)
+      raise errors.FoldingError(error_string)
+
+  def FoldValue(self, value):
+    """Folds the data type into a value.
+
+    Args:
+      value (object): value.
+
+    Returns:
+      object: folded value.
+
+    Raises:
+      ValueError: if the data type definition cannot be folded into the value.
+    """
+    return value
 
   def MapByteStream(
       self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
@@ -265,6 +334,26 @@ class BooleanMap(PrimitiveDataTypeMap):
     return self._FORMAT_STRINGS_UNSIGNED.get(
         self._data_type_definition.size, None)
 
+  def FoldValue(self, value):
+    """Folds the data type into a value.
+
+    Args:
+      value (object): value.
+
+    Returns:
+      object: folded value.
+
+    Raises:
+      ValueError: if the data type definition cannot be folded into the value.
+    """
+    if value is False and self._data_type_definition.false_value is not None:
+      return self._data_type_definition.false_value
+
+    if value is True and self._data_type_definition.true_value is not None:
+      return self._data_type_definition.true_value
+
+    raise ValueError(u'No matching True and False values')
+
   def MapValue(self, value):
     """Maps the data type on a value.
 
@@ -312,6 +401,20 @@ class CharacterMap(PrimitiveDataTypeMap):
     """
     return self._FORMAT_STRINGS.get(
         self._data_type_definition.size, None)
+
+  def FoldValue(self, value):
+    """Folds the data type into a value.
+
+    Args:
+      value (object): value.
+
+    Returns:
+      object: folded value.
+
+    Raises:
+      ValueError: if the data type definition cannot be folded into the value.
+    """
+    return ord(value)
 
   def MapValue(self, value):
     """Maps the data type on a value.
@@ -393,16 +496,34 @@ class UUIDMap(StorageDataTypeMap):
       data_type_definition (DataTypeDefinition): data type definition.
     """
     super(UUIDMap, self).__init__(data_type_definition)
-    self._operation = self._GetByteStreamOperation()
+    self._byte_order = data_type_definition.byte_order
 
-  def GetStructFormatString(self):
-    """Retrieves the Python struct format string.
+  def FoldByteStream(self, mapped_value, byte_offset=0, **unused_kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+      byte_offset (Optional[int]): offset into the byte stream where to start.
 
     Returns:
-      str: format string as used by Python struct or None if format string
-          cannot be determined.
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
     """
-    return u'IHH8B'
+    try:
+      if self._byte_order == definitions.BYTE_ORDER_BIG_ENDIAN:
+        return mapped_value.bytes
+      elif self._byte_order == definitions.BYTE_ORDER_LITTLE_ENDIAN:
+        return mapped_value.bytes_le
+
+    except Exception as exception:
+      error_string = (
+          u'Unable to write: {0:s} to byte stream at offset: {1:d} '
+          u'with error: {2!s}').format(
+              self._data_type_definition.name, byte_offset, exception)
+      raise errors.FoldingError(error_string)
 
   def MapByteStream(
       self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
@@ -424,12 +545,10 @@ class UUIDMap(StorageDataTypeMap):
     self._CheckByteStreamSize(byte_stream, byte_offset, data_type_size)
 
     try:
-      struct_tuple = self._operation.ReadFrom(byte_stream[byte_offset:])
-      uuid_string = (
-          u'{{{0:08x}-{1:04x}-{2:04x}-{3:02x}{4:02x}-'
-          u'{5:02x}{6:02x}{7:02x}{8:02x}{9:02x}{10:02x}}}').format(
-              *struct_tuple)
-      mapped_value = uuid.UUID(uuid_string)
+      if self._byte_order == definitions.BYTE_ORDER_BIG_ENDIAN:
+        mapped_value = uuid.UUID(bytes=byte_stream[byte_offset:])
+      elif self._byte_order == definitions.BYTE_ORDER_LITTLE_ENDIAN:
+        mapped_value = uuid.UUID(bytes_le=byte_stream[byte_offset:])
 
     except Exception as exception:
       error_string = (
@@ -559,6 +678,21 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
 
     return element_data_type_definition
 
+  @abc.abstractmethod
+  def FoldByteStream(self, mapped_value, **unused_kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+
   def GetSizeHint(self, context=None, **unused_kwargs):
     """Retrieves size hints.
 
@@ -630,6 +764,7 @@ class SequenceMap(ElementSequenceDataTypeMap):
       data_type_definition (DataTypeDefinition): data type definition.
     """
     super(SequenceMap, self).__init__(data_type_definition)
+    self._fold_byte_stream = None
     self._map_byte_stream = None
     self._operation = None
 
@@ -637,10 +772,29 @@ class SequenceMap(ElementSequenceDataTypeMap):
         data_type_definition.elements_data_size_expression is not None or
         data_type_definition.elements_terminator is not None or
         data_type_definition.number_of_elements_expression is not None):
+      self._fold_byte_stream = self._CompositeFoldByteStream
       self._map_byte_stream = self._CompositeMapByteStream
     else:
+      self._fold_byte_stream = self._LinearFoldByteStream
       self._map_byte_stream = self._LinearMapByteStream
       self._operation = self._GetByteStreamOperation()
+
+  def _CompositeFoldByteStream(
+      self, mapped_value, byte_offset=0, **unused_kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+      byte_offset (Optional[int]): offset into the byte stream where to start.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+    # TODO: implement.
 
   def _CompositeMapByteStream(
       self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
@@ -688,30 +842,31 @@ class SequenceMap(ElementSequenceDataTypeMap):
     if not subcontext:
       subcontext = DataTypeMapContext()
 
-    while byte_stream[byte_offset:]:
-      if number_of_elements is not None and element_index == number_of_elements:
-        break
+    try:
+      while byte_stream[byte_offset:]:
+        if (number_of_elements is not None and
+            element_index == number_of_elements):
+          break
 
-      try:
         element_value = self._element_data_type_map.MapByteStream(
             byte_stream, byte_offset=byte_offset, context=subcontext)
 
-      except errors.ByteStreamTooSmallError as exception:
-        context_state[u'context'] = subcontext
-        context_state[u'element_index'] = element_index
-        context_state[u'mapped_values'] = mapped_values
-        raise errors.ByteStreamTooSmallError(exception)
+        byte_offset += subcontext.byte_size
+        element_index += 1
+        mapped_values.append(element_value)
 
-      except Exception as exception:
-        raise errors.MappingError(exception)
+        if (elements_terminator is not None and
+            element_value == elements_terminator):
+          break
 
-      byte_offset += subcontext.byte_size
-      element_index += 1
-      mapped_values.append(element_value)
+    except errors.ByteStreamTooSmallError as exception:
+      context_state[u'context'] = subcontext
+      context_state[u'element_index'] = element_index
+      context_state[u'mapped_values'] = mapped_values
+      raise errors.ByteStreamTooSmallError(exception)
 
-      if (elements_terminator is not None and
-          element_value == elements_terminator):
-        break
+    except Exception as exception:
+      raise errors.MappingError(exception)
 
     if number_of_elements is not None and element_index != number_of_elements:
       context_state[u'context'] = subcontext
@@ -739,6 +894,30 @@ class SequenceMap(ElementSequenceDataTypeMap):
       context.state = {}
 
     return tuple(mapped_values)
+
+  def _LinearFoldByteStream(self, mapped_value, byte_offset=0, **unused_kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+      byte_offset (Optional[int]): offset into the byte stream where to start.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+    try:
+      return self._operation.WriteTo(mapped_value)
+
+    except Exception as exception:
+      error_string = (
+          u'Unable to write: {0:s} to byte stream at offset: {1:d} '
+          u'with error: {2!s}').format(
+              self._data_type_definition.name, byte_offset, exception)
+      raise errors.FoldingError(error_string)
 
   def _LinearMapByteStream(
       self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
@@ -774,6 +953,21 @@ class SequenceMap(ElementSequenceDataTypeMap):
       context.byte_size = elements_data_size
 
     return tuple(mapped_values)
+
+  def FoldByteStream(self, mapped_value, **kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+    return self._fold_byte_stream(mapped_value, **kwargs)
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -825,6 +1019,7 @@ class StreamMap(ElementSequenceDataTypeMap):
           type definition.
     """
     super(StreamMap, self).__init__(data_type_definition)
+    self._fold_byte_stream = None
     self._map_byte_stream = None
 
     if self._element_data_type_definition.IsComposite():
@@ -833,9 +1028,28 @@ class StreamMap(ElementSequenceDataTypeMap):
     if (data_type_definition.elements_data_size_expression is not None or
         data_type_definition.elements_terminator is not None or
         data_type_definition.number_of_elements_expression is not None):
+      self._fold_byte_stream = self._CompositeFoldByteStream
       self._map_byte_stream = self._CompositeMapByteStream
     else:
+      self._fold_byte_stream = self._LinearFoldByteStream
       self._map_byte_stream = self._LinearMapByteStream
+
+  def _CompositeFoldByteStream(
+      self, mapped_value, byte_offset=0, **unused_kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+      byte_offset (Optional[int]): offset into the byte stream where to start.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+    # TODO: implement.
 
   def _CompositeMapByteStream(
       self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
@@ -904,6 +1118,28 @@ class StreamMap(ElementSequenceDataTypeMap):
 
     return byte_stream[byte_offset:byte_offset + elements_data_size]
 
+  def _LinearFoldByteStream(self, mapped_value, byte_offset=0, **unused_kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+      byte_offset (Optional[int]): offset into the byte stream where to start.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+    elements_data_size = self._data_type_definition.GetByteSize()
+    if elements_data_size is None:
+      raise errors.MappingError(u'Unable to determine elements data size')
+
+    self._CheckByteStreamSize(mapped_value, byte_offset, elements_data_size)
+
+    return mapped_value[byte_offset:byte_offset + elements_data_size]
+
   def _LinearMapByteStream(
       self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
     """Maps a data type sequence on a byte stream.
@@ -930,6 +1166,21 @@ class StreamMap(ElementSequenceDataTypeMap):
       context.byte_size = elements_data_size
 
     return byte_stream[byte_offset:byte_offset + elements_data_size]
+
+  def FoldByteStream(self, mapped_value, **kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+    return self._fold_byte_stream(mapped_value, **kwargs)
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -960,6 +1211,33 @@ class StreamMap(ElementSequenceDataTypeMap):
 
 class StringMap(StreamMap):
   """String data type map."""
+
+  def FoldByteStream(self, mapped_value, byte_offset=0, **kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+      byte_offset (Optional[int]): offset into the byte stream where to start.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+    try:
+      byte_stream = mapped_value.encode(self._data_type_definition.encoding)
+
+    except Exception as exception:
+      error_string = (
+          u'Unable to write: {0:s} to byte stream at offset: {1:d} '
+          u'with error: {2!s}').format(
+              self._data_type_definition.name, byte_offset, exception)
+      raise errors.MappingError(error_string)
+
+    return super(StringMap, self).FoldByteStream(
+        byte_stream, byte_offset=byte_offset, **kwargs)
 
   def MapByteStream(self, byte_stream, byte_offset=0, **kwargs):
     """Maps the data type on a byte stream.
@@ -1003,6 +1281,7 @@ class StructureMap(StorageDataTypeMap):
     self._data_type_map_cache = {}
     self._data_type_maps = self._GetMemberDataTypeMaps(
         data_type_definition, self._data_type_map_cache)
+    self._fold_byte_stream = None
     self._format_string = None
     self._map_byte_stream = None
     self._number_of_attributes = len(self._attribute_names)
@@ -1012,8 +1291,10 @@ class StructureMap(StorageDataTypeMap):
             data_type_definition))
 
     if self._CheckCompositeMap(data_type_definition):
+      self._fold_byte_stream = self._CompositeFoldByteStream
       self._map_byte_stream = self._CompositeMapByteStream
     else:
+      self._fold_byte_stream = self._LinearFoldByteStream
       self._map_byte_stream = self._LinearMapByteStream
       self._operation = self._GetByteStreamOperation()
 
@@ -1054,6 +1335,23 @@ class StructureMap(StorageDataTypeMap):
       last_member_byte_order = member_definition.byte_order
 
     return is_composite_map
+
+  def _CompositeFoldByteStream(
+      self, mapped_value, byte_offset=0, **unused_kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+      byte_offset (Optional[int]): offset into the byte stream where to start.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+    # TODO: implement.
 
   def _CompositeMapByteStream(
       self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
@@ -1189,6 +1487,34 @@ class StructureMap(StorageDataTypeMap):
 
     return data_type_maps
 
+  def _LinearFoldByteStream(self, mapped_value, byte_offset=0, **unused_kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+      byte_offset (Optional[int]): offset into the byte stream where to start.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+    try:
+      attribute_values = [
+          getattr(mapped_value, attribute_name, None)
+          for attribute_name in self._attribute_names]
+      attribute_values = filter(lambda value: value, attribute_values)
+      return self._operation.WriteTo(tuple(attribute_values))
+
+    except Exception as exception:
+      error_string = (
+          u'Unable to write: {0:s} to byte stream at offset: {1:d} '
+          u'with error: {2!s}').format(
+              self._data_type_definition.name, byte_offset, exception)
+      raise errors.FoldingError(error_string)
+
   def _LinearMapByteStream(
       self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
     """Maps a data type sequence on a byte stream.
@@ -1226,6 +1552,21 @@ class StructureMap(StorageDataTypeMap):
       context.byte_size = members_data_size
 
     return mapped_value
+
+  def FoldByteStream(self, mapped_value, **kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+    return self._fold_byte_stream(mapped_value, **kwargs)
 
   def GetSizeHint(self, context=None, **unused_kwargs):
     """Retrieves size hints.
@@ -1288,8 +1629,25 @@ class StructureMap(StorageDataTypeMap):
     return self._map_byte_stream(byte_stream, **kwargs)
 
 
-class ConstantMap(DataTypeMap):
-  """Constant data type map."""
+class SemanticDataTypeMap(DataTypeMap):
+  """Semantic data type map."""
+
+  def FoldByteStream(self, mapped_value, **unused_kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+    raise errors.FoldingError(
+        u'Unable to fold {0:s} data type into byte stream'.format(
+            self._data_type_definition.TYPE_INDICATOR))
 
   def MapByteStream(self, byte_stream, **unused_kwargs):
     """Maps the data type on a byte stream.
@@ -1305,10 +1663,15 @@ class ConstantMap(DataTypeMap):
           the byte stream.
     """
     raise errors.MappingError(
-        u'Unable to map constant data type to byte stream')
+        u'Unable to map {0:s} data type to byte stream'.format(
+            self._data_type_definition.TYPE_INDICATOR))
 
 
-class EnumerationMap(DataTypeMap):
+class ConstantMap(SemanticDataTypeMap):
+  """Constant data type map."""
+
+
+class EnumerationMap(SemanticDataTypeMap):
   """Enumeration data type map."""
 
   def GetName(self, number):
@@ -1324,22 +1687,6 @@ class EnumerationMap(DataTypeMap):
     value = self._data_type_definition.values_per_number.get(number, None)
     if value:
       return value.name
-
-  def MapByteStream(self, byte_stream, **unused_kwargs):
-    """Maps the data type on a byte stream.
-
-    Args:
-      byte_stream (bytes): byte stream.
-
-    Returns:
-      object: mapped value.
-
-    Raises:
-      MappingError: if the data type definition cannot be mapped on
-          the byte stream.
-    """
-    raise errors.MappingError(
-        u'Unable to map enumeration data type to byte stream')
 
 
 class DataTypeMapFactory(object):

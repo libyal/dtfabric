@@ -283,8 +283,6 @@ class StringDefinition(ElementSequenceDataTypeDefinition):
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRING
 
-  _IS_COMPOSITE = True
-
   def __init__(
       self, name, data_type_definition, aliases=None, data_type=None,
       description=None, urls=None):

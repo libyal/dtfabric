@@ -28,13 +28,29 @@ class StructOperationTest(test_lib.BaseTestCase):
     byte_stream_operation = byte_operations.StructOperation(u'i')
 
     value = byte_stream_operation.ReadFrom(b'\x12\x34\x56\x78')
-    self.assertEqual(value, (0x78563412, ))
+    self.assertEqual(value, tuple([0x78563412]))
 
     with self.assertRaises(IOError):
       byte_stream_operation.ReadFrom(None)
 
     with self.assertRaises(IOError):
       byte_stream_operation.ReadFrom(b'\x12\x34\x56')
+
+  def testWriteTo(self):
+    """Tests the WriteTo function."""
+    byte_stream_operation = byte_operations.StructOperation(u'i')
+
+    byte_stream = byte_stream_operation.WriteTo(tuple([0x78563412]))
+    self.assertEqual(byte_stream, b'\x12\x34\x56\x78')
+
+    with self.assertRaises(IOError):
+      byte_stream_operation.WriteTo(None)
+
+    with self.assertRaises(IOError):
+      byte_stream_operation.WriteTo(0x78563412)
+
+    with self.assertRaises(IOError):
+      byte_stream_operation.WriteTo(tuple([0x9078563412]))
 
 
 if __name__ == '__main__':
