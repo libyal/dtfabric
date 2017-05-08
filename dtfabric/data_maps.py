@@ -838,6 +838,7 @@ class SequenceMap(ElementSequenceDataTypeMap):
 
     element_index = context_state.get(u'element_index', 0)
     element_value = None
+    members_data_size = 0
     mapped_values = context_state.get(u'mapped_values', [])
     subcontext = context_state.get(u'context', None)
 
@@ -854,6 +855,7 @@ class SequenceMap(ElementSequenceDataTypeMap):
             byte_stream, byte_offset=byte_offset, context=subcontext)
 
         byte_offset += subcontext.byte_size
+        members_data_size += subcontext.byte_size
         element_index += 1
         mapped_values.append(element_value)
 
@@ -892,7 +894,7 @@ class SequenceMap(ElementSequenceDataTypeMap):
       raise errors.ByteStreamTooSmallError(error_string)
 
     if context:
-      context.byte_size = byte_offset
+      context.byte_size = members_data_size
       context.state = {}
 
     return tuple(mapped_values)
@@ -1588,7 +1590,11 @@ class StructureMap(StorageDataTypeMap):
       int: hint of the number of bytes needed from the byte stream or None.
     """
     context_state = getattr(context, u'state', {})
+    mapped_values = context_state.get(u'mapped_values', None)
     subcontext = context_state.get(u'context', None)
+    if not subcontext:
+      subcontext = DataTypeMapContext(values={
+          type(mapped_values).__name__: mapped_values})
 
     size_hint = 0
     for data_type_map in self._data_type_maps:
