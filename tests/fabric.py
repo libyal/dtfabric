@@ -12,10 +12,10 @@ from tests import test_lib
 class DataTypeFabricTest(test_lib.BaseTestCase):
   """Data type fabric tests."""
 
+  @test_lib.skipUnlessHasTestFile([u'integer.yaml'])
   def testInitialize(self):
     """Tests the __init__ function."""
-    definitions_file = os.path.join(u'data', u'definitions', u'core.yaml')
-
+    definitions_file = self._GetTestFilePath([u'integer.yaml'])
     with open(definitions_file, 'rb') as file_object:
       yaml_definition = file_object.read()
 

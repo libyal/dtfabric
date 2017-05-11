@@ -148,8 +148,6 @@ setup(
         'dtfabric': 'dtfabric'
     },
     data_files=[
-        ('share/dtfabric/definitions', glob.glob(
-            os.path.join('data', 'definitions', '*.yaml'))),
         ('share/doc/dtfabric', [
             'ACKNOWLEDGEMENTS', 'LICENSE', 'README']),
     ],
