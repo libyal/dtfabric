@@ -14,6 +14,8 @@ BYTE_ORDERS = frozenset([
 FORMAT_SIGNED = u'signed'
 FORMAT_UNSIGNED = u'unsigned'
 
+SIZE_NATIVE = u'native'
+
 TYPE_INDICATOR_BOOLEAN = u'boolean'
 TYPE_INDICATOR_CHARACTER = u'character'
 TYPE_INDICATOR_CONSTANT = u'constant'

@@ -40,6 +40,7 @@ in the section entitled "GNU Free Documentation License".
 | 0.0.3 | J.B. Metz | March 2017 | Worked on documentation.
 | 0.0.4 | J.B. Metz | April 2017 | Worked on documentation.
 | 0.0.5 | J.B. Metz | April 2017 | Worked on documentation.
+| 0.0.6 | J.B. Metz | May 2017 | Worked on documentation.
 |===
 
 :numbered:
@@ -111,7 +112,7 @@ See section: <<storage_data_type_definition_attributes,Storage data type definit
 |===
 | Attribute name | Attribute type | Description
 | byte_order | string | Optional byte-order of the data type +
-Valid options are: big-endian, little-endian, native +
+Valid options are: "big-endian", "little-endian", "native" +
 The default is native
 |===
 
@@ -125,7 +126,7 @@ fixed-size data types also define the following attributes:
 [cols="1,1,5",options="header"]
 |===
 | Attribute name | Attribute type | Description
-| size | integer | size of data type in number of units
+| size | integer or string | size of data type in number of units or "native" if architecture dependent
 | units | string | units of the size of the data type +
 The default is bytes
 |===

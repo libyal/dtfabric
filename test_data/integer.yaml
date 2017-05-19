@@ -20,3 +20,8 @@ attributes:
   format: signed
   size: 4
   units: bytes
+---
+name: int
+type: integer
+attributes:
+  format: signed

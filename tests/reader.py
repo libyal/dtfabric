@@ -747,17 +747,22 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
 
-  @test_lib.skipUnlessHasTestFile([u'integer.yaml'])
   def testReadFileObjectInteger(self):
     """Tests the ReadFileObject function of an integer data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
-    definitions_file = self._GetTestFilePath([u'integer.yaml'])
-    with open(definitions_file, 'rb') as file_object:
-      definitions_reader.ReadFileObject(definitions_registry, file_object)
+    yaml_data = u'\n'.join([
+        u'name: int32le',
+        u'type: integer',
+        u'attributes:',
+        u'  byte_order: little-endian',
+        u'  format: signed',
+        u'  size: 4',
+        u'  units: bytes']).encode(u'ascii')
 
-    self.assertEqual(len(definitions_registry._definitions), 3)
+    with io.BytesIO(initial_bytes=yaml_data) as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
 
     data_type_definition = definitions_registry.GetDefinitionByName(u'int32le')
     self.assertIsInstance(data_type_definition, data_types.IntegerDefinition)
@@ -771,8 +776,43 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
 
-    # TODO: test format error, for incorrect format attribute.
-    # TODO: test format error, for incorrect size attribute.
+    yaml_data = u'\n'.join([
+        u'name: int',
+        u'type: integer',
+        u'attributes:',
+        u'  format: signed']).encode(u'ascii')
+
+    with io.BytesIO(initial_bytes=yaml_data) as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(u'int')
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
+
+    yaml_data = u'\n'.join([
+        u'name: int32le',
+        u'type: integer',
+        u'attributes:',
+        u'  format: bogus',
+        u'  size: 4',
+        u'  units: bytes']).encode(u'ascii')
+
+    with self.assertRaises(errors.FormatError):
+      with io.BytesIO(initial_bytes=yaml_data) as file_object:
+        definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    yaml_data = u'\n'.join([
+        u'name: int32le',
+        u'type: integer',
+        u'attributes:',
+        u'  format: signed',
+        u'  size: bogus',
+        u'  units: bytes']).encode(u'ascii')
+
+    with self.assertRaises(errors.FormatError):
+      with io.BytesIO(initial_bytes=yaml_data) as file_object:
+        definitions_reader.ReadFileObject(definitions_registry, file_object)
 
   def testReadFileObjectMissingName(self):
     """Tests the ReadFileObject function with a missing name."""

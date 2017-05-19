@@ -281,7 +281,8 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
   def _ReadFixedSizeDataTypeDefinition(
       self, definitions_registry, definition_values, data_type_definition_class,
-      definition_name, default_size=None, default_units=u'bytes'):
+      definition_name, default_size=definitions.SIZE_NATIVE,
+      default_units=u'bytes'):
     """Reads a fixed-size data type definition.
 
     Args:
@@ -307,11 +308,12 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     attributes = definition_values.get(u'attributes')
     if attributes:
       size = attributes.get(u'size', default_size)
-      try:
-        int(size)
-      except ValueError:
-        error_message = u'unuspported size attribute: {0!s}'.format(size)
-        raise errors.DefinitionReaderError(definition_name, error_message)
+      if size != definitions.SIZE_NATIVE:
+        try:
+          int(size)
+        except ValueError:
+          error_message = u'unuspported size attribute: {0!s}'.format(size)
+          raise errors.DefinitionReaderError(definition_name, error_message)
 
       definition_object.size = size
       definition_object.units = attributes.get(u'units', default_units)

@@ -90,7 +90,7 @@ class FixedSizeDataTypeDefinition(StorageDataTypeDefinition):
   """Fixed-size data type definition.
 
   Attributes:
-    size (int|list[int]): size of the data type.
+    size (int|str): size of the data type or SIZE_NATIVE.
     units (str): units of the size of the data type.
   """
 
@@ -105,7 +105,7 @@ class FixedSizeDataTypeDefinition(StorageDataTypeDefinition):
     """
     super(FixedSizeDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.size = None
+    self.size = definitions.SIZE_NATIVE
     self.units = u'bytes'
 
   def GetByteSize(self):
@@ -114,7 +114,7 @@ class FixedSizeDataTypeDefinition(StorageDataTypeDefinition):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if self.units == u'bytes':
+    if self.size != definitions.SIZE_NATIVE and self.units == u'bytes':
       return self.size
 
 
