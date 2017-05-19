@@ -335,9 +335,9 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
         definitions_registry, definition_values,
         data_types.FloatingPointDefinition, definition_name)
 
-  def _ReadFormatDefinition(
+  def _ReadFormatDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
-    """Reads a format definition.
+    """Reads a format data type definition.
 
     Args:
       definitions_registry (DataTypeDefinitionsRegistry): data type definitions

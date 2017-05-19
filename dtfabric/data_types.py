@@ -6,7 +6,6 @@ import abc
 from dtfabric import definitions
 
 # TODO: BooleanDefinition allow to set false_value to None in definition.
-# TODO: complete FormatDefinition.
 
 
 class DataTypeDefinition(object):

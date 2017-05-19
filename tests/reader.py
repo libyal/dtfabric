@@ -282,8 +282,8 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertIsInstance(
         data_type_definition, data_types.FloatingPointDefinition)
 
-  def testReadFormatDefinition(self):
-    """Tests the _ReadFormatDefinition function."""
+  def testReadFormatDataTypeDefinition(self):
+    """Tests the _ReadFormatDataTypeDefinition function."""
     definition_values = {
         u'description': u'Windows Shortcut (LNK) file format',
         u'type': u'format',
@@ -292,7 +292,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.DataTypeDefinitionsFileReader()
 
-    data_type_definition = definitions_reader._ReadFormatDefinition(
+    data_type_definition = definitions_reader._ReadFormatDataTypeDefinition(
         definitions_registry, definition_values, u'lnk')
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.FormatDefinition)

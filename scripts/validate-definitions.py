@@ -55,7 +55,7 @@ class DefinitionsValidator(object):
     Returns:
       bool: True if the file contains valid definitions.
     """
-    definitions_reader = reader.YAMLDefinitionsFileReader()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
     result = False
 
     try:

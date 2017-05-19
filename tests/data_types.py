@@ -9,7 +9,6 @@ from dtfabric import definitions
 from tests import test_lib
 
 
-# TODO: complete FormatDefinitionTest.
 # TODO: complete StructureDefinitionTest.
 
 
