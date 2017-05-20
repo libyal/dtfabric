@@ -1180,7 +1180,7 @@ class StructureMapTest(test_lib.BaseTestCase):
 
     member_definition = TestDataTypeDefinition(u'test')
 
-    structure_member_definition = data_types.StructureMemberDefinition(
+    structure_member_definition = data_types.MemberDataTypeDefinition(
         u'my_struct_member', member_definition, aliases=[u'MY_STRUCT_MEMBER'],
         data_type=u'test', description=u'my structure member')
 

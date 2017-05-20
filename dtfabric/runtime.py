@@ -65,7 +65,7 @@ class StructureValuesClassFactory(object):
         description = description[:-1]
 
       member_data_type = getattr(member_definition, u'member_data_type', u'')
-      if isinstance(member_definition, data_types.StructureMemberDefinition):
+      if isinstance(member_definition, data_types.MemberDataTypeDefinition):
         member_definition = member_definition.member_data_type_definition
 
       member_type_indicator = member_definition.TYPE_INDICATOR

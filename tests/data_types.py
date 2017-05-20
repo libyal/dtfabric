@@ -9,9 +9,6 @@ from dtfabric import definitions
 from tests import test_lib
 
 
-# TODO: complete StructureDefinitionTest.
-
-
 class DataTypeDefinitionTest(test_lib.BaseTestCase):
   """Data type definition tests."""
 
@@ -191,10 +188,69 @@ class StringDefinitionTest(test_lib.BaseTestCase):
     self.assertTrue(result)
 
 
-class StructureDefinitionTest(test_lib.BaseTestCase):
-  """Structure data type definition tests."""
+class DataTypeDefinitionWithMembersTest(test_lib.BaseTestCase):
+  """Data type definition with members tests."""
 
   # TODO: add tests for AddMemberDefinition
+
+
+@test_lib.skipUnlessHasTestFile([u'structure.yaml'])
+class MemberDataTypeDefinitionTest(test_lib.BaseTestCase):
+  """Member data type definition tests."""
+
+  # pylint: disable=protected-access
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    definitions_file = self._GetTestFilePath([u'structure.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    member_definition = definitions_registry.GetDefinitionByName(u'int32')
+
+    data_type_definition = data_types.MemberDataTypeDefinition(
+        u'my_struct_member', member_definition, aliases=[u'MY_STRUCT_MEMBER'],
+        data_type=u'int32', description=u'my structure member')
+    self.assertIsNotNone(data_type_definition)
+
+  def testGetByteSize(self):
+    """Tests the GetByteSize function."""
+    definitions_file = self._GetTestFilePath([u'structure.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    member_definition = definitions_registry.GetDefinitionByName(u'int32')
+
+    data_type_definition = data_types.MemberDataTypeDefinition(
+        u'my_struct_member', None, aliases=[u'MY_STRUCT_MEMBER'],
+        data_type=u'int32', description=u'my structure member')
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
+
+    data_type_definition.member_data_type_definition = member_definition
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 4)
+
+  def testIsComposite(self):
+    """Tests the IsComposite function."""
+    definitions_file = self._GetTestFilePath([u'structure.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    member_definition = definitions_registry.GetDefinitionByName(u'int32')
+
+    data_type_definition = data_types.MemberDataTypeDefinition(
+        u'my_struct_member', None, aliases=[u'MY_STRUCT_MEMBER'],
+        data_type=u'int32', description=u'my structure member')
+
+    result = data_type_definition.IsComposite()
+    self.assertIsNone(result)
+
+    data_type_definition.member_data_type_definition = member_definition
+    result = data_type_definition.IsComposite()
+    self.assertFalse(result)
+
+
+class StructureDefinitionTest(test_lib.BaseTestCase):
+  """Structure data type definition tests."""
 
   @test_lib.skipUnlessHasTestFile([u'structure.yaml'])
   def testGetByteSize(self):
@@ -211,7 +267,7 @@ class StructureDefinitionTest(test_lib.BaseTestCase):
         definitions_file)
     member_definition = definitions_registry.GetDefinitionByName(u'int32')
 
-    structure_member_definition = data_types.StructureMemberDefinition(
+    structure_member_definition = data_types.MemberDataTypeDefinition(
         u'my_struct_member', member_definition, aliases=[u'MY_STRUCT_MEMBER'],
         data_type=u'int32', description=u'my structure member')
 
@@ -230,59 +286,41 @@ class StructureDefinitionTest(test_lib.BaseTestCase):
     self.assertTrue(result)
 
 
-@test_lib.skipUnlessHasTestFile([u'structure.yaml'])
-class StructureMemberDefinitionTest(test_lib.BaseTestCase):
-  """Structure member definition tests."""
+class UnionDefinitionTest(test_lib.BaseTestCase):
+  """Union data type definition tests."""
 
-  # pylint: disable=protected-access
-
-  def testInitialize(self):
-    """Tests the __init__ function."""
-    definitions_file = self._GetTestFilePath([u'structure.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-    member_definition = definitions_registry.GetDefinitionByName(u'int32')
-
-    data_type_definition = data_types.StructureMemberDefinition(
-        u'my_struct_member', member_definition, aliases=[u'MY_STRUCT_MEMBER'],
-        data_type=u'int32', description=u'my structure member')
-    self.assertIsNotNone(data_type_definition)
-
+  @test_lib.skipUnlessHasTestFile([u'union.yaml'])
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
-    definitions_file = self._GetTestFilePath([u'structure.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-    member_definition = definitions_registry.GetDefinitionByName(u'int32')
-
-    data_type_definition = data_types.StructureMemberDefinition(
-        u'my_struct_member', None, aliases=[u'MY_STRUCT_MEMBER'],
-        data_type=u'int32', description=u'my structure member')
+    data_type_definition = data_types.UnionDefinition(
+        u'my_union_type', aliases=[u'MY_UNION_TYPE'],
+        description=u'my union type')
 
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
-    data_type_definition.member_data_type_definition = member_definition
+    definitions_file = self._GetTestFilePath([u'union.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    member_definition = definitions_registry.GetDefinitionByName(u'int32')
+
+    union_member_definition = data_types.MemberDataTypeDefinition(
+        u'my_union_member', member_definition, aliases=[u'MY_UNION_MEMBER'],
+        data_type=u'int32', description=u'my union member')
+
+    data_type_definition.AddMemberDefinition(union_member_definition)
+
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
 
   def testIsComposite(self):
     """Tests the IsComposite function."""
-    definitions_file = self._GetTestFilePath([u'structure.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-    member_definition = definitions_registry.GetDefinitionByName(u'int32')
-
-    data_type_definition = data_types.StructureMemberDefinition(
-        u'my_struct_member', None, aliases=[u'MY_STRUCT_MEMBER'],
-        data_type=u'int32', description=u'my structure member')
+    data_type_definition = data_types.UnionDefinition(
+        u'my_union_type', aliases=[u'MY_UNION_TYPE'],
+        description=u'my union type')
 
     result = data_type_definition.IsComposite()
-    self.assertIsNone(result)
-
-    data_type_definition.member_data_type_definition = member_definition
-    result = data_type_definition.IsComposite()
-    self.assertFalse(result)
+    self.assertTrue(result)
 
 
 class SemanticDataTypeDefinitionTest(test_lib.BaseTestCase):

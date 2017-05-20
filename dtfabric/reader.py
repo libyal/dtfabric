@@ -49,6 +49,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       definitions.TYPE_INDICATOR_STREAM: u'_ReadStreamDataTypeDefinition',
       definitions.TYPE_INDICATOR_STRING: u'_ReadStringDataTypeDefinition',
       definitions.TYPE_INDICATOR_STRUCTURE: u'_ReadStructureDataTypeDefinition',
+      definitions.TYPE_INDICATOR_UNION: u'_ReadUnionDataTypeDefinition',
       definitions.TYPE_INDICATOR_UUID: u'_ReadUUIDDataTypeDefinition',
   }
 
@@ -144,6 +145,51 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     return data_type_definition_class(
         definition_name, aliases=aliases, description=description, urls=urls)
+
+  def _ReadDataTypeDefinitionWithMembers(
+      self, definitions_registry, definition_values,
+      data_type_definition_class, definition_name):
+    """Reads a data type definition with members.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      data_type_definition_class (str): data type definition class.
+      definition_name (str): name of the definition.
+
+    Returns:
+      StringDefinition: string data type definition.
+
+    Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
+    """
+    members = definition_values.get(u'members', None)
+    if not members:
+      error_message = u'missing members'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    definition_object = self._ReadDataTypeDefinition(
+        definitions_registry, definition_values, data_type_definition_class,
+        definition_name)
+
+    attributes = definition_values.get(u'attributes')
+    if attributes:
+      byte_order = attributes.get(u'byte_order', definitions.BYTE_ORDER_NATIVE)
+      if byte_order not in definitions.BYTE_ORDERS:
+        error_message = u'unsupported byte-order attribute: {0!s}'.format(
+            byte_order)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      definition_object.byte_order = byte_order
+
+    for member in members:
+      member_data_type_definition = self._ReadMemberDataTypeDefinitionMember(
+          definitions_registry, member, definition_object.name)
+      definition_object.members.append(member_data_type_definition)
+
+    return definition_object
 
   def _ReadEnumerationDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
@@ -415,6 +461,74 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
         definitions_registry, definition_values, data_type_definition_class,
         definition_name)
 
+  def _ReadMemberDataTypeDefinitionMember(
+      self, definitions_registry, definition_values, definition_name):
+    """Reads a member data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      definition_name (str): name of the definition.
+
+    Returns:
+      DataTypeDefinition: structure member data type definition.
+
+    Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
+    """
+    name = definition_values.get(u'name', None)
+    if not name:
+      error_message = u'invalid structure member missing name'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    if not definition_values:
+      error_message = (
+          u'invalid structure member: {0:s} missing definition values').format(
+              name)
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    data_type = definition_values.get(u'data_type', None)
+    type_indicator = definition_values.get(u'type', None)
+
+    type_values = filter(lambda value: value is not None, (
+        data_type, type_indicator))
+
+    if not type_values:
+      error_message = (
+          u'invalid structure member: {0:s} both data type and type are '
+          u'missing').format(name)
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    if len(type_values) > 1:
+      error_message = (
+          u'invalid structure member: {0:s} data type and type not allowed to '
+          u'be set at the same time').format(name)
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    if type_indicator is not None:
+      definition_object = self.ReadDefinitionFromDict(
+          definitions_registry, definition_values)
+
+    if data_type is not None:
+      data_type_definition = definitions_registry.GetDefinitionByName(
+          data_type)
+      if not data_type_definition:
+        error_message = (
+            u'invalid structure member: {0:s} undefined data type: '
+            u'{1:s}').format(name, data_type)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      aliases = definition_values.get(u'aliases', None)
+      description = definition_values.get(u'description', None)
+
+      definition_object = data_types.MemberDataTypeDefinition(
+          name, data_type_definition, aliases=aliases, data_type=data_type,
+          description=description)
+
+    return definition_object
+
   def _ReadSemanticDataTypeDefinition(
       self, definitions_registry, definition_values, data_type_definition_class,
       definition_name):
@@ -566,36 +680,13 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
-    members = definition_values.get(u'members', None)
-    if not members:
-      error_message = u'missing members'
-      raise errors.DefinitionReaderError(definition_name, error_message)
+    return self._ReadDataTypeDefinitionWithMembers(
+        definitions_registry, definition_values, data_types.StructureDefinition,
+        definition_name)
 
-    aliases = definition_values.get(u'aliases', None)
-    description = definition_values.get(u'description', None)
-    urls = definition_values.get(u'urls', None)
-
-    definition_object = data_types.StructureDefinition(
-        definition_name, aliases=aliases, description=description, urls=urls)
-
-    attributes = definition_values.get(u'attributes')
-    if attributes:
-      byte_order = attributes.get(u'byte_order', definitions.BYTE_ORDER_NATIVE)
-      if byte_order not in definitions.BYTE_ORDERS:
-        error_message = u'unsupported byte-order attribute: {0!s}'.format(
-            byte_order)
-        raise errors.DefinitionReaderError(definition_name, error_message)
-
-      definition_object.byte_order = byte_order
-
-    self._ReadStructureDataTypeDefinitionMembers(
-        definitions_registry, members, definition_object)
-
-    return definition_object
-
-  def _ReadStructureDataTypeDefinitionMember(
+  def _ReadUnionDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
-    """Reads a structure data type definition member.
+    """Reads an union data type definition.
 
     Args:
       definitions_registry (DataTypeDefinitionsRegistry): data type definitions
@@ -604,77 +695,15 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       definition_name (str): name of the definition.
 
     Returns:
-      DataTypeDefinition: structure member data type definition.
+      UnionDefinition: union data type definition.
 
     Raises:
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
-    name = definition_values.get(u'name', None)
-    if not name:
-      error_message = u'invalid structure member missing name'
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
-    if not definition_values:
-      error_message = (
-          u'invalid structure member: {0:s} missing definition values').format(
-              name)
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
-    data_type = definition_values.get(u'data_type', None)
-    type_indicator = definition_values.get(u'type', None)
-
-    type_values = filter(lambda value: value is not None, (
-        data_type, type_indicator))
-
-    if not type_values:
-      error_message = (
-          u'invalid structure member: {0:s} both data type and type are '
-          u'missing').format(name)
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
-    if len(type_values) > 1:
-      error_message = (
-          u'invalid structure member: {0:s} data type and type not allowed to '
-          u'be set at the same time').format(name)
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
-    if type_indicator is not None:
-      definition_object = self.ReadDefinitionFromDict(
-          definitions_registry, definition_values)
-
-    if data_type is not None:
-      data_type_definition = definitions_registry.GetDefinitionByName(
-          data_type)
-      if not data_type_definition:
-        error_message = (
-            u'invalid structure member: {0:s} undefined data type: '
-            u'{1:s}').format(name, data_type)
-        raise errors.DefinitionReaderError(definition_name, error_message)
-
-      aliases = definition_values.get(u'aliases', None)
-      description = definition_values.get(u'description', None)
-
-      definition_object = data_types.StructureMemberDefinition(
-          name, data_type_definition, aliases=aliases, data_type=data_type,
-          description=description)
-
-    return definition_object
-
-  def _ReadStructureDataTypeDefinitionMembers(
-      self, definitions_registry, definition_values, data_type_definition):
-    """Reads structure data type definition members.
-
-    Args:
-      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
-          registry.
-      definition_values (dict[str, object]): definition values.
-      data_type_definition (DataTypeDefinition): data type definition.
-    """
-    for member in definition_values:
-      structure_member = self._ReadStructureDataTypeDefinitionMember(
-          definitions_registry, member, data_type_definition.name)
-      data_type_definition.members.append(structure_member)
+    return self._ReadDataTypeDefinitionWithMembers(
+        definitions_registry, definition_values, data_types.UnionDefinition,
+        definition_name)
 
   def _ReadUUIDDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):

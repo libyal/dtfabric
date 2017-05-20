@@ -302,14 +302,12 @@ class StringDefinition(ElementSequenceDataTypeDefinition):
     self.encoding = u'ascii'
 
 
-class StructureDefinition(StorageDataTypeDefinition):
-  """Structure data type definition.
+class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
+  """Data type definition with members.
 
   Attributes:
     members (list[DataTypeDefinition]): members.
   """
-
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRUCTURE
 
   _IS_COMPOSITE = True
 
@@ -322,7 +320,7 @@ class StructureDefinition(StorageDataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(StructureDefinition, self).__init__(
+    super(DataTypeDefinitionWithMembers, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self._byte_size = None
     self.members = []
@@ -337,49 +335,38 @@ class StructureDefinition(StorageDataTypeDefinition):
     self._byte_size = None
     self.members.append(member_definition)
 
+  @abc.abstractmethod
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.
 
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if self._byte_size is None and self.members:
-      self._byte_size = 0
-      for member_definition in self.members:
-        byte_size = member_definition.GetByteSize()
-        if byte_size is None:
-          self._byte_size = None
-          break
-
-        self._byte_size += byte_size
-
-    return self._byte_size
 
 
-class StructureMemberDefinition(StorageDataTypeDefinition):
-  """Structure data type member definition.
+class MemberDataTypeDefinition(StorageDataTypeDefinition):
+  """Member data type definition.
 
   Attributes:
-    member_data_type (str): structure member data type.
-    member_data_type_definition (DataTypeDefinition): structure member
-        data type definition.
+    member_data_type (str): member data type.
+    member_data_type_definition (DataTypeDefinition): member data type
+        definition.
   """
 
   def __init__(
       self, name, data_type_definition, aliases=None, data_type=None,
       description=None, urls=None):
-    """Initializes a structure member definition.
+    """Initializes a member data type definition.
 
     Args:
       name (str): name.
-      data_type_definition (DataTypeDefinition): structure member data type
-          definition.
+      data_type_definition (DataTypeDefinition): member data type definition.
       aliases (Optional[list[str]]): aliases.
-      data_type (Optional[str]): structure member data type.
+      data_type (Optional[str]): member data type.
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(StructureMemberDefinition, self).__init__(
+    super(MemberDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.byte_order = getattr(
         data_type_definition, u'byte_order', definitions.BYTE_ORDER_NATIVE)
@@ -405,6 +392,55 @@ class StructureMemberDefinition(StorageDataTypeDefinition):
     """
     return (self.member_data_type_definition and
             self.member_data_type_definition.IsComposite())
+
+
+class StructureDefinition(DataTypeDefinitionWithMembers):
+  """Structure data type definition."""
+
+  TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRUCTURE
+
+  def GetByteSize(self):
+    """Retrieves the byte size of the data type definition.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    if self._byte_size is None and self.members:
+      self._byte_size = 0
+      for member_definition in self.members:
+        byte_size = member_definition.GetByteSize()
+        if byte_size is None:
+          self._byte_size = None
+          break
+
+        self._byte_size += byte_size
+
+    return self._byte_size
+
+
+class UnionDefinition(DataTypeDefinitionWithMembers):
+  """Union data type definition."""
+
+  TYPE_INDICATOR = definitions.TYPE_INDICATOR_UNION
+
+  def GetByteSize(self):
+    """Retrieves the byte size of the data type definition.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    if self._byte_size is None and self.members:
+      self._byte_size = 0
+      for member_definition in self.members:
+        byte_size = member_definition.GetByteSize()
+        if byte_size is None:
+          self._byte_size = None
+          break
+
+        self._byte_size = max(self._byte_size, byte_size)
+
+    return self._byte_size
+
 
 
 class SemanticDataTypeDefinition(DataTypeDefinition):

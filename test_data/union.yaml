@@ -1,0 +1,23 @@
+name: int16
+type: integer
+description: 16-bit signed integer type
+attributes:
+  format: signed
+  size: 2
+  units: bytes
+---
+name: int32
+type: integer
+description: 32-bit signed integer type
+attributes:
+  format: signed
+  size: 4
+  units: bytes
+---
+name: my_union
+type: union
+members:
+- name: long
+  data_type: int32
+- name: short
+  data_type: int16

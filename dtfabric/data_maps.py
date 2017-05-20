@@ -1470,7 +1470,7 @@ class StructureMap(StorageDataTypeMap):
     data_type_maps = []
 
     for member_definition in members:
-      if isinstance(member_definition, data_types.StructureMemberDefinition):
+      if isinstance(member_definition, data_types.MemberDataTypeDefinition):
         member_definition = member_definition.member_data_type_definition
 
       if (data_type_definition.byte_order != definitions.BYTE_ORDER_NATIVE and

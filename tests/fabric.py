@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for the dtFabric helper objects."""
 
-import os
 import unittest
 
 from dtfabric import fabric
