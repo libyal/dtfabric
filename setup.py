@@ -114,7 +114,7 @@ setup(
     description=dtfabric_description,
     long_description=dtfabric_long_description,
     license='Apache License, Version 2.0',
-    url='https://github.com/libyal/dtfabricb',
+    url='https://github.com/libyal/dtfabric',
     maintainer='Joachim Metz',
     maintainer_email='joachim.metz@gmail.com',
     classifiers=[
