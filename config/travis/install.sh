@@ -22,10 +22,10 @@ set -e;
 if test `uname -s` = "Darwin";
 then
 	git clone https://github.com/log2timeline/l2tdevtools.git;
-	
+
 	mv l2tdevtools ../;
 	mkdir dependencies;
-	
+
 	PYTHONPATH=../l2tdevtools ../l2tdevtools/tools/update.py --download-directory=dependencies ${L2TBINARIES_DEPENDENCIES} ${L2TBINARIES_TEST_DEPENDENCIES};
 
 elif test `uname -s` = "Linux";

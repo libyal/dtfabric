@@ -1,2 +1,4 @@
-PyYAML
+pip >= 7.0.0
+pytest
 mock
+PyYAML >= 3.10

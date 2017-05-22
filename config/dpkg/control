@@ -24,7 +24,7 @@ Description: Python 2 module for data type and structure management
 
 Package: python3-dtfabric
 Architecture: all
-Depends: dtfabric-data, python3-yaml (>= 3.10), ${python:Depends}, ${misc:Depends}
+Depends: dtfabric-data, python3-yaml (>= 3.10), ${python3:Depends}, ${misc:Depends}
 Description: Python 3 module for data type and structure management
  dtFabric, or data type fabric, is a project to manage data types and
  structures, as used in the libyal projects.

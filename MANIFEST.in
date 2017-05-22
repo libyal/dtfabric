@@ -3,7 +3,7 @@ include run_tests.py
 exclude .gitignore
 exclude *.pyc
 recursive-include config *
-recursive-include data *.yaml
+recursive-include data *
 recursive-exclude dtfabric *.pyc
 recursive-include scripts *.py
 recursive-exclude scripts *.pyc
