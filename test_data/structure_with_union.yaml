@@ -1,0 +1,23 @@
+name: uint32
+type: integer
+attributes:
+  format: unsigned
+  size: 4
+  units: bytes
+---
+name: float32
+type: floating-point
+attributes:
+  byte_order: little-endian
+  size: 4
+  units: bytes
+---
+name: intfloat32
+type: structure
+members:
+- type: union
+  members:
+  - name: int
+    data_type: uint32
+  - name: float
+    data_type: float32

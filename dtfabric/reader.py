@@ -478,19 +478,20 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
+    if not definition_values:
+      error_message = u'invalid structure member missing definition values'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
     name = definition_values.get(u'name', None)
-    if not name:
+    type_indicator = definition_values.get(u'type', None)
+
+    if not name and type_indicator != definitions.TYPE_INDICATOR_UNION:
       error_message = u'invalid structure member missing name'
       raise errors.DefinitionReaderError(definition_name, error_message)
 
-    if not definition_values:
-      error_message = (
-          u'invalid structure member: {0:s} missing definition values').format(
-              name)
-      raise errors.DefinitionReaderError(definition_name, error_message)
+    # TODO: detect duplicate names.
 
     data_type = definition_values.get(u'data_type', None)
-    type_indicator = definition_values.get(u'type', None)
 
     type_values = filter(lambda value: value is not None, (
         data_type, type_indicator))
@@ -498,18 +499,31 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     if not type_values:
       error_message = (
           u'invalid structure member: {0:s} both data type and type are '
-          u'missing').format(name)
+          u'missing').format(name or u'<NAMELESS>')
       raise errors.DefinitionReaderError(definition_name, error_message)
 
     if len(type_values) > 1:
       error_message = (
           u'invalid structure member: {0:s} data type and type not allowed to '
-          u'be set at the same time').format(name)
+          u'be set at the same time').format(name or u'<NAMELESS>')
       raise errors.DefinitionReaderError(definition_name, error_message)
 
     if type_indicator is not None:
-      definition_object = self.ReadDefinitionFromDict(
-          definitions_registry, definition_values)
+      data_type_callback = self._DATA_TYPE_CALLBACKS.get(type_indicator, None)
+      if data_type_callback:
+        data_type_callback = getattr(self, data_type_callback, None)
+      if not data_type_callback:
+        error_message = u'unuspported data type definition: {0:s}.'.format(
+            type_indicator)
+        raise errors.DefinitionReaderError(name, error_message)
+
+      try:
+        definition_object = data_type_callback(
+            definitions_registry, definition_values, name)
+      except errors.DefinitionReaderError as exception:
+        error_message = u'in: {0:s} {1:s}'.format(
+            exception.name or u'<NAMELESS>', exception.message)
+        raise errors.DefinitionReaderError(definition_name, error_message)
 
     if data_type is not None:
       data_type_definition = definitions_registry.GetDefinitionByName(
@@ -517,7 +531,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       if not data_type_definition:
         error_message = (
             u'invalid structure member: {0:s} undefined data type: '
-            u'{1:s}').format(name, data_type)
+            u'{1:s}').format(name or u'<NAMELESS>', data_type)
         raise errors.DefinitionReaderError(definition_name, error_message)
 
       aliases = definition_values.get(u'aliases', None)
@@ -843,11 +857,11 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
     """
     name = yaml_definition.get(u'name', None)
     if name:
-      error_location = u'In: {0:s}'.format(name)
+      error_location = u'in: {0:s}'.format(name or u'<NAMELESS>')
     elif last_definition_object:
-      error_location = u'After: {0:s}'.format(last_definition_object.name)
+      error_location = u'after: {0:s}'.format(last_definition_object.name)
     else:
-      error_location = u'At start'
+      error_location = u'at start'
 
     return error_location
 
@@ -884,8 +898,8 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
         last_definition_object = definition_object
 
     except errors.DefinitionReaderError as exception:
-      error_message = u'In: {0:s} {1:s}'.format(
-          exception.name, exception.message)
+      error_message = u'in: {0:s} {1:s}'.format(
+          exception.name or u'<NAMELESS>', exception.message)
       raise errors.FormatError(error_message)
 
     except (yaml.reader.ReaderError, yaml.scanner.ScannerError) as exception:

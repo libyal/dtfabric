@@ -1075,6 +1075,32 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
+  @test_lib.skipUnlessHasTestFile([u'structure_with_union.yaml'])
+  def testReadFileObjectStructureWithUnion(self):
+    """Tests the ReadFileObject function of a structure with an union."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath([u'structure_with_union.yaml'])
+    with open(definitions_file, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    self.assertEqual(len(definitions_registry._definitions), 3)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        u'intfloat32')
+    self.assertIsInstance(data_type_definition, data_types.StructureDefinition)
+    self.assertEqual(data_type_definition.name, u'intfloat32')
+
+    self.assertEqual(len(data_type_definition.members), 1)
+
+    member_definition = data_type_definition.members[0]
+    self.assertIsInstance(member_definition, data_types.UnionDefinition)
+    self.assertIsNone(member_definition.name)
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 4)
+
   @test_lib.skipUnlessHasTestFile([u'uuid.yaml'])
   def testReadFileObjectUUID(self):
     """Tests the ReadFileObject function of an UUID data type."""

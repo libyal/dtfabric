@@ -15,13 +15,7 @@ from dtfabric import registry
 
 
 class DefinitionsValidator(object):
-  """Class that defines a dtFabric definitions validator."""
-
-  def __init__(self):
-    """Initializes a dtFabric definitions validator."""
-    super(DefinitionsValidator, self).__init__()
-    self._structure_definitions_registry = (
-        registry.DataTypeDefinitionsRegistry())
+  """dtFabric definitions validator."""
 
   def CheckDirectory(self, path, extension=u'yaml'):
     """Validates definition files in a directory.
@@ -40,7 +34,7 @@ class DefinitionsValidator(object):
     else:
       glob_spec = os.path.join(path, u'*')
 
-    for definition_file in glob.glob(glob_spec):
+    for definition_file in sorted(glob.glob(glob_spec)):
       if not self.CheckFile(definition_file):
         result = False
 
@@ -55,11 +49,12 @@ class DefinitionsValidator(object):
     Returns:
       bool: True if the file contains valid definitions.
     """
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
     result = False
 
     try:
-      definitions_reader.ReadFile(self._structure_definitions_registry, path)
+      definitions_reader.ReadFile(definitions_registry, path)
       result = True
 
     except KeyError as exception:
