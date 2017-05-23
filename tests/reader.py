@@ -351,6 +351,9 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     """Tests the _ReadLayoutDataTypeDefinition function."""
     definition_values = {
         u'description': u'layout data type',
+        u'attributes': {
+            u'byte_order': u'little-endian',
+        },
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
@@ -362,16 +365,6 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(
         data_type_definition, data_types.EnumerationDefinition)
-
-    # Test with attributes.
-    definition_values[u'attributes'] = {}
-
-    with self.assertRaises(errors.DefinitionReaderError):
-      definitions_reader._ReadLayoutDataTypeDefinition(
-          definitions_registry, definition_values,
-          data_types.EnumerationDefinition, u'format')
-
-    definition_values[u'attributes'] = None
 
   @test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
   def testReadMemberDataTypeDefinitionMember(self):
