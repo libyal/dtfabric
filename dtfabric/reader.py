@@ -174,7 +174,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
         definitions_registry, definition_values, data_type_definition_class,
         definition_name)
 
-    attributes = definition_values.get(u'attributes')
+    attributes = definition_values.get(u'attributes', None)
     if attributes:
       byte_order = attributes.get(u'byte_order', definitions.BYTE_ORDER_NATIVE)
       if byte_order not in definitions.BYTE_ORDERS:
@@ -264,7 +264,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
-    attributes = definition_values.get(u'attributes')
+    attributes = definition_values.get(u'attributes', None)
     if attributes is not None:
       error_message = u'attributes not supported by element sequence data type'
       raise errors.DefinitionReaderError(definition_name, error_message)
@@ -351,7 +351,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
         definitions_registry, definition_values, data_type_definition_class,
         definition_name)
 
-    attributes = definition_values.get(u'attributes')
+    attributes = definition_values.get(u'attributes', None)
     if attributes:
       size = attributes.get(u'size', default_size)
       if size != definitions.SIZE_NATIVE:
@@ -421,7 +421,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
         definitions_registry, definition_values,
         data_types.IntegerDefinition, definition_name)
 
-    attributes = definition_values.get(u'attributes')
+    attributes = definition_values.get(u'attributes', None)
     if attributes:
       format_attribute = attributes.get(u'format', definitions.FORMAT_SIGNED)
       if format_attribute not in self._INTEGER_FORMAT_ATTRIBUTES:
@@ -452,14 +452,21 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
-    attributes = definition_values.get(u'attributes')
-    if attributes is not None:
-      error_message = u'attributes not supported by layout data type'
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
-    return self._ReadDataTypeDefinition(
+    definition_object = self._ReadDataTypeDefinition(
         definitions_registry, definition_values, data_type_definition_class,
         definition_name)
+
+    attributes = definition_values.get(u'attributes', None)
+    if attributes is not None:
+      byte_order = attributes.get(u'byte_order', definitions.BYTE_ORDER_NATIVE)
+      if byte_order not in definitions.BYTE_ORDERS:
+        error_message = u'unsupported byte-order attribute: {0!s}'.format(
+            byte_order)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      definition_object.byte_order = byte_order
+
+    return definition_object
 
   def _ReadMemberDataTypeDefinitionMember(
       self, definitions_registry, definition_values, definition_name):
@@ -562,7 +569,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
-    attributes = definition_values.get(u'attributes')
+    attributes = definition_values.get(u'attributes', None)
     if attributes is not None:
       error_message = u'attributes not supported by semantic data type'
       raise errors.DefinitionReaderError(definition_name, error_message)
@@ -615,7 +622,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
         definitions_registry, definition_values, data_type_definition_class,
         definition_name)
 
-    attributes = definition_values.get(u'attributes')
+    attributes = definition_values.get(u'attributes', None)
     if attributes:
       byte_order = attributes.get(u'byte_order', definitions.BYTE_ORDER_NATIVE)
       if byte_order not in definitions.BYTE_ORDERS:
