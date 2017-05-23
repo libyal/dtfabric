@@ -3,9 +3,9 @@
 
 import io
 
-from dtfabric import data_maps
 from dtfabric import reader
 from dtfabric import registry
+from dtfabric.runtime import data_maps
 
 
 class DataTypeFabric(data_maps.DataTypeMapFactory):

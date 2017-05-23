@@ -4,11 +4,11 @@
 import unittest
 import uuid
 
-from dtfabric import byte_operations
 from dtfabric import data_types
 from dtfabric import definitions
 from dtfabric import errors
-from dtfabric import data_maps
+from dtfabric.runtime import byte_operations
+from dtfabric.runtime import data_maps
 
 from tests import test_lib
 

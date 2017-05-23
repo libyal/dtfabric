@@ -3,8 +3,8 @@
 
 import unittest
 
-from dtfabric import byte_operations
 from dtfabric import errors
+from dtfabric.runtime import byte_operations
 
 from tests import test_lib
 

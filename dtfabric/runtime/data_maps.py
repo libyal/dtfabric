@@ -5,12 +5,12 @@ import abc
 import copy
 import uuid
 
-from dtfabric import byte_operations
 from dtfabric import data_types
 from dtfabric import definitions
 from dtfabric import errors
 from dtfabric import py2to3
-from dtfabric import runtime
+from dtfabric.runtime import byte_operations
+from dtfabric.runtime import runtime
 
 
 # TODO: add FormatMap.

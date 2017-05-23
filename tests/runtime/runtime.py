@@ -3,7 +3,7 @@
 
 import unittest
 
-from dtfabric import runtime
+from dtfabric.runtime import runtime
 
 from tests import test_lib
 
