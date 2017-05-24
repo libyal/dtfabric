@@ -6,87 +6,47 @@ from __future__ import print_function
 import argparse
 import logging
 import os
-import string
 import sys
 
+from dtfabric import data_types
+from dtfabric import definitions
 from dtfabric import errors
 from dtfabric import reader
 from dtfabric import registry
-
-
-class SourceFileGenerator(object):
-  """Class that generates a source file."""
-
-  def __init__(self):
-    """Initialize a source file generator."""
-    super(SourceFileGenerator, self).__init__()
-
-  def _ReadTemplateFile(self, filename):
-    """Reads a template string from file.
-
-    Args:
-      filename (str): name of the file containing the template string.
-
-    Returns:
-      string.Template: template string.
-    """
-    file_object = open(filename, 'rb')
-    file_data = file_object.read()
-    file_object.close()
-    return string.Template(file_data)
-
-  def GenerateStructureDefinitionFile(
-      self, template_filename, template_mappings, output_writer):
-    """Generates a structure definition file.
-
-    Args:
-      template_filename (str): path of the template file.
-      template_mappings (dict[str, str]): template mappings, where the key
-          maps to the name of a template variable.
-      output_writer (OutputWriter): output writer.
-    """
-    template_string = self._ReadTemplateFile(template_filename)
-
-    try:
-      output_data = template_string.substitute(template_mappings)
-
-    except (KeyError, ValueError) as exception:
-      logging.error(
-          u'Unable to format template: {0:s} with error: {1:s}'.format(
-              template_filename, exception))
-      return
-
-    output_writer.WriteData(output_data)
+from dtfabric.generators import output_writers
+from dtfabric.generators import template_string
 
 
 class SourceGenerator(object):
-  """Class that generates source based on dtFabric format definitions."""
+  """Generates source based on dtFabric format definitions."""
 
-  _DATA_TYPE_SIZES = {
-      u'filetime': 8,
-      u'guid': 16,
-      u'int64': 8,
-      u'int32': 4,
-      u'int16': 2,
-      u'int8': 1,
-      u'uint64': 8,
-      u'uint32': 4,
-      u'uint16': 2,
-      u'uint8': 1,
+  _DATA_TYPE_CALLBACKS = {
+      definitions.TYPE_INDICATOR_STRUCTURE: u'_GenerateStructure',
   }
 
-  def __init__(self):
-    """Initializes a source generator."""
-    super(SourceGenerator, self).__init__()
-    self._structure_definitions_registry = (
-        registry.DataTypeDefinitionsRegistry())
+  def __init__(self, templates_path, prefix):
+    """Initializes a source generator.
 
-  def _GenerateStructureMembers(self, struct_definition, prefix):
+    Args:
+      templates_path (str): templates path.
+      prefix (str): prefix.
+    """
+    if prefix and not prefix.endswith(u'_'):
+      prefix = u'{0:s}_'.format(prefix)
+    else:
+      prefix = prefix or u''
+
+    super(SourceGenerator, self).__init__()
+    self._definitions_registry = registry.DataTypeDefinitionsRegistry()
+    self._prefix = prefix
+    self._templates_path = templates_path
+    self._template_string_generator = template_string.TemplateStringGenerator()
+
+  def _GenerateStructure(self, data_type_definition):
     """Generates structure members.
 
     Args:
-      prefix (str): prefix.
-      struct_definition (StructDefinition): struct definition.
+      data_type_definition (DataTypeDefinition): structure data type definition.
 
     Returns:
       list[str]: lines of output.
@@ -96,18 +56,16 @@ class SourceGenerator(object):
     """
     lines = []
 
-    last_index = len(struct_definition.members) - 1
-    for index, struct_attribute_definition in enumerate(
-        struct_definition.members):
+    last_index = len(data_type_definition.members) - 1
+    for index, member_definition in enumerate(data_type_definition.members):
+      name = member_definition.name
 
-      data_type = struct_attribute_definition.data_type
-      data_type_size = self._DATA_TYPE_SIZES.get(data_type, None)
-      name = struct_attribute_definition.name
-      description = name.replace(u'_', u' ')
-
+      data_type_size = member_definition.GetByteSize()
       if not data_type_size:
         raise RuntimeError(
-            u'Size of data type: {0:s} not defined'.format(data_type))
+            u'Size of structure member: {0:s} not defined'.format(name))
+
+      description = name.replace(u'_', u' ')
 
       if data_type_size == 1:
         lines.extend([
@@ -130,42 +88,38 @@ class SourceGenerator(object):
 
     return lines
 
-  def Generate(self, prefix):
-    """Generates source from the definitions.
-
-    Args:
-      prefix (str): prefix.
-    """
-    if prefix and not prefix.endswith(u'_'):
-      prefix = u'{0:s}_'.format(prefix)
-    else:
-      prefix = prefix or u''
-
-    source_file_generator = SourceFileGenerator()
+  def Generate(self):
+    """Generates source code from the data type definitions."""
+    generator = template_string.TemplateStringGenerator()
 
     template_mappings = {
         u'authors': u'Joachim Metz <joachim.metz@gmail.com>',
         u'copyright': u'2016',
-        u'prefix': prefix,
-        u'prefix_upper_case': prefix.upper()}
+        u'prefix': self._prefix,
+        u'prefix_upper_case': self._prefix.upper()}
 
-    template_filename = os.path.join(u'data', u'templates', u'structure.h')
+    template_filename = os.path.join(self._templates_path, u'structure.h')
 
-    output_writer = StdoutWriter()
+    output_writer = output_writers.StdoutWriter()
 
-    for struct_definition in (
-        self._structure_definitions_registry.GetDefinitions()):
-      lines = self._GenerateStructureMembers(struct_definition, prefix)
+    for data_type_definition in self._definitions_registry.GetDefinitions():
+      data_type_callback = self._DATA_TYPE_CALLBACKS.get(
+          data_type_definition.TYPE_INDICATOR, None)
+      if data_type_callback:
+        data_type_callback = getattr(self, data_type_callback, None)
+      if not data_type_callback:
+        continue
+
+      lines = data_type_callback(data_type_definition)
 
       template_mappings[u'structure_description'] = (
-          struct_definition.description)
+          data_type_definition.description)
       template_mappings[u'structure_members'] = u'\n'.join(lines)
-      template_mappings[u'structure_name'] = struct_definition.name
+      template_mappings[u'structure_name'] = data_type_definition.name
       template_mappings[u'structure_name_upper_case'] = (
-          struct_definition.name.upper())
+          data_type_definition.name.upper())
 
-      source_file_generator.GenerateStructureDefinitionFile(
-          template_filename, template_mappings, output_writer)
+      generator.Generate(template_filename, template_mappings, output_writer)
 
   def ReadDefinitions(self, path):
     """Reads the definitions form file or directory.
@@ -174,37 +128,7 @@ class SourceGenerator(object):
       path (str): path of the definition file or directory.
     """
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
-
-    if os.path.isdir(path):
-      definitions_reader.ReadDirectory(
-          self._structure_definitions_registry, path)
-    else:
-      definitions_reader.ReadFile(
-          self._structure_definitions_registry, path)
-
-
-class StdoutWriter(object):
-  """Class that defines a stdout output writer."""
-
-  def Open(self):
-    """Opens the output writer object.
-
-    Returns:
-      bool: True if successful or False if not.
-    """
-    return True
-
-  def Close(self):
-    """Closes the output writer object."""
-    pass
-
-  def WriteData(self, data):
-    """Writes data to stdout.
-
-    Args:
-      data (bytes): data to write.
-    """
-    print(data.encode(u'utf8'))
+    definitions_reader.ReadFile(self._definitions_registry, path)
 
 
 def Main():
@@ -222,9 +146,7 @@ def Main():
 
   argument_parser.add_argument(
       u'source', nargs=u'?', action=u'store', metavar=u'PATH', default=None,
-      help=(
-          u'path of the file or directory containing the dtFabric format '
-          u'definitions.'))
+      help=u'name of the file containing the dtFabric format definitions.')
 
   options = argument_parser.parse_args()
 
@@ -235,7 +157,7 @@ def Main():
     print(u'')
     return False
 
-  if not os.path.exists(options.source):
+  if not os.path.isfile(options.source):
     print(u'No such file: {0:s}'.format(options.source))
     print(u'')
     return False
@@ -243,7 +165,11 @@ def Main():
   logging.basicConfig(
       level=logging.INFO, format=u'[%(levelname)s] %(message)s')
 
-  source_generator = SourceGenerator()
+  # TODO: allow user to set templates path
+  # TODO: detect templates path
+  templates_path = os.path.join(u'data', u'templates')
+
+  source_generator = SourceGenerator(templates_path, options.prefix)
 
   try:
     source_generator.ReadDefinitions(options.source)
@@ -251,7 +177,8 @@ def Main():
     print(u'Unable to read definitions with error: {0:s}'.format(exception))
     return False
 
-  source_generator.Generate(options.prefix)
+  source_generator.Generate()
+
   return True
 
 
