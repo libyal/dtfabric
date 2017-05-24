@@ -138,7 +138,7 @@ def Main():
 
   # TODO: allow user to set templates path
   # TODO: detect templates path
-  templates_path = os.path.join(u'data', u'templates')
+  templates_path = os.path.join(u'data')
 
   source_generator = AsciidocFormatDocumentGenerator(templates_path)
 

@@ -8,7 +8,6 @@ import logging
 import os
 import sys
 
-from dtfabric import data_types
 from dtfabric import definitions
 from dtfabric import errors
 from dtfabric import reader
@@ -167,7 +166,7 @@ def Main():
 
   # TODO: allow user to set templates path
   # TODO: detect templates path
-  templates_path = os.path.join(u'data', u'templates')
+  templates_path = os.path.join(u'data')
 
   source_generator = SourceGenerator(templates_path, options.prefix)
 
