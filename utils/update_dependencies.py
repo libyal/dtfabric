@@ -232,7 +232,6 @@ class SetupCfgWriter(DependencyFileWriter):
       u'release = 1',
       u'packager = {0:s}'.format(_MAINTAINER),
       u'doc_files = ACKNOWLEDGEMENTS',
-      u'            AUTHORS',
       u'            LICENSE',
       u'            README',
       u'build_requires = python-setuptools']
