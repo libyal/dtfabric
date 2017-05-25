@@ -614,8 +614,8 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
-  def testReadDefinitionFromDict(self):
-    """Tests the ReadDefinitionFromDict function."""
+  def testReadDefinition(self):
+    """Tests the _ReadDefinition function."""
     definition_values = {
         u'aliases': [u'LONG', u'LONG32'],
         u'attributes': {
@@ -630,17 +630,17 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.DataTypeDefinitionsFileReader()
 
-    data_type_definition = definitions_reader.ReadDefinitionFromDict(
+    data_type_definition = definitions_reader._ReadDefinition(
         definitions_registry, definition_values)
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.IntegerDefinition)
 
     with self.assertRaises(errors.DefinitionReaderError):
-      definitions_reader.ReadDefinitionFromDict(definitions_registry, None)
+      definitions_reader._ReadDefinition(definitions_registry, None)
 
     definition_values[u'type'] = u'bogus'
     with self.assertRaises(errors.DefinitionReaderError):
-      definitions_reader.ReadDefinitionFromDict(
+      definitions_reader._ReadDefinition(
           definitions_registry, definition_values)
 
   @test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])

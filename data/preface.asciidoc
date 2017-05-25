@@ -1,5 +1,4 @@
 = ${title}
-${subtitle}
 
 :toc:
 :toclevels: 4
@@ -8,6 +7,8 @@ ${subtitle}
 [abstract]
 == Summary
 ${summary}
+This document is intended as a working document for the file format
+specification.
 
 [preface]
 == Document information
@@ -29,12 +30,3 @@ published by the Free Software Foundation; with no Invariant Sections, no
 Front-Cover Texts, and no Back-Cover Texts. A copy of the license is included 
 in the section entitled "GNU Free Documentation License".
 ....
-
-[preface]
-== Revision history
-[cols="1,1,1,5",options="header"]
-|===
-| Version | Author | Date | Comments
-| 0.0.1 | J.B. Metz | | Initial version.
-|===
-

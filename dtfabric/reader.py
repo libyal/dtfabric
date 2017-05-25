@@ -10,7 +10,7 @@ from dtfabric import errors
 
 
 class DataTypeDefinitionsReader(object):
-  """Data type definitions reader interface."""
+  """Data type definitions reader."""
 
   _DATA_TYPE_CALLBACKS = {
       definitions.TYPE_INDICATOR_BOOLEAN: u'_ReadBooleanDataTypeDefinition',
@@ -373,9 +373,13 @@ class DataTypeDefinitionsReader(object):
     Returns:
       FormatDefinition: format definition.
     """
-    return self._ReadLayoutDataTypeDefinition(
+    definition_object = self._ReadLayoutDataTypeDefinition(
         definitions_registry, definition_values, data_types.FormatDefinition,
         definition_name)
+
+    definition_object.metadata = definition_values.get(u'metadata', {})
+
+    return definition_object
 
   def _ReadIntegerDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
@@ -732,10 +736,10 @@ class DataTypeDefinitionsReader(object):
 
 
 class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
-  """Data type definitions file reader interface."""
+  """Data type definitions file reader."""
 
-  def ReadDefinitionFromDict(self, definitions_registry, definition_values):
-    """Reads a data type definition from a dictionary.
+  def _ReadDefinition(self, definitions_registry, definition_values):
+    """Reads a data type definition.
 
     Args:
       definitions_registry (DataTypeDefinitionsRegistry): data type definitions
@@ -796,7 +800,16 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
 
 class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
-  """YAML data type definitions file reader."""
+  """YAML data type definitions file reader.
+
+  Attributes:
+    dict[str, object]: metadata.
+  """
+
+  def __init__(self):
+    """Initializes a YAML data type definitions file reader."""
+    super(YAMLDataTypeDefinitionsFileReader, self).__init__()
+    self.metadata = {}
 
   def _GetFormatErrorLocation(
       self, yaml_definition, last_definition_object):
@@ -832,15 +845,15 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
       FormatError: if the definitions values are missing or if the format is
           incorrect.
     """
-    yaml_generator = yaml.safe_load_all(file_object)
-
     last_definition_object = None
     error_location = None
     error_message = None
 
     try:
+      yaml_generator = yaml.safe_load_all(file_object)
+
       for yaml_definition in yaml_generator:
-        definition_object = self.ReadDefinitionFromDict(
+        definition_object = self._ReadDefinition(
             definitions_registry, yaml_definition)
         if not definition_object:
           error_location = self._GetFormatErrorLocation(

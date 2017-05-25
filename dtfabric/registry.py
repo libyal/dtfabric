@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """The data type definitions registry."""
 
+from dtfabric import definitions
+
 
 class DataTypeDefinitionsRegistry(object):
   """Data type definitions registry."""
@@ -10,6 +12,7 @@ class DataTypeDefinitionsRegistry(object):
     super(DataTypeDefinitionsRegistry, self).__init__()
     self._aliases = {}
     self._definitions = {}
+    self._format_definitions = []
 
   def DeregisterDefinition(self, data_type_definition):
     """Deregisters a data type definition.
@@ -82,3 +85,6 @@ class DataTypeDefinitionsRegistry(object):
 
     for alias in data_type_definition.aliases:
       self._aliases[alias] = name_lower
+
+    if data_type_definition.TYPE_INDICATOR == definitions.TYPE_INDICATOR_FORMAT:
+      self._format_definitions.append(name_lower)

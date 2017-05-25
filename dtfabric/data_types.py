@@ -572,11 +572,7 @@ class EnumerationDefinition(SemanticDataTypeDefinition):
 
 
 class LayoutDataTypeDefinition(DataTypeDefinition):
-  """Layout data type definition interface.
-
-  Attributes:
-    byte_order (str): byte-order the data type.
-  """
+  """Layout data type definition interface."""
 
   _IS_COMPOSITE = True
 
@@ -590,6 +586,23 @@ class LayoutDataTypeDefinition(DataTypeDefinition):
 
 
 class FormatDefinition(LayoutDataTypeDefinition):
-  """Data format definition."""
+  """Data format definition.
+
+  Attributes:
+    metadata (dict[str, object]): metadata.
+  """
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_FORMAT
+
+  def __init__(self, name, aliases=None, description=None, urls=None):
+    """Initializes a format data type definition.
+
+    Args:
+      name (str): name.
+      aliases (Optional[list[str]]): aliases.
+      description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
+    """
+    super(FormatDefinition, self).__init__(
+        name, aliases=aliases, description=description, urls=urls)
+    self.metadata = {}
