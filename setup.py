@@ -40,7 +40,7 @@ else:
     """Custom handler for the bdist_msi command."""
 
     def run(self):
-      """Build an MSI."""
+      """Builds an MSI."""
       # Command bdist_msi does not support the library version, neither a date
       # as a version but if we suffix it with .1 everything is fine.
       self.distribution.metadata.version += '.1'

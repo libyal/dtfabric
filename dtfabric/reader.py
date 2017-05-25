@@ -2,8 +2,6 @@
 """The data type definition reader objects."""
 
 import abc
-import glob
-import os
 import yaml
 
 from dtfabric import data_types
@@ -13,27 +11,6 @@ from dtfabric import errors
 
 class DataTypeDefinitionsReader(object):
   """Data type definitions reader interface."""
-
-  @abc.abstractmethod
-  def ReadDefinitionFromDict(self, definitions_registry, definition_values):
-    """Reads a data type definition from a dictionary.
-
-    Args:
-      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
-          registry.
-      definition_values (dict[str, object]): definition values.
-
-    Returns:
-      DataTypeDefinition: data type definition or None.
-
-    Raises:
-      DefinitionReaderError: if the definitions values are missing or if
-          the format is incorrect.
-    """
-
-
-class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
-  """Data type definitions file reader interface."""
 
   _DATA_TYPE_CALLBACKS = {
       definitions.TYPE_INDICATOR_BOOLEAN: u'_ReadBooleanDataTypeDefinition',
@@ -753,6 +730,10 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     return definition_object
 
+
+class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
+  """Data type definitions file reader interface."""
+
   def ReadDefinitionFromDict(self, definitions_registry, definition_values):
     """Reads a data type definition from a dictionary.
 
@@ -792,25 +773,6 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
     return data_type_callback(definitions_registry, definition_values, name)
 
-  def ReadDirectory(self, definitions_registry, path, extension=None):
-    """Reads data type definitions from a directory.
-
-    This function does not recurse sub directories into the registry.
-
-    Args:
-      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
-          registry.
-      path (str): path of the directory to read from.
-      extension (Optional[str]): extension of the filenames to read.
-    """
-    if extension:
-      glob_spec = os.path.join(path, u'*.{0:s}'.format(extension))
-    else:
-      glob_spec = os.path.join(path, u'*')
-
-    for definition_file in glob.glob(glob_spec):
-      self.ReadFile(definitions_registry, definition_file)
-
   def ReadFile(self, definitions_registry, path):
     """Reads data type definitions from a file into the registry.
 
@@ -835,20 +797,6 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
 
 class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
   """YAML data type definitions file reader."""
-
-  def ReadDirectory(self, definitions_registry, path, extension=u'yaml'):
-    """Reads data type definitions from a directory.
-
-    This function does not recurse sub directories into the registry.
-
-    Args:
-      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
-          registry.
-      path (str): path of the directory to read from.
-      extension (Optional[str]): extension of the filenames to read.
-    """
-    super(YAMLDataTypeDefinitionsFileReader, self).ReadDirectory(
-        definitions_registry, path, extension=extension)
 
   def _GetFormatErrorLocation(
       self, yaml_definition, last_definition_object):

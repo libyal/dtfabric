@@ -16,7 +16,7 @@ from tests import test_lib
 # TODO: test errors, such as duplicate structure members.
 
 
-class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
+class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
   """Data type definitions reader tests."""
 
   # pylint: disable=protected-access
@@ -32,7 +32,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = definitions_reader._ReadBooleanDataTypeDefinition(
         definitions_registry, definition_values, u'bool')
@@ -50,7 +50,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = definitions_reader._ReadCharacterDataTypeDefinition(
         definitions_registry, definition_values, u'char')
@@ -68,7 +68,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = (
         definitions_reader._ReadConstantDataTypeDefinition(
@@ -91,7 +91,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = definitions_reader._ReadDataTypeDefinition(
         definitions_registry, definition_values, data_types.IntegerDefinition,
@@ -116,7 +116,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     definition_object = definitions_reader._ReadDataTypeDefinitionWithMembers(
         definitions_registry, definition_values, data_types.StructureDefinition,
@@ -135,7 +135,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = (
         definitions_reader._ReadElementSequenceDataTypeDefinition(
@@ -209,7 +209,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = (
         definitions_reader._ReadEnumerationDataTypeDefinition(
@@ -267,7 +267,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = definitions_reader._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values, data_types.IntegerDefinition,
@@ -297,7 +297,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = (
         definitions_reader._ReadFloatingPointDataTypeDefinition(
@@ -314,7 +314,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = definitions_reader._ReadFormatDataTypeDefinition(
         definitions_registry, definition_values, u'lnk')
@@ -333,7 +333,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = definitions_reader._ReadIntegerDataTypeDefinition(
         definitions_registry, definition_values, u'int32')
@@ -357,7 +357,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = definitions_reader._ReadLayoutDataTypeDefinition(
         definitions_registry, definition_values,
@@ -376,7 +376,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     definitions_reader._ReadMemberDataTypeDefinitionMember(
         definitions_registry, definition_values, u'point3d')
@@ -391,7 +391,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = definitions_reader._ReadSemanticDataTypeDefinition(
         definitions_registry, definition_values,
@@ -422,7 +422,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = (
         definitions_reader._ReadSequenceDataTypeDefinition(
@@ -441,7 +441,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = definitions_reader._ReadStorageDataTypeDefinition(
         definitions_registry, definition_values, data_types.IntegerDefinition,
@@ -473,7 +473,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = (
         definitions_reader._ReadStreamDataTypeDefinition(
@@ -495,7 +495,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
         u'definitions', u'characters.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = (
         definitions_reader._ReadStringDataTypeDefinition(
@@ -521,7 +521,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = (
         definitions_reader._ReadStructureDataTypeDefinition(
@@ -558,7 +558,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath([u'definitions', u'integers.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = (
         definitions_reader._ReadStructureDataTypeDefinition(
@@ -593,7 +593,7 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
+    definitions_reader = reader.DataTypeDefinitionsReader()
 
     data_type_definition = definitions_reader._ReadUUIDDataTypeDefinition(
         definitions_registry, definition_values, u'uuid')
@@ -606,6 +606,13 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadUUIDDataTypeDefinition(
           definitions_registry, definition_values, u'uuid')
+
+
+
+class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
+  """Data type definitions file reader tests."""
+
+  # pylint: disable=protected-access
 
   def testReadDefinitionFromDict(self):
     """Tests the ReadDefinitionFromDict function."""
@@ -636,19 +643,6 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
       definitions_reader.ReadDefinitionFromDict(
           definitions_registry, definition_values)
 
-  def testReadDirectory(self):
-    """Tests the ReadDirectory function."""
-    definitions_directory = self._GetTestFilePath([u'definitions'])
-
-    definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.DataTypeDefinitionsFileReader()
-
-    definitions_reader.ReadDirectory(
-        definitions_registry, definitions_directory)
-
-    definitions_reader.ReadDirectory(
-        definitions_registry, definitions_directory, extension=u'yaml')
-
   @test_lib.skipUnlessHasTestFile([u'definitions', u'integers.yaml'])
   def testReadFile(self):
     """Tests the ReadFile function."""
@@ -664,16 +658,6 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
   """YAML data type definitions reader tests."""
 
   # pylint: disable=protected-access
-
-  def testReadDirectory(self):
-    """Tests the ReadDirectory function."""
-    definitions_directory = self._GetTestFilePath([u'definitions'])
-
-    definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
-
-    definitions_reader.ReadDirectory(
-        definitions_registry, definitions_directory)
 
   @test_lib.skipUnlessHasTestFile([u'boolean.yaml'])
   def testReadFileObjectBoolean(self):
