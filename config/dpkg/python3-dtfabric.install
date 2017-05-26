@@ -1,4 +1,3 @@
 usr/lib/python3*/dist-packages/dtfabric/*.py
-usr/lib/python3*/dist-packages/dtfabric/generators/*.py
-usr/lib/python3*/dist-packages/dtfabric/runtime/*.py
+usr/lib/python3*/dist-packages/dtfabric/*/*.py
 usr/lib/python3*/dist-packages/dtfabric*.egg-info/*
