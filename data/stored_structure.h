@@ -19,8 +19,8 @@
  * along with this software.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if !defined( _${prefix_upper_case}${structure_name_upper_case}_H )
-#define _${prefix_upper_case}${structure_name_upper_case}_H
+#if !defined( _${prefix_upper_case}_${structure_name_upper_case}_H )
+#define _${prefix_upper_case}_${structure_name_upper_case}_H
 
 #include <common.h>
 #include <types.h>
@@ -29,9 +29,9 @@
 extern "C" {
 #endif
 
-typedef struct ${prefix}${structure_name} ${prefix}${structure_name}_t;
+typedef struct ${prefix}_${structure_name} ${prefix}_${structure_name}_t;
 
-struct ${prefix}${structure_name}
+struct ${prefix}_${structure_name}
 {
 ${structure_members}
 };
@@ -40,5 +40,5 @@ ${structure_members}
 }
 #endif
 
-#endif /* !defined( _${prefix_upper_case}${structure_name_upper_case}_H ) */
+#endif /* !defined( _${prefix_upper_case}_${structure_name_upper_case}_H ) */
 

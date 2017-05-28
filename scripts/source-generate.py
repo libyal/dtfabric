@@ -19,7 +19,9 @@ from dtfabric.generators import template_string
 class SourceGenerator(object):
   """Generates source based on dtFabric format definitions."""
 
-  _STORED_STRUCTURE_TEMPLATE_FILE = u'stored_structure.h'
+  _RUNTIME_STRUCTURE_HEADER_TEMPLATE_FILE = u'runtime_structure.h'
+  _RUNTIME_STRUCTURE_SOURCE_TEMPLATE_FILE = u'runtime_structure.c'
+  _STORED_STRUCTURE_HEADER_TEMPLATE_FILE = u'stored_structure.h'
 
   def __init__(self, templates_path, prefix=None):
     """Initializes a source generator.
@@ -33,6 +35,102 @@ class SourceGenerator(object):
     self._prefix = prefix
     self._templates_path = templates_path
     self._template_string_generator = template_string.TemplateStringGenerator()
+
+  def _GenerateRuntimeStructureHeader(self, data_type_definition):
+    """Generates a runtime structure header.
+
+    Args:
+      data_type_definition (DataTypeDefinition): structure data type definition.
+    """
+    template_mappings = self._GetTemplateMappings()
+
+    if data_type_definition.description:
+      structure_description = data_type_definition.description
+    else:
+      structure_description = data_type_definition.name
+
+    structure_members = self._GetRuntimeStructureHeaderMembers(
+        data_type_definition)
+
+    library_name = u'lib{0:s}'.format(self._prefix)
+
+    template_mappings[u'library_name'] = library_name
+    template_mappings[u'library_name_upper_case'] = library_name.upper()
+
+    template_mappings[u'structure_description'] = structure_description
+    template_mappings[u'structure_members'] = structure_members
+    template_mappings[u'structure_name'] = data_type_definition.name
+    template_mappings[u'structure_name_upper_case'] = (
+        data_type_definition.name.upper())
+
+    template_filename = os.path.join(
+        self._templates_path, self._RUNTIME_STRUCTURE_HEADER_TEMPLATE_FILE)
+
+    output_data = self._template_string_generator.Generate(
+        template_filename, template_mappings)
+
+    if self._prefix:
+      output_file = os.path.join(
+          u'lib{0:s}'.format(self._prefix),
+          u'lib{0:s}_{1:s}.h'.format(self._prefix, data_type_definition.name))
+    else:
+      output_file = self._RUNTIME_STRUCTURE_HEADER_TEMPLATE_FILE
+
+    logging.info(u'Writing: {0:s}'.format(output_file))
+    with open(output_file, 'wb') as file_object:
+      file_object.write(output_data)
+
+  def _GenerateRuntimeStructureSource(self, data_type_definition):
+    """Generates a runtime structure source.
+
+    Args:
+      data_type_definition (DataTypeDefinition): structure data type definition.
+    """
+    template_mappings = self._GetTemplateMappings()
+
+    if data_type_definition.description:
+      structure_description = data_type_definition.description
+    else:
+      structure_description = data_type_definition.name
+
+    structure_members_copy_from_byte_stream = (
+        self._GetRuntimeStructureSourceMembersCopyFromByteStream(
+            data_type_definition))
+
+    structure_members_debug_print = (
+        self._GetRuntimeStructureSourceMembersDebugPrint(
+            data_type_definition))
+
+    library_name = u'lib{0:s}'.format(self._prefix)
+
+    template_mappings[u'library_name'] = library_name
+    template_mappings[u'library_name_upper_case'] = library_name.upper()
+
+    template_mappings[u'structure_description'] = structure_description
+    template_mappings[u'structure_members_copy_from_byte_stream'] = (
+        structure_members_copy_from_byte_stream)
+    template_mappings[u'structure_members_debug_print'] = (
+        structure_members_debug_print)
+    template_mappings[u'structure_name'] = data_type_definition.name
+    template_mappings[u'structure_name_upper_case'] = (
+        data_type_definition.name.upper())
+
+    template_filename = os.path.join(
+        self._templates_path, self._RUNTIME_STRUCTURE_SOURCE_TEMPLATE_FILE)
+
+    output_data = self._template_string_generator.Generate(
+        template_filename, template_mappings)
+
+    if self._prefix:
+      output_file = os.path.join(
+          u'lib{0:s}'.format(self._prefix),
+          u'lib{0:s}_{1:s}.c'.format(self._prefix, data_type_definition.name))
+    else:
+      output_file = self._RUNTIME_STRUCTURE_SOURCE_TEMPLATE_FILE
+
+    logging.info(u'Writing: {0:s}'.format(output_file))
+    with open(output_file, 'wb') as file_object:
+      file_object.write(output_data)
 
   def _GenerateStoredStructureHeader(self, data_type_definition):
     """Generates a stored structure header.
@@ -63,7 +161,7 @@ class SourceGenerator(object):
         data_type_definition.name.upper())
 
     template_filename = os.path.join(
-        self._templates_path, self._STORED_STRUCTURE_TEMPLATE_FILE)
+        self._templates_path, self._STORED_STRUCTURE_HEADER_TEMPLATE_FILE)
 
     output_data = self._template_string_generator.Generate(
         template_filename, template_mappings)
@@ -73,7 +171,7 @@ class SourceGenerator(object):
           u'lib{0:s}'.format(self._prefix),
           u'{0:s}_{1:s}.h'.format(self._prefix, data_type_definition.name))
     else:
-      output_file = self._STORED_STRUCTURE_TEMPLATE_FILE
+      output_file = self._STORED_STRUCTURE_HEADER_TEMPLATE_FILE
 
     logging.info(u'Writing: {0:s}'.format(output_file))
     with open(output_file, 'wb') as file_object:
@@ -95,6 +193,154 @@ class SourceGenerator(object):
 
     return self._definitions_registry.GetDefinitionByName(
         self._definitions_registry._format_definitions[0])
+
+  def _GetRuntimeStructureHeaderMembers(self, data_type_definition):
+    """Generates the member definitions of a runtime structure header.
+
+    Args:
+      data_type_definition (DataTypeDefinition): structure data type definition.
+
+    Returns:
+      str: member definitions of the runtime structure header.
+
+    Raises:
+      RuntimeError: if the size of the data type is not defined.
+    """
+    lines = []
+
+    last_index = len(data_type_definition.members) - 1
+    for index, member_definition in enumerate(data_type_definition.members):
+      name = member_definition.name
+
+      data_type_size = member_definition.GetByteSize()
+      if not data_type_size:
+        raise RuntimeError(
+            u'Size of structure member: {0:s} not defined'.format(name))
+
+      if member_definition.description:
+        description = member_definition.description
+      else:
+        description = name.replace(u'_', u' ')
+
+      description = u'{0:s}{1:s}'.format(
+          description[0].upper(), description[1:])
+
+      data_type = getattr(member_definition, u'member_data_type', None)
+      if data_type:
+        lines.extend([
+            u'\t/* {0:s}'.format(description),
+            u'\t */',
+            u'\t{1:s} {0:s};'.format(name, data_type)
+        ])
+
+      else:
+        lines.append(u'\t/* TODO: {1:s} {0:s} */'.format(name, data_type))
+
+      if index != last_index:
+        lines.append(u'')
+
+    return u'\n'.join(lines)
+
+  def _GetRuntimeStructureSourceMembersCopyFromByteStream(
+      self, data_type_definition):
+    """Generates the member definitions of a runtime structure source.
+
+    Args:
+      data_type_definition (DataTypeDefinition): structure data type definition.
+
+    Returns:
+      str: member definitions of the runtime structure source.
+
+    Raises:
+      RuntimeError: if the size of the data type is not defined.
+    """
+    lines = []
+
+    prefix = self._prefix or u''
+
+    last_index = len(data_type_definition.members) - 1
+    for index, member_definition in enumerate(data_type_definition.members):
+      name = member_definition.name
+
+      data_type_size = member_definition.GetByteSize()
+      if not data_type_size:
+        raise RuntimeError(
+            u'Size of structure member: {0:s} not defined'.format(name))
+
+      if member_definition.description:
+        description = member_definition.description
+      else:
+        description = name.replace(u'_', u' ')
+
+      description = u'{0:s}{1:s}'.format(
+          description[0].upper(), description[1:])
+
+      data_type = getattr(member_definition, u'member_data_type', None)
+      if data_type:
+        lines.extend([
+            u'\tbyte_stream_copy_to_{0:s}_little_endian('.format(data_type),
+            u'\t ( ({0:s}_{1:s}_t *) data )->{2:s},'.format(
+                prefix, data_type_definition.name, name),
+            u'\t {0:s}->{1:s} );'.format(data_type_definition.name, name)
+        ])
+
+      else:
+        lines.append(u'\t/* TODO: {1:s} {0:s} */'.format(name, data_type))
+
+      if index != last_index:
+        lines.append(u'')
+
+    return u'\n'.join(lines)
+
+  def _GetRuntimeStructureSourceMembersDebugPrint(self, data_type_definition):
+    """Generates the member definitions of a runtime structure source.
+
+    Args:
+      data_type_definition (DataTypeDefinition): structure data type definition.
+
+    Returns:
+      str: member definitions of the runtime structure source.
+
+    Raises:
+      RuntimeError: if the size of the data type is not defined.
+    """
+    lines = []
+
+    prefix = self._prefix or u''
+
+    last_index = len(data_type_definition.members) - 1
+    for index, member_definition in enumerate(data_type_definition.members):
+      name = member_definition.name
+
+      data_type_size = member_definition.GetByteSize()
+      if not data_type_size:
+        raise RuntimeError(
+            u'Size of structure member: {0:s} not defined'.format(name))
+
+      if member_definition.description:
+        description = member_definition.description
+      else:
+        description = name.replace(u'_', u' ')
+
+      data_type = getattr(member_definition, u'member_data_type', None)
+      if data_type:
+        printf_format_indicator = u'%" PRIu32 "'
+        # TODO: detemine number of tabs for alignment.
+        lines.extend([
+            u'\t\tlibcnotify_printf(',
+            u'\t\t "%s: {0:s}\\t: {1:s}\\n",'.format(
+                description, printf_format_indicator),
+            u'\t\t function,',
+            u'\t\t {0:s}->{1:s} );'.format(data_type_definition.name, name)
+        ])
+
+      else:
+        lines.append(u'\t\t/* TODO: {1:s} {0:s} */'.format(name, data_type))
+
+      if index != last_index:
+        lines.append(u'')
+
+    return u'\n'.join(lines)
 
   def _GetStoredStructureHeaderMembers(self, data_type_definition):
     """Generates the member definitions of a stored structure header.
@@ -173,8 +419,6 @@ class SourceGenerator(object):
       template_mappings[u'copyright'] = copyright_years
 
     prefix = self._prefix or u''
-    if prefix and not prefix.endswith(u'_'):
-      prefix = u'{0:s}_'.format(prefix)
 
     template_mappings[u'prefix'] = prefix
     template_mappings[u'prefix_upper_case'] = prefix.upper()
@@ -188,6 +432,8 @@ class SourceGenerator(object):
           definitions.TYPE_INDICATOR_STRUCTURE):
         continue
 
+      self._GenerateRuntimeStructureHeader(data_type_definition)
+      self._GenerateRuntimeStructureSource(data_type_definition)
       self._GenerateStoredStructureHeader(data_type_definition)
 
   def ReadDefinitions(self, path):
