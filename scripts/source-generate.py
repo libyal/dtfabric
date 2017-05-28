@@ -4,6 +4,7 @@
 
 from __future__ import print_function
 import argparse
+import datetime
 import logging
 import os
 import sys
@@ -12,43 +13,97 @@ from dtfabric import definitions
 from dtfabric import errors
 from dtfabric import reader
 from dtfabric import registry
-from dtfabric.generators import output_writers
 from dtfabric.generators import template_string
 
 
 class SourceGenerator(object):
   """Generates source based on dtFabric format definitions."""
 
-  _DATA_TYPE_CALLBACKS = {
-      definitions.TYPE_INDICATOR_STRUCTURE: u'_GenerateStructure',
-  }
+  _STORED_STRUCTURE_TEMPLATE_FILE = u'stored_structure.h'
 
-  def __init__(self, templates_path, prefix):
+  def __init__(self, templates_path, prefix=None):
     """Initializes a source generator.
 
     Args:
       templates_path (str): templates path.
-      prefix (str): prefix.
+      prefix (Optional[str]): prefix.
     """
-    if prefix and not prefix.endswith(u'_'):
-      prefix = u'{0:s}_'.format(prefix)
-    else:
-      prefix = prefix or u''
-
     super(SourceGenerator, self).__init__()
     self._definitions_registry = registry.DataTypeDefinitionsRegistry()
     self._prefix = prefix
     self._templates_path = templates_path
     self._template_string_generator = template_string.TemplateStringGenerator()
 
-  def _GenerateStructure(self, data_type_definition):
-    """Generates structure members.
+  def _GenerateStoredStructureHeader(self, data_type_definition):
+    """Generates a stored structure header.
+
+    Args:
+      data_type_definition (DataTypeDefinition): structure data type definition.
+    """
+    format_definition = self._GetFormatDefinitions()
+
+    template_mappings = self._GetTemplateMappings()
+
+    if data_type_definition.description:
+      structure_description = data_type_definition.description
+    else:
+      structure_description = data_type_definition.name
+
+    if format_definition.description:
+      structure_description = u'{0:s} of a {1:s}'.format(
+          structure_description, format_definition.description)
+
+    structure_members = self._GetStoredStructureHeaderMembers(
+        data_type_definition)
+
+    template_mappings[u'structure_description'] = structure_description
+    template_mappings[u'structure_members'] = structure_members
+    template_mappings[u'structure_name'] = data_type_definition.name
+    template_mappings[u'structure_name_upper_case'] = (
+        data_type_definition.name.upper())
+
+    template_filename = os.path.join(
+        self._templates_path, self._STORED_STRUCTURE_TEMPLATE_FILE)
+
+    output_data = self._template_string_generator.Generate(
+        template_filename, template_mappings)
+
+    if self._prefix:
+      output_file = os.path.join(
+          u'lib{0:s}'.format(self._prefix),
+          u'{0:s}_{1:s}.h'.format(self._prefix, data_type_definition.name))
+    else:
+      output_file = self._STORED_STRUCTURE_TEMPLATE_FILE
+
+    logging.info(u'Writing: {0:s}'.format(output_file))
+    with open(output_file, 'wb') as file_object:
+      file_object.write(output_data)
+
+  def _GetFormatDefinitions(self):
+    """Retrieves the format definition.
+
+    Returns:
+      FormatDefinition: format definition.
+    """
+    # pylint: disable=protected-access
+
+    if not self._definitions_registry._format_definitions:
+      raise RuntimeError(u'Missing format definition.')
+
+    if len(self._definitions_registry._format_definitions) > 1:
+      raise RuntimeError(u'Unsupported multiple format definitions.')
+
+    return self._definitions_registry.GetDefinitionByName(
+        self._definitions_registry._format_definitions[0])
+
+  def _GetStoredStructureHeaderMembers(self, data_type_definition):
+    """Generates the member definitions of a stored structure header.
 
     Args:
       data_type_definition (DataTypeDefinition): structure data type definition.
 
     Returns:
-      list[str]: lines of output.
+      str: member definitions of the stored structure header.
 
     Raises:
       RuntimeError: if the size of the data type is not defined.
@@ -64,11 +119,17 @@ class SourceGenerator(object):
         raise RuntimeError(
             u'Size of structure member: {0:s} not defined'.format(name))
 
-      description = name.replace(u'_', u' ')
+      if member_definition.description:
+        description = member_definition.description
+      else:
+        description = name.replace(u'_', u' ')
+
+      description = u'{0:s}{1:s}'.format(
+          description[0].upper(), description[1:])
 
       if data_type_size == 1:
         lines.extend([
-            u'\t/* The {0:s}'.format(description),
+            u'\t/* {0:s}'.format(description),
             u'\t * Consists of {0:d} byte'.format(data_type_size),
             u'\t */',
             u'\tuint8_t {0:s};'.format(name)
@@ -76,7 +137,7 @@ class SourceGenerator(object):
 
       else:
         lines.extend([
-            u'\t/* The {0:s}'.format(description),
+            u'\t/* {0:s}'.format(description),
             u'\t * Consists of {0:d} bytes'.format(data_type_size),
             u'\t */',
             u'\tuint8_t {0:s}[ {1:d} ];'.format(name, data_type_size)
@@ -85,40 +146,49 @@ class SourceGenerator(object):
       if index != last_index:
         lines.append(u'')
 
-    return lines
+    return u'\n'.join(lines)
+
+  def _GetTemplateMappings(self):
+    """Retrieves the template mappings.
+
+    Returns:
+      dict[str, str]: template mappings.
+    """
+    format_definition = self._GetFormatDefinitions()
+
+    template_mappings = {}
+
+    authors = format_definition.metadata.get(u'authors', None)
+    if authors:
+      template_mappings[u'authors'] = u', '.join(authors)
+
+    year = format_definition.metadata.get(u'year', None)
+    if year:
+      date = datetime.date.today()
+      if year != date.year:
+        copyright_years = u'{0:d}-{1:d}'.format(year, date.year)
+      else:
+        copyright_years = u'{0:d}'.format(year)
+
+      template_mappings[u'copyright'] = copyright_years
+
+    prefix = self._prefix or u''
+    if prefix and not prefix.endswith(u'_'):
+      prefix = u'{0:s}_'.format(prefix)
+
+    template_mappings[u'prefix'] = prefix
+    template_mappings[u'prefix_upper_case'] = prefix.upper()
+
+    return template_mappings
 
   def Generate(self):
     """Generates source code from the data type definitions."""
-    generator = template_string.TemplateStringGenerator()
-
-    template_mappings = {
-        u'authors': u'Joachim Metz <joachim.metz@gmail.com>',
-        u'copyright': u'2016',
-        u'prefix': self._prefix,
-        u'prefix_upper_case': self._prefix.upper()}
-
-    template_filename = os.path.join(self._templates_path, u'structure.h')
-
-    output_writer = output_writers.StdoutWriter()
-
     for data_type_definition in self._definitions_registry.GetDefinitions():
-      data_type_callback = self._DATA_TYPE_CALLBACKS.get(
-          data_type_definition.TYPE_INDICATOR, None)
-      if data_type_callback:
-        data_type_callback = getattr(self, data_type_callback, None)
-      if not data_type_callback:
+      if data_type_definition.TYPE_INDICATOR != (
+          definitions.TYPE_INDICATOR_STRUCTURE):
         continue
 
-      lines = data_type_callback(data_type_definition)
-
-      template_mappings[u'structure_description'] = (
-          data_type_definition.description)
-      template_mappings[u'structure_members'] = u'\n'.join(lines)
-      template_mappings[u'structure_name'] = data_type_definition.name
-      template_mappings[u'structure_name_upper_case'] = (
-          data_type_definition.name.upper())
-
-      generator.Generate(template_filename, template_mappings, output_writer)
+      self._GenerateStoredStructureHeader(data_type_definition)
 
   def ReadDefinitions(self, path):
     """Reads the definitions form file or directory.
@@ -144,6 +214,11 @@ def Main():
       default=None, help=u'C code prefix.')
 
   argument_parser.add_argument(
+      u'--templates-path', u'--templates_path', dest=u'templates_path',
+      action=u'store', metavar=u'PATH', default=None, help=(
+          u'Path to the template files.'))
+
+  argument_parser.add_argument(
       u'source', nargs=u'?', action=u'store', metavar=u'PATH', default=None,
       help=u'name of the file containing the dtFabric format definitions.')
 
@@ -164,11 +239,13 @@ def Main():
   logging.basicConfig(
       level=logging.INFO, format=u'[%(levelname)s] %(message)s')
 
-  # TODO: allow user to set templates path
-  # TODO: detect templates path
-  templates_path = os.path.join(u'data')
+  templates_path = options.templates_path
+  if not templates_path:
+    templates_path = os.path.dirname(__file__)
+    templates_path = os.path.dirname(templates_path)
+    templates_path = os.path.join(templates_path, u'data')
 
-  source_generator = SourceGenerator(templates_path, options.prefix)
+  source_generator = SourceGenerator(templates_path, prefix=options.prefix)
 
   try:
     source_generator.ReadDefinitions(options.source)

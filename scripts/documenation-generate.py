@@ -12,7 +12,6 @@ import sys
 from dtfabric import errors
 from dtfabric import reader
 from dtfabric import registry
-from dtfabric.generators import output_writers
 from dtfabric.generators import template_string
 
 
@@ -35,38 +34,34 @@ class AsciidocFormatDocumentGenerator(object):
     self._templates_path = templates_path
     self._template_string_generator = template_string.TemplateStringGenerator()
 
-  def _GenerateAppendices(self, output_writer):
-    """Generates appendices.
-
-    Args:
-      output_writer (OutputWriter): output writer.
-    """
+  def _GenerateAppendices(self):
+    """Generates appendices."""
     template_mappings = {}
 
     template_filename = os.path.join(
         self._templates_path, self._APPENDICES_TEMPLATE_FILE)
 
-    self._template_string_generator.Generate(
-        template_filename, template_mappings, output_writer)
+    output_data = self._template_string_generator.Generate(
+        template_filename, template_mappings)
+
+    print(output_data)
 
     # TODO: generate references
     # TODO: generate GFDL
 
-  def _GenerateBody(self, output_writer):
-    """Generates a body.
-
-    Args:
-      output_writer (OutputWriter): output writer.
-    """
+  def _GenerateBody(self):
+    """Generates a body."""
     template_mappings = {}
 
     template_filename = os.path.join(
         self._templates_path, self._BODY_TEMPLATE_FILE)
 
-    self._template_string_generator.Generate(
-        template_filename, template_mappings, output_writer)
+    output_data = self._template_string_generator.Generate(
+        template_filename, template_mappings)
 
-    self._GenerateOverview(output_writer)
+    print(output_data)
+
+    self._GenerateOverview()
 
     # TODO: generate chapter per structure
 
@@ -87,12 +82,8 @@ class AsciidocFormatDocumentGenerator(object):
     return self._definitions_registry.GetDefinitionByName(
         self._definitions_registry._format_definitions[0])
 
-  def _GenerateOverview(self, output_writer):
-    """Generates the overview chapter.
-
-    Args:
-      output_writer (OutputWriter): output writer.
-    """
+  def _GenerateOverview(self):
+    """Generates the overview chapter."""
     format_definition = self._GetFormatDefinitions()
 
     template_mappings = {}
@@ -104,18 +95,16 @@ class AsciidocFormatDocumentGenerator(object):
     template_filename = os.path.join(
         self._templates_path, self._OVERVIEW_TEMPLATE_FILE)
 
-    self._template_string_generator.Generate(
-        template_filename, template_mappings, output_writer)
+    output_data = self._template_string_generator.Generate(
+        template_filename, template_mappings)
+
+    print(output_data)
 
     # TODO: generate characteristics table
     # TODO: generate overview description
 
-  def _GeneratePreface(self, output_writer):
-    """Generates a preface.
-
-    Args:
-      output_writer (OutputWriter): output writer.
-    """
+  def _GeneratePreface(self):
+    """Generates a preface."""
     format_definition = self._GetFormatDefinitions()
 
     template_mappings = {
@@ -151,16 +140,16 @@ class AsciidocFormatDocumentGenerator(object):
     template_filename = os.path.join(
         self._templates_path, self._PREFACE_TEMPLATE_FILE)
 
-    self._template_string_generator.Generate(
-        template_filename, template_mappings, output_writer)
+    output_data = self._template_string_generator.Generate(
+        template_filename, template_mappings)
+
+    print(output_data)
 
   def Generate(self):
     """Generates a format document."""
-    output_writer = output_writers.StdoutWriter()
-
-    self._GeneratePreface(output_writer)
-    self._GenerateBody(output_writer)
-    self._GenerateAppendices(output_writer)
+    self._GeneratePreface()
+    self._GenerateBody()
+    self._GenerateAppendices()
 
   def ReadDefinitions(self, path):
     """Reads the definitions form file or directory.
@@ -180,6 +169,11 @@ def Main():
   """
   argument_parser = argparse.ArgumentParser(description=(
       u'Generates documentation based on dtFabric format definitions.'))
+
+  argument_parser.add_argument(
+      u'--templates-path', u'--templates_path', dest=u'templates_path',
+      action=u'store', metavar=u'PATH', default=None, help=(
+          u'Path to the template files.'))
 
   argument_parser.add_argument(
       u'source', nargs=u'?', action=u'store', metavar=u'PATH', default=None,
@@ -202,9 +196,11 @@ def Main():
   logging.basicConfig(
       level=logging.INFO, format=u'[%(levelname)s] %(message)s')
 
-  # TODO: allow user to set templates path
-  # TODO: detect templates path
-  templates_path = os.path.join(u'data')
+  templates_path = options.templates_path
+  if not templates_path:
+    templates_path = os.path.dirname(__file__)
+    templates_path = os.path.dirname(templates_path)
+    templates_path = os.path.join(templates_path, u'data')
 
   source_generator = AsciidocFormatDocumentGenerator(templates_path)
 

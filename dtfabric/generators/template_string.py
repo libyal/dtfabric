@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Generators."""
 
-import logging
 import string
 
 
@@ -22,25 +21,26 @@ class TemplateStringGenerator(object):
 
     return string.Template(file_data)
 
-  def Generate(self, template_filename, template_mappings, output_writer):
+  def Generate(self, template_filename, template_mappings):
     """Generates output based on the template string.
 
     Args:
       template_filename (str): path of the template file.
       template_mappings (dict[str, str]): template mappings, where the key
           maps to the name of a template variable.
-      output_writer (OutputWriter): output writer.
+
+    Returns:
+      str: output based on the template string.
+
+    Raises:
+      RuntimeError: if the template cannot be formatted.
     """
     template_string = self._ReadTemplateFile(template_filename)
 
     try:
-      output_data = template_string.substitute(template_mappings)
+      return template_string.substitute(template_mappings)
 
     except (KeyError, ValueError) as exception:
-      # TODO: raise exception
-      logging.error(
-          u'Unable to format template: {0:s} with error: {1:s}'.format(
+      raise RuntimeError(
+          u'Unable to format template: {0:s} with error: {1!s}'.format(
               template_filename, exception))
-      return
-
-    output_writer.WriteData(output_data)
