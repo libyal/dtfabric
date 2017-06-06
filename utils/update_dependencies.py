@@ -5,23 +5,29 @@
 import os
 import sys
 
-# Change PYTHONPATH to include dependencies.
+# Change PYTHONPATH to include dependencies and projects.
 sys.path.insert(0, u'.')
 
 import utils.dependencies  # pylint: disable=wrong-import-position
+import utils.projects  # pylint: disable=wrong-import-position
+
+
+# pylint: disable=redefined-outer-name
 
 
 class DependencyFileWriter(object):
   """Dependency file writer."""
 
-  def __init__(self, dependency_helper):
+  def __init__(self, project_definition, dependency_helper):
     """Initializes a dependency file writer.
 
     Args:
+      project_definition (ProjectDefinition): project definition.
       dependency_helper (DependencyHelper): dependency helper.
     """
     super(DependencyFileWriter, self).__init__()
     self._dependency_helper = dependency_helper
+    self._project_definition = project_definition
 
 
 class AppveyorYmlWriter(DependencyFileWriter):
@@ -122,72 +128,67 @@ class DPKGControlWriter(DependencyFileWriter):
 
   _PATH = os.path.join(u'config', u'dpkg', u'control')
 
-  _PROJECT_NAME = u'dtfabric'
-
-  _MAINTAINER = u'Joachim Metz <joachim.metz@gmail.com>'
-
-  _FILE_HEADER = [
-      u'Source: {0:s}'.format(_PROJECT_NAME),
+  _FILE_CONTENT = u'\n'.join([
+      u'Source: {project_name:s}',
       u'Section: python',
       u'Priority: extra',
-      u'Maintainer: {0:s}'.format(_MAINTAINER),
+      u'Maintainer: {maintainer:s}',
       (u'Build-Depends: debhelper (>= 9), python-all (>= 2.7~), '
        u'python-setuptools, python3-all (>= 3.4~), python3-setuptools'),
       u'Standards-Version: 3.9.5',
       u'X-Python-Version: >= 2.7',
       u'X-Python3-Version: >= 3.4',
-      u'Homepage: https://github.com/libyal/dtfabric',
+      u'Homepage: {homepage_url:s}',
       u'',
       u'Package: dtfabric-data',
       u'Architecture: all',
-      u'Depends: ${misc:Depends}',
+      u'Depends: ${{misc:Depends}}',
       u'Description: Data files for dtFabric.',
       u' dtFabric, or data type fabric, is a project to manage data types and',
       u' structures, as used in the libyal projects.',
-      u'']
-
-  _PYTHON2_PACKAGE_HEADER = [
-      u'Package: python-{0:s}'.format(_PROJECT_NAME),
-      u'Architecture: all']
-
-  _PYTHON2_PACKAGE_FOOTER = [
+      u'',
+      u'Package: python-{project_name:s}',
+      u'Architecture: all',
+      (u'Depends: dtfabric-data, {python2_dependencies:s}${{python:Depends}}, '
+       u'${{misc:Depends}}'),
       u'Description: Python 2 module for data type and structure management',
-      u' dtFabric, or data type fabric, is a project to manage data types and',
-      u' structures, as used in the libyal projects.',
-      u'']
-
-  _PYTHON3_PACKAGE_HEADER = [
-      u'Package: python3-{0:s}'.format(_PROJECT_NAME),
-      u'Architecture: all']
-
-  _PYTHON3_PACKAGE_FOOTER = [
+      u'{description_long:s}',
+      u'',
+      u'Package: python3-{project_name:s}',
+      u'Architecture: all',
+      (u'Depends: dtfabric-data, {python3_dependencies:s}${{python3:Depends}}, '
+       u'${{misc:Depends}}'),
       u'Description: Python 3 module for data type and structure management',
-      u' dtFabric, or data type fabric, is a project to manage data types and',
-      u' structures, as used in the libyal projects.',
-      u'']
+      u'{description_long:s}',
+      u''])
 
   def Write(self):
     """Writes a dpkg control file."""
-    file_content = []
-    file_content.extend(self._FILE_HEADER)
-    file_content.extend(self._PYTHON2_PACKAGE_HEADER)
-
     dependencies = self._dependency_helper.GetDPKGDepends()
-    dependencies.extend([u'${python:Depends}', u'${misc:Depends}'])
-    dependencies = u', '.join(dependencies)
 
-    file_content.append(u'Depends: dtfabric-data, {0:s}'.format(dependencies))
+    description_long = self._project_definition.description_long
+    description_long = u'\n'.join([
+        u' {0:s}'.format(line) for line in description_long.split(u'\n')])
 
-    file_content.extend(self._PYTHON2_PACKAGE_FOOTER)
-    file_content.extend(self._PYTHON3_PACKAGE_HEADER)
+    python2_dependencies = u', '.join(dependencies)
+    if python2_dependencies:
+      python2_dependencies = u'{0:s}, '.format(python2_dependencies)
 
-    dependencies = dependencies.replace(u'python', u'python3')
+    python3_dependencies = u', '.join(dependencies).replace(
+        u'python', u'python3')
+    if python3_dependencies:
+      python3_dependencies = u'{0:s}, '.format(python3_dependencies)
 
-    file_content.append(u'Depends: dtfabric-data, {0:s}'.format(dependencies))
+    kwargs = {
+        u'description_long': description_long,
+        u'description_short': self._project_definition.description_short,
+        u'homepage_url': self._project_definition.homepage_url,
+        u'maintainer': self._project_definition.maintainer,
+        u'project_name': self._project_definition.name,
+        u'python2_dependencies': python2_dependencies,
+        u'python3_dependencies': python3_dependencies}
+    file_content = self._FILE_CONTENT.format(**kwargs)
 
-    file_content.extend(self._PYTHON3_PACKAGE_FOOTER)
-
-    file_content = u'\n'.join(file_content)
     file_content = file_content.encode(u'utf-8')
 
     with open(self._PATH, 'wb') as file_object:
@@ -199,10 +200,7 @@ class RequirementsWriter(DependencyFileWriter):
 
   _PATH = u'requirements.txt'
 
-  _FILE_HEADER = [
-      u'pip >= 7.0.0',
-      u'pytest',
-      u'mock']
+  _FILE_HEADER = [u'pip >= 7.0.0']
 
   def Write(self):
     """Writes a requirements.txt file."""
@@ -225,21 +223,22 @@ class SetupCfgWriter(DependencyFileWriter):
 
   _PATH = u'setup.cfg'
 
-  _MAINTAINER = u'Joachim Metz <joachim.metz@gmail.com>'
-
-  _FILE_HEADER = [
+  _FILE_HEADER = u'\n'.join([
       u'[bdist_rpm]',
       u'release = 1',
-      u'packager = {0:s}'.format(_MAINTAINER),
+      u'packager = {maintainer:s}',
       u'doc_files = ACKNOWLEDGEMENTS',
+      u'            AUTHORS',
       u'            LICENSE',
       u'            README',
-      u'build_requires = python-setuptools']
+      u'build_requires = python-setuptools'])
 
   def Write(self):
     """Writes a setup.cfg file."""
-    file_content = []
-    file_content.extend(self._FILE_HEADER)
+    kwargs = {u'maintainer': self._project_definition.maintainer}
+    file_header = self._FILE_HEADER.format(**kwargs)
+
+    file_content = [file_header]
 
     dependencies = self._dependency_helper.GetRPMRequires()
     for index, dependency in enumerate(dependencies):
@@ -247,6 +246,8 @@ class SetupCfgWriter(DependencyFileWriter):
         file_content.append(u'requires = {0:s}'.format(dependency))
       else:
         file_content.append(u'           {0:s}'.format(dependency))
+
+    file_content.append(u'')
 
     file_content = u'\n'.join(file_content)
     file_content = file_content.encode(u'utf-8')
@@ -274,7 +275,7 @@ class TravisBeforeInstallScriptWriter(DependencyFileWriter):
       u'# Exit on error.',
       u'set -e;',
       u'',
-      u'if test `uname -s` = "Darwin";',
+      u'if test ${TRAVIS_OS_NAME} = "osx";',
       u'then',
       u'\tgit clone https://github.com/log2timeline/l2tdevtools.git;',
       u'',
@@ -285,13 +286,15 @@ class TravisBeforeInstallScriptWriter(DependencyFileWriter):
        u'--download-directory=dependencies ${L2TBINARIES_DEPENDENCIES} '
        u'${L2TBINARIES_TEST_DEPENDENCIES};'),
       u'',
-      u'elif test `uname -s` = "Linux";',
+      u'elif test ${TRAVIS_OS_NAME} = "linux";',
       u'then',
       u'\tsudo add-apt-repository ppa:gift/dev -y;',
       u'\tsudo apt-get update -q;',
+      u'\t# Only install the Python 2 dependencies.',
+      (u'\t# Also see: https://docs.travis-ci.com/user/languages/python/'
+       u'#Travis-CI-Uses-Isolated-virtualenvs'),
       (u'\tsudo apt-get install -y ${COVERALL_DEPENDENCIES} '
-       u'${PYTHON2_DEPENDENCIES} ${PYTHON2_TEST_DEPENDENCIES} '
-       u'${PYTHON3_DEPENDENCIES} ${PYTHON3_TEST_DEPENDENCIES};'),
+       u'${PYTHON2_DEPENDENCIES} ${PYTHON2_TEST_DEPENDENCIES};'),
       u'fi',
       u'']
 
@@ -316,17 +319,7 @@ class TravisBeforeInstallScriptWriter(DependencyFileWriter):
     file_content.append(u'PYTHON2_DEPENDENCIES="{0:s}";'.format(dependencies))
 
     file_content.append(u'')
-    file_content.append(u'PYTHON2_TEST_DEPENDENCIES="python-mock";')
-
-    file_content.append(u'')
-
-    dependencies = self._dependency_helper.GetDPKGDepends(exclude_version=True)
-    dependencies = u' '.join(dependencies)
-    dependencies = dependencies.replace(u'python', u'python3')
-    file_content.append(u'PYTHON3_DEPENDENCIES="{0:s}";'.format(dependencies))
-
-    file_content.append(u'')
-    file_content.append(u'PYTHON3_TEST_DEPENDENCIES="python3-mock";')
+    file_content.append(u'PYTHON2_TEST_DEPENDENCIES="python-mock python-tox";')
 
     file_content.extend(self._FILE_FOOTER)
 
@@ -337,11 +330,56 @@ class TravisBeforeInstallScriptWriter(DependencyFileWriter):
       file_object.write(file_content)
 
 
+class ToxIniWriter(DependencyFileWriter):
+  """Tox.ini file writer."""
+
+  _PATH = u'tox.ini'
+
+  _FILE_CONTENT = u'\n'.join([
+      u'[tox]',
+      u'envlist = py2, py3',
+      u'',
+      u'[testenv]',
+      u'pip_pre = True',
+      u'setenv =',
+      u'    PYTHONPATH = {{toxinidir}}',
+      u'deps =',
+      u'    coverage',
+      u'    mock',
+      u'    pytest',
+      u'    -rrequirements.txt',
+      u'commands =',
+      u'    coverage erase',
+      (u'    coverage run --source={project_name:s} '
+       u'--omit="*_test*,*__init__*,*test_lib*" run_tests.py'),
+      u''])
+
+  def Write(self):
+    """Writes a setup.cfg file."""
+    kwargs = {u'project_name': self._project_definition.name}
+    file_content = self._FILE_CONTENT.format(**kwargs)
+
+    file_content = file_content.encode(u'utf-8')
+
+    with open(self._PATH, 'wb') as file_object:
+      file_object.write(file_content)
+
+
 if __name__ == u'__main__':
+  project_file = os.path.abspath(__file__)
+  project_file = os.path.dirname(project_file)
+  project_file = os.path.dirname(project_file)
+  project_file = os.path.basename(project_file)
+  project_file = u'{0:s}.ini'.format(project_file)
+
+  project_reader = utils.projects.ProjectDefinitionReader()
+  with open(project_file, 'rb') as file_object:
+    project_definition = project_reader.Read(file_object)
+
   helper = utils.dependencies.DependencyHelper()
 
   for writer_class in (
       AppveyorYmlWriter, DPKGControlWriter, RequirementsWriter, SetupCfgWriter,
-      TravisBeforeInstallScriptWriter):
-    writer = writer_class(helper)
+      TravisBeforeInstallScriptWriter, ToxIniWriter):
+    writer = writer_class(project_definition, helper)
     writer.Write()

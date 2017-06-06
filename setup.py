@@ -151,6 +151,6 @@ setup(
         ('share/dtfabric/data', glob.glob(
             os.path.join('data', '*'))),
         ('share/doc/dtfabric', [
-            'ACKNOWLEDGEMENTS', 'LICENSE', 'README']),
+            'ACKNOWLEDGEMENTS', 'AUTHORS', 'LICENSE', 'README']),
     ],
 )
