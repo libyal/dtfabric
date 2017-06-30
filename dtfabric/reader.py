@@ -255,8 +255,8 @@ class DataTypeDefinitionsReader(object):
     elements_terminator = definition_values.get(u'elements_terminator', None)
     number_of_elements = definition_values.get(u'number_of_elements', None)
 
-    size_values = filter(lambda value: value is not None, (
-        elements_data_size, elements_terminator, number_of_elements))
+    size_values = (elements_data_size, elements_terminator, number_of_elements)
+    size_values = [value for value in size_values if value is not None]
 
     if not size_values:
       error_message = (
@@ -481,8 +481,8 @@ class DataTypeDefinitionsReader(object):
 
     data_type = definition_values.get(u'data_type', None)
 
-    type_values = filter(lambda value: value is not None, (
-        data_type, type_indicator))
+    type_values = (data_type, type_indicator)
+    type_values = [value for value in type_values if value is not None]
 
     if not type_values:
       error_message = (

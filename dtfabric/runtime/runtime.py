@@ -185,6 +185,7 @@ class StructureValuesClassFactory(object):
         u'__name__': u'{0:s}'.format(data_type_definition.name)}
 
     if sys.version_info[0] >= 3:
+      # pylint: disable=no-member
       namespace[u'__builtins__'][u'__build_class__'] = builtins.__build_class__
 
     exec(class_definition, namespace)  # pylint: disable=exec-used

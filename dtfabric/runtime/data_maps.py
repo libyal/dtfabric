@@ -1509,7 +1509,8 @@ class StructureMap(StorageDataTypeMap):
       attribute_values = [
           getattr(mapped_value, attribute_name, None)
           for attribute_name in self._attribute_names]
-      attribute_values = filter(lambda value: value, attribute_values)
+      attribute_values = [
+          value for value in attribute_values if value is not None]
       return self._operation.WriteTo(tuple(attribute_values))
 
     except Exception as exception:
