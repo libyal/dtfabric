@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Tests for the byte stream operations."""
 
+from __future__ import unicode_literals
+
 import unittest
 
 from dtfabric import errors
@@ -14,18 +16,18 @@ class StructOperationTest(test_lib.BaseTestCase):
 
   def testInitialize(self):
     """Tests the __init__ function."""
-    byte_stream_operation = byte_operations.StructOperation(u'b')
+    byte_stream_operation = byte_operations.StructOperation('b')
     self.assertIsNotNone(byte_stream_operation)
 
     with self.assertRaises(errors.FormatError):
       byte_operations.StructOperation(None)
 
     with self.assertRaises(errors.FormatError):
-      byte_operations.StructOperation(u'z')
+      byte_operations.StructOperation('z')
 
   def testReadFrom(self):
     """Tests the ReadFrom function."""
-    byte_stream_operation = byte_operations.StructOperation(u'i')
+    byte_stream_operation = byte_operations.StructOperation('i')
 
     value = byte_stream_operation.ReadFrom(b'\x12\x34\x56\x78')
     self.assertEqual(value, tuple([0x78563412]))
@@ -38,7 +40,7 @@ class StructOperationTest(test_lib.BaseTestCase):
 
   def testWriteTo(self):
     """Tests the WriteTo function."""
-    byte_stream_operation = byte_operations.StructOperation(u'i')
+    byte_stream_operation = byte_operations.StructOperation('i')
 
     byte_stream = byte_stream_operation.WriteTo(tuple([0x78563412]))
     self.assertEqual(byte_stream, b'\x12\x34\x56\x78')

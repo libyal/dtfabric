@@ -3,6 +3,7 @@
 """Script to validate dtFabric format definitions."""
 
 from __future__ import print_function
+from __future__ import unicode_literals
 import argparse
 import glob
 import logging
@@ -17,7 +18,7 @@ from dtfabric import registry
 class DefinitionsValidator(object):
   """dtFabric definitions validator."""
 
-  def CheckDirectory(self, path, extension=u'yaml'):
+  def CheckDirectory(self, path, extension='yaml'):
     """Validates definition files in a directory.
 
     Args:
@@ -30,9 +31,9 @@ class DefinitionsValidator(object):
     result = True
 
     if extension:
-      glob_spec = os.path.join(path, u'*.{0:s}'.format(extension))
+      glob_spec = os.path.join(path, '*.{0:s}'.format(extension))
     else:
-      glob_spec = os.path.join(path, u'*')
+      glob_spec = os.path.join(path, '*')
 
     for definition_file in sorted(glob.glob(glob_spec)):
       if not self.CheckFile(definition_file):
@@ -59,12 +60,12 @@ class DefinitionsValidator(object):
 
     except KeyError as exception:
       logging.warning((
-          u'Unable to register data type definition in file: {0:s} with '
-          u'error: {1:s}').format(path, exception))
+          'Unable to register data type definition in file: {0:s} with '
+          'error: {1:s}').format(path, exception))
 
     except errors.FormatError as exception:
       logging.warning(
-          u'Unable to validate file: {0:s} with error: {1:s}'.format(
+          'Unable to validate file: {0:s} with error: {1:s}'.format(
               path, exception))
 
     return result
@@ -77,30 +78,30 @@ def Main():
     bool: True if successful or False if not.
   """
   argument_parser = argparse.ArgumentParser(
-      description=u'Validates dtFabric format definitions.')
+      description='Validates dtFabric format definitions.')
 
   argument_parser.add_argument(
-      u'source', nargs=u'?', action=u'store', metavar=u'PATH', default=None,
+      'source', nargs='?', action='store', metavar='PATH', default=None,
       help=(
-          u'path of the file or directory containing the dtFabric format '
-          u'definitions.'))
+          'path of the file or directory containing the dtFabric format '
+          'definitions.'))
 
   options = argument_parser.parse_args()
 
   if not options.source:
-    print(u'Source value is missing.')
-    print(u'')
+    print('Source value is missing.')
+    print('')
     argument_parser.print_help()
-    print(u'')
+    print('')
     return False
 
   if not os.path.exists(options.source):
-    print(u'No such file: {0:s}'.format(options.source))
-    print(u'')
+    print('No such file: {0:s}'.format(options.source))
+    print('')
     return False
 
   logging.basicConfig(
-      level=logging.INFO, format=u'[%(levelname)s] %(message)s')
+      level=logging.INFO, format='[%(levelname)s] %(message)s')
 
 
   source_is_directory = os.path.isdir(options.source)
@@ -108,18 +109,18 @@ def Main():
   validator = DefinitionsValidator()
 
   if source_is_directory:
-    source_description = os.path.join(options.source, u'*.yaml')
+    source_description = os.path.join(options.source, '*.yaml')
   else:
     source_description = options.source
 
-  print(u'Validating dtFabric definitions in: {0:s}'.format(source_description))
+  print('Validating dtFabric definitions in: {0:s}'.format(source_description))
   if source_is_directory:
     result = validator.CheckDirectory(options.source)
   else:
     result = validator.CheckFile(options.source)
 
   if not result:
-    print(u'FAILURE')
+    print('FAILURE')
   else:
     print('SUCCESS')
 

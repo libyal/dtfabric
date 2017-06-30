@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Byte stream operations."""
 
+from __future__ import unicode_literals
 import abc
 import struct
 
@@ -50,8 +51,8 @@ class StructOperation(ByteStreamOperation):
       struct_object = struct.Struct(format_string)
     except (TypeError, struct.error) as exception:
       raise errors.FormatError((
-          u'Unable to create struct object from data type definition '
-          u'with error: {0!s}').format(exception))
+          'Unable to create struct object from data type definition '
+          'with error: {0!s}').format(exception))
 
     super(StructOperation, self).__init__()
     self._struct = struct_object
@@ -72,7 +73,7 @@ class StructOperation(ByteStreamOperation):
     try:
       return self._struct.unpack_from(byte_stream)
     except (TypeError, struct.error) as exception:
-      raise IOError(u'Unable to read byte stream with error: {0!s}'.format(
+      raise IOError('Unable to read byte stream with error: {0!s}'.format(
           exception))
 
   def WriteTo(self, values):
@@ -90,5 +91,5 @@ class StructOperation(ByteStreamOperation):
     try:
       return self._struct.pack(*values)
     except (TypeError, struct.error) as exception:
-      raise IOError(u'Unable to write stream with error: {0!s}'.format(
+      raise IOError('Unable to write stream with error: {0!s}'.format(
           exception))

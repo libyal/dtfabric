@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Data type definitions."""
 
+from __future__ import unicode_literals
 import abc
 
 from dtfabric import definitions
@@ -106,7 +107,7 @@ class FixedSizeDataTypeDefinition(StorageDataTypeDefinition):
     super(FixedSizeDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.size = definitions.SIZE_NATIVE
-    self.units = u'bytes'
+    self.units = 'bytes'
 
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.
@@ -114,7 +115,7 @@ class FixedSizeDataTypeDefinition(StorageDataTypeDefinition):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if self.size != definitions.SIZE_NATIVE and self.units == u'bytes':
+    if self.size != definitions.SIZE_NATIVE and self.units == 'bytes':
       return self.size
 
 
@@ -211,7 +212,7 @@ class ElementSequenceDataTypeDefinition(StorageDataTypeDefinition):
     element_data_type (str): name of the sequence element data type.
     element_data_type_definition (DataTypeDefinition): sequence element
         data type definition.
-    elements_terminator (int): element value that indicates the end-of-sequence.
+    elements_terminator (bytes|int): element value that indicates the end-of-sequence.
     number_of_elements (int): number of sequence elements.
     number_of_elements_expression (str): expression to determine the number
         of sequence elements.
@@ -236,7 +237,7 @@ class ElementSequenceDataTypeDefinition(StorageDataTypeDefinition):
     super(ElementSequenceDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.byte_order = getattr(
-        data_type_definition, u'byte_order', definitions.BYTE_ORDER_NATIVE)
+        data_type_definition, 'byte_order', definitions.BYTE_ORDER_NATIVE)
     self.elements_data_size = None
     self.elements_data_size_expression = None
     self.element_data_type = data_type
@@ -299,7 +300,7 @@ class StringDefinition(ElementSequenceDataTypeDefinition):
     super(StringDefinition, self).__init__(
         name, data_type_definition, aliases=aliases, data_type=data_type,
         description=description, urls=urls)
-    self.encoding = u'ascii'
+    self.encoding = 'ascii'
 
 
 class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
@@ -369,7 +370,7 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
     super(MemberDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.byte_order = getattr(
-        data_type_definition, u'byte_order', definitions.BYTE_ORDER_NATIVE)
+        data_type_definition, 'byte_order', definitions.BYTE_ORDER_NATIVE)
     self.member_data_type = data_type
     self.member_data_type_definition = data_type_definition
 
@@ -551,14 +552,14 @@ class EnumerationDefinition(SemanticDataTypeDefinition):
       KeyError: if the enumeration value already exists.
     """
     if name in self.values_per_name:
-      raise KeyError(u'Value with name: {0:s} already exists.'.format(name))
+      raise KeyError('Value with name: {0:s} already exists.'.format(name))
 
     if number in self.values_per_number:
-      raise KeyError(u'Value with number: {0!s} already exists.'.format(number))
+      raise KeyError('Value with number: {0!s} already exists.'.format(number))
 
     for alias in aliases or []:
       if alias in self.values_per_alias:
-        raise KeyError(u'Value with alias: {0:s} already exists.'.format(alias))
+        raise KeyError('Value with alias: {0:s} already exists.'.format(alias))
 
     enumeration_value = EnumerationValue(
         name, number, aliases=aliases, description=description)

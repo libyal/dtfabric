@@ -1,4 +1,4 @@
-# Files to ignore by git
+# Files to ignore by git.
 
 # Back-up files
 *~
@@ -12,6 +12,12 @@
 /.tox
 /__pycache__
 /build
-/dist
 /dtfabric.egg-info
+/dist
 
+# Code review files
+/.review
+
+# Test coverage files
+.coverage
+tests-coverage.txt

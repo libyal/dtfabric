@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """The data type definitions registry."""
 
+from __future__ import unicode_literals
+
 from dtfabric import definitions
 
 
@@ -28,7 +30,7 @@ class DataTypeDefinitionsRegistry(object):
     """
     name = data_type_definition.name.lower()
     if name not in self._definitions:
-      raise KeyError(u'Definition not set for name: {0:s}.'.format(
+      raise KeyError('Definition not set for name: {0:s}.'.format(
           data_type_definition.name))
 
     del self._definitions[name]
@@ -70,16 +72,16 @@ class DataTypeDefinitionsRegistry(object):
     """
     name_lower = data_type_definition.name.lower()
     if name_lower in self._definitions:
-      raise KeyError(u'Definition already set for name: {0:s}.'.format(
+      raise KeyError('Definition already set for name: {0:s}.'.format(
           data_type_definition.name))
 
     if data_type_definition.name in self._aliases:
-      raise KeyError(u'Alias already set for name: {0:s}.'.format(
+      raise KeyError('Alias already set for name: {0:s}.'.format(
           data_type_definition.name))
 
     for alias in data_type_definition.aliases:
       if alias in self._aliases:
-        raise KeyError(u'Alias already set for name: {0:s}.'.format(alias))
+        raise KeyError('Alias already set for name: {0:s}.'.format(alias))
 
     self._definitions[name_lower] = data_type_definition
 
