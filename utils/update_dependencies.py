@@ -141,23 +141,16 @@ class DPKGControlWriter(DependencyFileWriter):
       'X-Python3-Version: >= 3.4',
       'Homepage: {homepage_url:s}',
       '',
-      'Package: dtfabric-data',
-      'Architecture: all',
-      'Depends: ${{misc:Depends}}',
-      'Description: Data files for dtFabric.',
-      ' dtFabric, or data type fabric, is a project to manage data types and',
-      ' structures, as used in the libyal projects.',
-      '',
       'Package: python-{project_name:s}',
       'Architecture: all',
-      ('Depends: dtfabric-data, {python2_dependencies:s}${{python:Depends}}, '
+      ('Depends: {python2_dependencies:s}${{python:Depends}}, '
        '${{misc:Depends}}'),
       'Description: Python 2 module for data type and structure management',
       '{description_long:s}',
       '',
       'Package: python3-{project_name:s}',
       'Architecture: all',
-      ('Depends: dtfabric-data, {python3_dependencies:s}${{python3:Depends}}, '
+      ('Depends: {python3_dependencies:s}${{python3:Depends}}, '
        '${{misc:Depends}}'),
       'Description: Python 3 module for data type and structure management',
       '{description_long:s}',

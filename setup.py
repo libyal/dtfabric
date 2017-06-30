@@ -148,8 +148,6 @@ setup(
         'dtfabric': 'dtfabric'
     },
     data_files=[
-        ('share/dtfabric/data', glob.glob(
-            os.path.join('data', '*'))),
         ('share/doc/dtfabric', [
             'AUTHORS', 'LICENSE', 'README']),
     ],
