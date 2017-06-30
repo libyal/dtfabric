@@ -295,7 +295,7 @@ class DataTypeDefinitionsReader(object):
 
     elif elements_terminator is not None:
       if isinstance(elements_terminator, py2to3.UNICODE_TYPE):
-        elements_terminator = elements_terminator.decode('ascii')
+        elements_terminator = elements_terminator.encode('ascii')
 
       definition_object.elements_terminator = elements_terminator
 
