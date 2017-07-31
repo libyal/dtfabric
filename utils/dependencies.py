@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 from __future__ import unicode_literals
+
 import re
 
 try:
@@ -23,6 +24,7 @@ class DependencyDefinition(object):
     minimum_version (str): minimum supported version.
     name (str): name of (the Python module that provides) the dependency.
     pypi_name (str): name of the PyPI package that provides the dependency.
+    python2_only (bool): True if the dependency is only supported by Python 2.
     rpm_name (str): name of the rpm package that provides the dependency.
     version_property (str): name of the version attribute or function.
   """
@@ -41,6 +43,7 @@ class DependencyDefinition(object):
     self.minimum_version = None
     self.name = name
     self.pypi_name = None
+    self.python2_only = False
     self.rpm_name = None
     self.version_property = None
 
@@ -55,6 +58,7 @@ class DependencyDefinitionReader(object):
       'maximum_version',
       'minimum_version',
       'pypi_name',
+      'python2_only',
       'rpm_name',
       'version_property'])
 
@@ -67,7 +71,7 @@ class DependencyDefinitionReader(object):
       value_name (str): name of the value.
 
     Returns:
-      object: value or None if the value does not exists.
+      object: configuration value or None if the value does not exists.
     """
     try:
       return config_parser.get(section_name, value_name)
@@ -204,6 +208,36 @@ class DependencyHelper(object):
     status_message = '{0:s} version: {1!s}'.format(module_name, module_version)
     return True, status_message
 
+  def _CheckSQLite3(self):
+    """Checks the availability of sqlite3.
+
+    Returns:
+      tuple: consists:
+
+        bool: True if the Python module is available and conforms to
+            the minimum required version, False otherwise.
+        str: status message.
+    """
+    # On Windows sqlite3 can be provided by both pysqlite2.dbapi2 and
+    # sqlite3. sqlite3 is provided with the Python installation and
+    # pysqlite2.dbapi2 by the pysqlite2 Python module. Typically
+    # pysqlite2.dbapi2 would contain a newer version of sqlite3, hence
+    # we check for its presence first.
+    module_name = 'pysqlite2.dbapi2'
+    minimum_version = '3.7.8'
+
+    module_object = self._ImportPythonModule(module_name)
+    if not module_object:
+      module_name = 'sqlite3'
+
+    module_object = self._ImportPythonModule(module_name)
+    if not module_object:
+      status_message = 'missing: {0:s}.'.format(module_name)
+      return False, status_message
+
+    return self._CheckPythonModuleVersion(
+        module_name, module_object, 'sqlite_version', minimum_version, None)
+
   def _ImportPythonModule(self, module_name):
     """Imports a Python module.
 
@@ -258,9 +292,12 @@ class DependencyHelper(object):
     print('Checking availability and versions of dependencies.')
     check_result = True
 
-    for dependency in sorted(
-        self._dependencies.values(), key=lambda dependency: dependency.name):
-      result, status_message = self._CheckPythonModule(dependency)
+    for module_name, dependency in sorted(self._dependencies.items()):
+      if module_name == 'sqlite3':
+        result, status_message = self._CheckSQLite3()
+      else:
+        result, status_message = self._CheckPythonModule(dependency)
+
       if not result:
         check_result = False
 
@@ -303,92 +340,3 @@ class DependencyHelper(object):
 
     print('')
     return check_result
-
-  def GetDPKGDepends(self, exclude_version=False):
-    """Retrieves the DPKG control file installation requirements.
-
-    Args:
-      exclude_version (Optional[bool]): True if the version should be excluded
-          from the dependency definitions.
-
-    Returns:
-      list[str]: dependency definitions for requires for DPKG control file.
-    """
-    requires = []
-    for dependency in sorted(
-        self._dependencies.values(), key=lambda dependency: dependency.name):
-      module_name = dependency.dpkg_name or dependency.name
-
-      if exclude_version or not dependency.minimum_version:
-        requires_string = module_name
-      else:
-        requires_string = '{0:s} (>= {1:s})'.format(
-            module_name, dependency.minimum_version)
-
-      requires.append(requires_string)
-
-    return sorted(requires)
-
-  def GetL2TBinaries(self):
-    """Retrieves the l2tbinaries requirements.
-
-    Returns:
-      list[str]: dependency definitions for l2tbinaries.
-    """
-    requires = []
-    for dependency in sorted(
-        self._dependencies.values(), key=lambda dependency: dependency.name):
-      module_name = dependency.l2tbinaries_name or dependency.name
-
-      requires.append(module_name)
-
-    return sorted(requires)
-
-  def GetInstallRequires(self):
-    """Retrieves the setup.py installation requirements.
-
-    Returns:
-      list[str]: dependency definitions for install_requires for setup.py.
-    """
-    install_requires = []
-    for dependency in sorted(
-        self._dependencies.values(), key=lambda dependency: dependency.name):
-      module_name = dependency.pypi_name or dependency.name
-
-      if not dependency.minimum_version:
-        requires_string = module_name
-      elif not dependency.maximum_version:
-        requires_string = '{0:s} >= {1!s}'.format(
-            module_name, dependency.minimum_version)
-      else:
-        requires_string = '{0:s} >= {1!s},<= {2!s}'.format(
-            module_name, dependency.minimum_version, dependency.maximum_version)
-
-      install_requires.append(requires_string)
-
-    return sorted(install_requires)
-
-  def GetRPMRequires(self, exclude_version=False):
-    """Retrieves the setup.cfg RPM installation requirements.
-
-    Args:
-      exclude_version (Optional[bool]): True if the version should be excluded
-          from the dependency definitions.
-
-    Returns:
-      list[str]: dependency definitions for requires for setup.cfg.
-    """
-    requires = []
-    for dependency in sorted(
-        self._dependencies.values(), key=lambda dependency: dependency.name):
-      module_name = dependency.rpm_name or dependency.name
-
-      if exclude_version or not dependency.minimum_version:
-        requires_string = module_name
-      else:
-        requires_string = '{0:s} >= {1:s}'.format(
-            module_name, dependency.minimum_version)
-
-      requires.append(requires_string)
-
-    return sorted(requires)

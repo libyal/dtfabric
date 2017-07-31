@@ -212,7 +212,8 @@ class ElementSequenceDataTypeDefinition(StorageDataTypeDefinition):
     element_data_type (str): name of the sequence element data type.
     element_data_type_definition (DataTypeDefinition): sequence element
         data type definition.
-    elements_terminator (bytes|int): element value that indicates the end-of-sequence.
+    elements_terminator (bytes|int): element value that indicates the
+        end-of-sequence.
     number_of_elements (int): number of sequence elements.
     number_of_elements_expression (str): expression to determine the number
         of sequence elements.

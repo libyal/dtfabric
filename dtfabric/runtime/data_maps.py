@@ -199,6 +199,8 @@ class StorageDataTypeMap(DataTypeMap):
 class PrimitiveDataTypeMap(StorageDataTypeMap):
   """Primitive data type map."""
 
+  # pylint: disable=arguments-differ
+
   def __init__(self, data_type_definition):
     """Initializes a primitive data type map.
 
@@ -490,6 +492,8 @@ class IntegerMap(PrimitiveDataTypeMap):
 class UUIDMap(StorageDataTypeMap):
   """UUID (or GUID) data type map."""
 
+  # pylint: disable=arguments-differ
+
   def __init__(self, data_type_definition):
     """Initializes an UUID (or GUID) data type map.
 
@@ -568,6 +572,8 @@ class UUIDMap(StorageDataTypeMap):
 
 class ElementSequenceDataTypeMap(StorageDataTypeMap):
   """Element sequence data type map."""
+
+  # pylint: disable=arguments-differ
 
   def __init__(self, data_type_definition):
     """Initializes a sequence data type map.
@@ -1013,6 +1019,8 @@ class SequenceMap(ElementSequenceDataTypeMap):
 class StreamMap(ElementSequenceDataTypeMap):
   """Stream data type map."""
 
+  # pylint: disable=arguments-differ
+
   def __init__(self, data_type_definition):
     """Initializes a stream data type map.
 
@@ -1114,7 +1122,6 @@ class StreamMap(ElementSequenceDataTypeMap):
         element_value = byte_stream[
             elements_data_offset:next_elements_data_offset]
 
-      print("X", repr(element_value), "!=", repr(elements_terminator))
       if element_value != elements_terminator:
         raise errors.MappingError(
             'Byte stream too small unable to find elements terminator.')
@@ -1218,6 +1225,8 @@ class StreamMap(ElementSequenceDataTypeMap):
 class StringMap(StreamMap):
   """String data type map."""
 
+  # pylint: disable=arguments-differ
+
   def FoldByteStream(self, mapped_value, byte_offset=0, **kwargs):
     """Folds the data type into a byte stream.
 
@@ -1275,6 +1284,8 @@ class StringMap(StreamMap):
 
 class StructureMap(StorageDataTypeMap):
   """Structure data type map."""
+
+  # pylint: disable=arguments-differ
 
   def __init__(self, data_type_definition):
     """Initializes a structure data type map.
