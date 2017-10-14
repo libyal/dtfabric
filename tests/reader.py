@@ -1080,6 +1080,36 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
 
+  @test_lib.skipUnlessHasTestFile(['type_family.yaml'])
+  def testReadFileObjectTypeFamily(self):
+    """Tests the ReadFileObject function of a type family data type."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath(['type_family.yaml'])
+    with open(definitions_file, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    self.assertEqual(len(definitions_registry._definitions), 6)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'group_descriptor')
+    self.assertIsInstance(data_type_definition, data_types.TypeFamilyDefinition)
+    self.assertEqual(data_type_definition.name, 'group_descriptor')
+    self.assertEqual(data_type_definition.description, 'Group descriptor')
+
+    self.assertEqual(len(data_type_definition.members), 2)
+
+    member_definition = data_type_definition.members[0]
+    self.assertIsInstance(member_definition, data_types.StructureDefinition)
+    self.assertEqual(member_definition.name, 'group_descriptor_ext2')
+
+    byte_size = data_type_definition.GetByteSize()
+    # TODO: determine the size of the largest family member.
+    self.assertIsNone(byte_size)
+
+    # TODO: add test for member already part of a family.
+
   @test_lib.skipUnlessHasTestFile(['uuid.yaml'])
   def testReadFileObjectUUID(self):
     """Tests the ReadFileObject function of an UUID data type."""

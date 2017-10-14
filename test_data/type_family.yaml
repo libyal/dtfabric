@@ -1,0 +1,101 @@
+name: byte
+type: integer
+attributes:
+  format: unsigned
+  size: 1
+  units: bytes
+---
+name: uint16
+type: integer
+attributes:
+  format: unsigned
+  size: 2
+  units: bytes
+---
+name: uint32
+type: integer
+attributes:
+  format: unsigned
+  size: 4
+  units: bytes
+---
+name: group_descriptor_ext2
+type: structure
+description: Group descriptor
+members:
+- name: block_bitmap_block_number
+  data_type: uint32
+- name: inode_bitmap_block_number
+  data_type: uint32
+- name: inode_table_block_number
+  data_type: uint32
+- name: number_of_unallocated_blocks
+  data_type: uint16
+- name: number_of_unallocated_inodes
+  data_type: uint16
+- name: number_of_directories
+  data_type: uint16
+- name: padding1
+  data_type: uint16
+- name: reserved1
+  type: stream
+  element_data_type: byte
+  elements_data_size: 12
+---
+name: group_descriptor_ext4
+type: structure
+description: Group descriptor
+members:
+- name: block_bitmap_block_number_lower
+  data_type: uint32
+- name: inode_bitmap_block_number_lower
+  data_type: uint32
+- name: inode_table_block_number_lower
+  data_type: uint32
+- name: number_of_unallocated_blocks_lower
+  data_type: uint16
+- name: number_of_unallocated_inodes_lower
+  data_type: uint16
+- name: number_of_directories_lower
+  data_type: uint16
+- name: block_group_flags
+  data_type: uint16
+- name: exclude_bitmap_block_number_lower
+  data_type: uint32
+- name: block_bitmap_checksum_lower
+  data_type: uint16
+- name: inode_bitmap_checksum_lower
+  data_type: uint16
+- name: number_of_unused_inodes
+  data_type: uint16
+- name: checksum
+  data_type: uint16
+- name: block_bitmap_block_number_upper
+  data_type: uint32
+- name: inode_bitmap_block_number_upper
+  data_type: uint32
+- name: inode_table_block_number_upper
+  data_type: uint32
+- name: number_of_unallocated_blocks_upper
+  data_type: uint16
+- name: number_of_unallocated_inodes_upper
+  data_type: uint16
+- name: number_of_directories_upper
+  data_type: uint16
+- name: number_of_unused_inodes_upper
+  data_type: uint16
+- name: exclude_bitmap_block_number_upper
+  data_type: uint32
+- name: block_bitmap_checksum_upper
+  data_type: uint16
+- name: inode_bitmap_checksum_upper
+  data_type: uint16
+- name: reserved1
+  data_type: uint32
+---
+name: group_descriptor
+type: type-family
+description: Group descriptor
+members:
+- group_descriptor_ext2
+- group_descriptor_ext4

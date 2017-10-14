@@ -393,18 +393,6 @@ class LayoutDataTypeDefinitionTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
-
-class FormatDefinitionTest(test_lib.BaseTestCase):
-  """Data format definition tests."""
-
-  def testGetByteSize(self):
-    """Tests the GetByteSize function."""
-    data_type_definition = data_types.FormatDefinition(
-        'format', description='data format')
-
-    byte_size = data_type_definition.GetByteSize()
-    self.assertIsNone(byte_size)
-
   def testIsComposite(self):
     """Tests the IsComposite function."""
     data_type_definition = data_types.FormatDefinition(
@@ -412,6 +400,28 @@ class FormatDefinitionTest(test_lib.BaseTestCase):
 
     result = data_type_definition.IsComposite()
     self.assertTrue(result)
+
+
+class FormatDefinitionTest(test_lib.BaseTestCase):
+  """Data format definition tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    data_type_definition = data_types.FormatDefinition(
+        'format', description='data format')
+    self.assertIsNotNone(data_type_definition)
+
+
+class TypeFamilyDefinitionTest(test_lib.BaseTestCase):
+  """Data format definition tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    data_type_definition = data_types.TypeFamilyDefinition(
+        'family', description='type family')
+    self.assertIsNotNone(data_type_definition)
+
+  # TODO: add tests for AddMemberDefinition
 
 
 if __name__ == '__main__':

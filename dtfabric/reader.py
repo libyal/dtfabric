@@ -28,6 +28,8 @@ class DataTypeDefinitionsReader(object):
       definitions.TYPE_INDICATOR_STREAM: '_ReadStreamDataTypeDefinition',
       definitions.TYPE_INDICATOR_STRING: '_ReadStringDataTypeDefinition',
       definitions.TYPE_INDICATOR_STRUCTURE: '_ReadStructureDataTypeDefinition',
+      definitions.TYPE_INDICATOR_TYPE_FAMILY: (
+          '_ReadTypeFamilyDataTypeDefinition'),
       definitions.TYPE_INDICATOR_UNION: '_ReadUnionDataTypeDefinition',
       definitions.TYPE_INDICATOR_UUID: '_ReadUUIDDataTypeDefinition',
   }
@@ -166,7 +168,7 @@ class DataTypeDefinitionsReader(object):
     for member in members:
       member_data_type_definition = self._ReadMemberDataTypeDefinitionMember(
           definitions_registry, member, definition_object.name)
-      definition_object.members.append(member_data_type_definition)
+      definition_object.AddMemberDefinition(member_data_type_definition)
 
     return definition_object
 
@@ -690,6 +692,47 @@ class DataTypeDefinitionsReader(object):
     return self._ReadDataTypeDefinitionWithMembers(
         definitions_registry, definition_values, data_types.StructureDefinition,
         definition_name)
+
+  def _ReadTypeFamilyDataTypeDefinition(
+      self, definitions_registry, definition_values, definition_name):
+    """Reads a type family data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      definition_name (str): name of the definition.
+
+    Returns:
+      StructureDefinition: structure data type definition.
+
+    Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
+    """
+    definition_object = self._ReadLayoutDataTypeDefinition(
+        definitions_registry, definition_values,
+        data_types.TypeFamilyDefinition, definition_name)
+
+    members = definition_values.get('members', None)
+    if not members:
+      error_message = 'missing members'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    for member in members:
+      member_data_type_definition = definitions_registry.GetDefinitionByName(
+          member)
+      if not member_data_type_definition:
+        error_message = 'undefined member: {0:s}.'.format(member)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      if member_data_type_definition.family_definition:
+        error_message = 'member: {0:s} already part of a family.'.format(member)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      definition_object.AddMemberDefinition(member_data_type_definition)
+
+    return definition_object
 
   def _ReadUnionDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):

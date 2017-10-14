@@ -41,6 +41,7 @@ in the section entitled "GNU Free Documentation License".
 | 0.0.4 | J.B. Metz | April 2017 | Worked on documentation.
 | 0.0.5 | J.B. Metz | April 2017 | Worked on documentation.
 | 0.0.6 | J.B. Metz | May 2017 | Worked on documentation.
+| 0.0.7 | J.B. Metz | October 2017 | Worked on documentation.
 |===
 
 :numbered:
@@ -449,6 +450,21 @@ type: format
 description: Minidump file format
 urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680369(v=vs.85).aspx']
 layout:
+----
+
+=== Type family
+A type family is a layout type to represent multiple generations (versions) of
+the same type.
+
+[source,yaml]
+----
+name: group_descriptor
+type: type-family
+description: Group descriptor of Extended File System version 2, 3 and 4
+members:
+- group_descriptor_ext2
+- group_descriptor_ext3
+- group_descriptor_ext4
 ----
 
 :numbered!:

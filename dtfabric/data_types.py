@@ -16,6 +16,7 @@ class DataTypeDefinition(object):
     aliases (list[str]): aliases.
     byte_order (str): byte-order the data type.
     description (str): description.
+    family_definition (DataTypeDefinition): type family data type definition.
     name (str): name.
     urls (list[str]): URLs.
   """
@@ -36,6 +37,7 @@ class DataTypeDefinition(object):
     super(DataTypeDefinition, self).__init__()
     self.aliases = aliases or []
     self.description = description
+    self.family_definition = None
     self.name = name
     self.urls = urls
 
@@ -328,11 +330,10 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
     self.members = []
 
   def AddMemberDefinition(self, member_definition):
-    """Adds a structure member definition.
+    """Adds a member definition.
 
     Args:
-      member_definition (DataTypeDefinition): structure member data type
-          definition.
+      member_definition (DataTypeDefinition): member data type definition.
     """
     self._byte_size = None
     self.members.append(member_definition)
@@ -608,3 +609,37 @@ class FormatDefinition(LayoutDataTypeDefinition):
     super(FormatDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.metadata = {}
+
+
+class TypeFamilyDefinition(LayoutDataTypeDefinition):
+  """Type family definition.
+
+  Attributes:
+    members (list[DataTypeDefinition]): members.
+  """
+
+  TYPE_INDICATOR = definitions.TYPE_INDICATOR_TYPE_FAMILY
+
+  def __init__(self, name, aliases=None, description=None, urls=None):
+    """Initializes a type famility data type definition.
+
+    Args:
+      name (str): name.
+      aliases (Optional[list[str]]): aliases.
+      description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
+    """
+    super(TypeFamilyDefinition, self).__init__(
+        name, aliases=aliases, description=description, urls=urls)
+    self.members = []
+
+  def AddMemberDefinition(self, member_definition):
+    """Adds a member definition.
+
+    Args:
+      member_definition (DataTypeDefinition): member data type definition.
+    """
+    self.members.append(member_definition)
+    member_definition.family_definition = self
+
+  # TODO: define GetByteSize to determine the size of the largest family member.
