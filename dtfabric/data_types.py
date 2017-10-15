@@ -308,7 +308,8 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
   """Data type definition with members.
 
   Attributes:
-    members (list[DataTypeDefinition]): member data type defintions.
+    members (list[DataTypeDefinition]): member data type definitions.
+    sections (list[MemberSectionDefinition]): member section definitions.
   """
 
   _IS_COMPOSITE = True
@@ -326,6 +327,7 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
         name, aliases=aliases, description=description, urls=urls)
     self._byte_size = None
     self.members = []
+    self.sections = []
 
   def AddMemberDefinition(self, member_definition):
     """Adds a member definition.
@@ -335,6 +337,18 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
     """
     self._byte_size = None
     self.members.append(member_definition)
+
+    if self.sections:
+      section_definition = self.sections[-1]
+      section_definition.members.append(member_definition)
+
+  def AddSectionDefinition(self, section_definition):
+    """Adds a section definition.
+
+    Args:
+      section_definition (MemberSectionDefinition): member section definition.
+    """
+    self.sections.append(section_definition)
 
   @abc.abstractmethod
   def GetByteSize(self):
@@ -393,6 +407,25 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
     """
     return (self.member_data_type_definition and
             self.member_data_type_definition.IsComposite())
+
+
+class MemberSectionDefinition(object):
+  """Member section definition.
+
+  Attributes:
+    members (list[DataTypeDefinition]): member data type definitions of
+        the section.
+  """
+
+  def __init__(self, name):
+    """Initializes a member section definition.
+
+    Args:
+      name (str): name.
+    """
+    super(MemberSectionDefinition, self).__init__()
+    self.name = name
+    self.members = []
 
 
 class StructureDefinition(DataTypeDefinitionWithMembers):
@@ -630,7 +663,7 @@ class StructureFamilyDefinition(LayoutDataTypeDefinition):
   """Structure family definition.
 
   Attributes:
-    members (list[DataTypeDefinition]): member data type defintions.
+    members (list[DataTypeDefinition]): member data type definitions.
     runtime (DataTypeDefinition): runtime data type definition.
   """
 

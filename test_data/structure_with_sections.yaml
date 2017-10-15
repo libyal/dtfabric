@@ -1,0 +1,20 @@
+name: int32
+type: integer
+attributes:
+  format: signed
+  size: 4
+  units: bytes
+---
+name: 3dsphere
+type: structure
+members:
+- section: 3dcoordinate
+- name: x
+  data_type: int32
+- name: y
+  data_type: int32
+- name: z
+  data_type: int32
+- section: size
+- name: radius
+  data_type: int32

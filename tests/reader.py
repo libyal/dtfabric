@@ -1054,6 +1054,28 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
+  @test_lib.skipUnlessHasTestFile(['structure_with_sections.yaml'])
+  def testReadFileObjectStructureWithSections(self):
+    """Tests the ReadFileObject function of a structure with sections."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath(['structure_with_sections.yaml'])
+    with open(definitions_file, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    self.assertEqual(len(definitions_registry._definitions), 2)
+
+    data_type_definition = definitions_registry.GetDefinitionByName('3dsphere')
+    self.assertIsInstance(data_type_definition, data_types.StructureDefinition)
+    self.assertEqual(data_type_definition.name, '3dsphere')
+
+    self.assertEqual(len(data_type_definition.members), 4)
+    self.assertEqual(len(data_type_definition.sections), 2)
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 16)
+
   @test_lib.skipUnlessHasTestFile(['structure_with_union.yaml'])
   def testReadFileObjectStructureWithUnion(self):
     """Tests the ReadFileObject function of a structure with an union."""

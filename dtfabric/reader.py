@@ -166,9 +166,14 @@ class DataTypeDefinitionsReader(object):
       definition_object.byte_order = byte_order
 
     for member in members:
-      member_data_type_definition = self._ReadMemberDataTypeDefinitionMember(
-          definitions_registry, member, definition_object.name)
-      definition_object.AddMemberDefinition(member_data_type_definition)
+      section = member.get('section', None)
+      if section:
+        member_section_definition = data_types.MemberSectionDefinition(section)
+        definition_object.AddSectionDefinition(member_section_definition)
+      else:
+        member_data_type_definition = self._ReadMemberDataTypeDefinitionMember(
+            definitions_registry, member, definition_object.name)
+        definition_object.AddMemberDefinition(member_data_type_definition)
 
     return definition_object
 

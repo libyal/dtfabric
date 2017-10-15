@@ -251,6 +251,16 @@ class MemberDataTypeDefinitionTest(test_lib.BaseTestCase):
     self.assertFalse(result)
 
 
+class MemberSectionDefinitionTest(test_lib.BaseTestCase):
+  """Member section definition tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    section_definition = data_types.MemberSectionDefinition(
+        'my_struct_section')
+    self.assertIsNotNone(section_definition)
+
+
 class StructureDefinitionTest(test_lib.BaseTestCase):
   """Structure data type definition tests."""
 
