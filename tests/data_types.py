@@ -412,16 +412,17 @@ class FormatDefinitionTest(test_lib.BaseTestCase):
     self.assertIsNotNone(data_type_definition)
 
 
-class TypeFamilyDefinitionTest(test_lib.BaseTestCase):
-  """Data format definition tests."""
+class StructureFamilyDefinitionTest(test_lib.BaseTestCase):
+  """Structure family definition tests."""
 
   def testInitialize(self):
     """Tests the __init__ function."""
-    data_type_definition = data_types.TypeFamilyDefinition(
-        'family', description='type family')
+    data_type_definition = data_types.StructureFamilyDefinition(
+        'family', description='structure family')
     self.assertIsNotNone(data_type_definition)
 
   # TODO: add tests for AddMemberDefinition
+  # TODO: add tests for AddRuntimeDefinition
 
 
 if __name__ == '__main__':

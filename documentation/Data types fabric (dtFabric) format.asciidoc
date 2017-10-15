@@ -452,18 +452,18 @@ urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680369(v=vs.8
 layout:
 ----
 
-=== Type family
-A type family is a layout type to represent multiple generations (versions) of
-the same type.
+=== Structure family
+A structure family is a layout type to represent multiple generations
+(versions) of the same structure.
 
 [source,yaml]
 ----
 name: group_descriptor
 type: type-family
 description: Group descriptor of Extended File System version 2, 3 and 4
+runtime: group_descriptor_runtime
 members:
 - group_descriptor_ext2
-- group_descriptor_ext3
 - group_descriptor_ext4
 ----
 

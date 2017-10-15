@@ -28,8 +28,8 @@ class DataTypeDefinitionsReader(object):
       definitions.TYPE_INDICATOR_STREAM: '_ReadStreamDataTypeDefinition',
       definitions.TYPE_INDICATOR_STRING: '_ReadStringDataTypeDefinition',
       definitions.TYPE_INDICATOR_STRUCTURE: '_ReadStructureDataTypeDefinition',
-      definitions.TYPE_INDICATOR_TYPE_FAMILY: (
-          '_ReadTypeFamilyDataTypeDefinition'),
+      definitions.TYPE_INDICATOR_STRUCTURE_FAMILY: (
+          '_ReadStructureFamilyDataTypeDefinition'),
       definitions.TYPE_INDICATOR_UNION: '_ReadUnionDataTypeDefinition',
       definitions.TYPE_INDICATOR_UUID: '_ReadUUIDDataTypeDefinition',
   }
@@ -693,9 +693,9 @@ class DataTypeDefinitionsReader(object):
         definitions_registry, definition_values, data_types.StructureDefinition,
         definition_name)
 
-  def _ReadTypeFamilyDataTypeDefinition(
+  def _ReadStructureFamilyDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
-    """Reads a type family data type definition.
+    """Reads a structure family data type definition.
 
     Args:
       definitions_registry (DataTypeDefinitionsRegistry): data type definitions
@@ -712,7 +712,24 @@ class DataTypeDefinitionsReader(object):
     """
     definition_object = self._ReadLayoutDataTypeDefinition(
         definitions_registry, definition_values,
-        data_types.TypeFamilyDefinition, definition_name)
+        data_types.StructureFamilyDefinition, definition_name)
+
+    runtime = definition_values.get('runtime', None)
+    if not runtime:
+      error_message = 'missing runtime'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    runtime_data_type_definition = definitions_registry.GetDefinitionByName(
+        runtime)
+    if not runtime_data_type_definition:
+      error_message = 'undefined runtime: {0:s}.'.format(runtime)
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    if runtime_data_type_definition.family_definition:
+      error_message = 'runtime: {0:s} already part of a family.'.format(runtime)
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    definition_object.AddRuntimeDefinition(runtime_data_type_definition)
 
     members = definition_values.get('members', None)
     if not members:

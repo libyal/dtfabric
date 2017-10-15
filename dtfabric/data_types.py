@@ -16,7 +16,6 @@ class DataTypeDefinition(object):
     aliases (list[str]): aliases.
     byte_order (str): byte-order the data type.
     description (str): description.
-    family_definition (DataTypeDefinition): type family data type definition.
     name (str): name.
     urls (list[str]): URLs.
   """
@@ -37,7 +36,6 @@ class DataTypeDefinition(object):
     super(DataTypeDefinition, self).__init__()
     self.aliases = aliases or []
     self.description = description
-    self.family_definition = None
     self.name = name
     self.urls = urls
 
@@ -310,7 +308,7 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
   """Data type definition with members.
 
   Attributes:
-    members (list[DataTypeDefinition]): members.
+    members (list[DataTypeDefinition]): member data type defintions.
   """
 
   _IS_COMPOSITE = True
@@ -398,9 +396,26 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
 
 
 class StructureDefinition(DataTypeDefinitionWithMembers):
-  """Structure data type definition."""
+  """Structure data type definition.
+
+  Attributes:
+    family_definition (DataTypeDefinition): structure family data type definition.
+  """
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRUCTURE
+
+  def __init__(self, name, aliases=None, description=None, urls=None):
+    """Initializes a data type definition.
+
+    Args:
+      name (str): name.
+      aliases (Optional[list[str]]): aliases.
+      description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
+    """
+    super(StructureDefinition, self).__init__(
+        name, aliases=aliases, description=description, urls=urls)
+    self.family_definition = None
 
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.
@@ -611,17 +626,18 @@ class FormatDefinition(LayoutDataTypeDefinition):
     self.metadata = {}
 
 
-class TypeFamilyDefinition(LayoutDataTypeDefinition):
-  """Type family definition.
+class StructureFamilyDefinition(LayoutDataTypeDefinition):
+  """Structure family definition.
 
   Attributes:
-    members (list[DataTypeDefinition]): members.
+    members (list[DataTypeDefinition]): member data type defintions.
+    runtime (DataTypeDefinition): runtime data type definition.
   """
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_TYPE_FAMILY
+  TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRUCTURE_FAMILY
 
   def __init__(self, name, aliases=None, description=None, urls=None):
-    """Initializes a type famility data type definition.
+    """Initializes a structure famility data type definition.
 
     Args:
       name (str): name.
@@ -629,9 +645,10 @@ class TypeFamilyDefinition(LayoutDataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(TypeFamilyDefinition, self).__init__(
+    super(StructureFamilyDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.members = []
+    self.runtime = None
 
   def AddMemberDefinition(self, member_definition):
     """Adds a member definition.
@@ -642,4 +659,11 @@ class TypeFamilyDefinition(LayoutDataTypeDefinition):
     self.members.append(member_definition)
     member_definition.family_definition = self
 
-  # TODO: define GetByteSize to determine the size of the largest family member.
+  def AddRuntimeDefinition(self, runtime_definition):
+    """Adds a runtime definition.
+
+    Args:
+      runtime_definition (DataTypeDefinition): runtime data type definition.
+    """
+    self.runtime = runtime_definition
+    runtime_definition.family_definition = self

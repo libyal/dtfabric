@@ -1080,21 +1080,22 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
 
-  @test_lib.skipUnlessHasTestFile(['type_family.yaml'])
-  def testReadFileObjectTypeFamily(self):
-    """Tests the ReadFileObject function of a type family data type."""
+  @test_lib.skipUnlessHasTestFile(['structure_family.yaml'])
+  def testReadFileObjectStructureFamily(self):
+    """Tests the ReadFileObject function of a structure family data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
-    definitions_file = self._GetTestFilePath(['type_family.yaml'])
+    definitions_file = self._GetTestFilePath(['structure_family.yaml'])
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
-    self.assertEqual(len(definitions_registry._definitions), 6)
+    self.assertEqual(len(definitions_registry._definitions), 8)
 
     data_type_definition = definitions_registry.GetDefinitionByName(
         'group_descriptor')
-    self.assertIsInstance(data_type_definition, data_types.TypeFamilyDefinition)
+    self.assertIsInstance(
+        data_type_definition, data_types.StructureFamilyDefinition)
     self.assertEqual(data_type_definition.name, 'group_descriptor')
     self.assertEqual(data_type_definition.description, 'Group descriptor')
 

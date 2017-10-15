@@ -19,6 +19,13 @@ attributes:
   size: 4
   units: bytes
 ---
+name: uint64
+type: integer
+attributes:
+  format: unsigned
+  size: 8
+  units: bytes
+---
 name: group_descriptor_ext2
 type: structure
 description: Group descriptor
@@ -93,9 +100,37 @@ members:
 - name: reserved1
   data_type: uint32
 ---
-name: group_descriptor
-type: type-family
+name: group_descriptor_runtime
+type: structure
 description: Group descriptor
+members:
+- name: block_bitmap_block_number
+  data_type: uint64
+- name: inode_bitmap_block_number
+  data_type: uint64
+- name: inode_table_block_number
+  data_type: uint64
+- name: number_of_unallocated_blocks
+  data_type: uint32
+- name: number_of_unallocated_inodes
+  data_type: uint32
+- name: number_of_directories
+  data_type: uint32
+- name: block_group_flags
+  data_type: uint16
+- name: exclude_bitmap_block_number
+  data_type: uint64
+- name: block_bitmap_checksum
+  data_type: uint32
+- name: inode_bitmap_checksum
+  data_type: uint32
+- name: number_of_unused_inodes
+  data_type: uint32
+---
+name: group_descriptor
+type: structure-family
+description: Group descriptor
+runtime: group_descriptor_runtime
 members:
 - group_descriptor_ext2
 - group_descriptor_ext4
