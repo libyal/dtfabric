@@ -6,7 +6,7 @@ import sys
 import unittest
 
 # Change PYTHONPATH to include dtFabric.
-sys.path.insert(0, u'.')
+sys.path.insert(0, '.')
 
 
 if __name__ == '__main__':

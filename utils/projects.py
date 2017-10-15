@@ -2,6 +2,7 @@
 """Helper for project configuration."""
 
 from __future__ import print_function
+from __future__ import unicode_literals
 
 try:
   import ConfigParser as configparser
@@ -34,11 +35,11 @@ class ProjectDefinitionReader(object):
   """Project definition reader."""
 
   _VALUE_NAMES = frozenset([
-      u'description_long',
-      u'description_short',
-      u'homepage_url',
-      u'maintainer',
-      u'name'])
+      'description_long',
+      'description_short',
+      'homepage_url',
+      'maintainer',
+      'name'])
 
   def _GetConfigValue(self, config_parser, section_name, value_name):
     """Retrieves a value from the config parser.
@@ -70,7 +71,7 @@ class ProjectDefinitionReader(object):
 
     project_definition = ProjectDefinition()
     for value_name in self._VALUE_NAMES:
-      value = self._GetConfigValue(config_parser, u'project', value_name)
+      value = self._GetConfigValue(config_parser, 'project', value_name)
       setattr(project_definition, value_name, value)
 
     return project_definition
