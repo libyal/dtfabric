@@ -14,7 +14,7 @@ PYTHON2_TEST_DEPENDENCIES="python-mock python-tox";
 
 PYTHON3_DEPENDENCIES="python3-yaml";
 
-PYTHON3_TEST_DEPENDENCIES="python3-mock python3-tox";
+PYTHON3_TEST_DEPENDENCIES="python3-mock python3-setuptools python3-tox";
 
 # Exit on error.
 set -e;
