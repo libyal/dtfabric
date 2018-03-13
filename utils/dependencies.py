@@ -334,6 +334,10 @@ class DependencyHelper(object):
       else:
         result, status_message = self._CheckPythonModule(dependency)
 
+      if not result and module_name == 'lzma':
+        dependency.name = 'backports.lzma'
+        result, status_message = self._CheckPythonModule(dependency)
+
       if not result and not dependency.is_optional:
         check_result = False
 

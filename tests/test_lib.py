@@ -11,7 +11,7 @@ from dtfabric import reader
 from dtfabric import registry
 
 
-def skipUnlessHasTestFile(path_segments):
+def skipUnlessHasTestFile(path_segments):  # pylint: disable=invalid-name
   """Decorator to skip a test if the test file does not exist.
 
   Args:

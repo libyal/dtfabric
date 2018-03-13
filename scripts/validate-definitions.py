@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# pylint: disable=invalid-name
 """Script to validate dtFabric format definitions."""
 
 from __future__ import print_function

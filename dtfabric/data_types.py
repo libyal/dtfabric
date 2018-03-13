@@ -432,7 +432,8 @@ class StructureDefinition(DataTypeDefinitionWithMembers):
   """Structure data type definition.
 
   Attributes:
-    family_definition (DataTypeDefinition): structure family data type definition.
+    family_definition (DataTypeDefinition): structure family data type
+        definition.
   """
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRUCTURE
