@@ -1,4 +1,6 @@
 language: python
+virtualenv:
+  system_site_packages: true
 matrix:
   include:
   - env: TARGET="pylint"
@@ -35,8 +37,6 @@ matrix:
     os: osx
     osx_image: xcode9.2
     language: generic
-  allow_failures:
-  - env: TARGET="linux-python34"
 install:
 - ./config/travis/install.sh
 script:
