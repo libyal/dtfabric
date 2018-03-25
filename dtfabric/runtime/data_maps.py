@@ -60,8 +60,10 @@ class DataTypeMap(object):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if self._data_type_definition:
-      return self._data_type_definition.GetByteSize()
+    if not self._data_type_definition:
+      return None
+
+    return self._data_type_definition.GetByteSize()
 
   def GetSizeHint(self, **unused_kwargs):
     """Retrieves size hints.
@@ -141,9 +143,11 @@ class StorageDataTypeMap(DataTypeMap):
     """
     byte_order_string = self.GetStructByteOrderString()
     format_string = self.GetStructFormatString()
-    if format_string:
-      format_string = ''.join([byte_order_string, format_string])
-      return byte_operations.StructOperation(format_string)
+    if not format_string:
+      return None
+
+    format_string = ''.join([byte_order_string, format_string])
+    return byte_operations.StructOperation(format_string)
 
   def GetStructByteOrderString(self):
     """Retrieves the Python struct format string.
@@ -152,9 +156,11 @@ class StorageDataTypeMap(DataTypeMap):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    if self._data_type_definition:
-      return self._BYTE_ORDER_STRINGS.get(
-          self._data_type_definition.byte_order, None)
+    if not self._data_type_definition:
+      return None
+
+    return self._BYTE_ORDER_STRINGS.get(
+        self._data_type_definition.byte_order, None)
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -163,7 +169,7 @@ class StorageDataTypeMap(DataTypeMap):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    return
+    return None
 
   @abc.abstractmethod
   def FoldByteStream(self, mapped_value, **unused_kwargs):
@@ -517,11 +523,13 @@ class UUIDMap(StorageDataTypeMap):
       FoldingError: if the data type definition cannot be folded into
           the byte stream.
     """
+    value = None
+
     try:
       if self._byte_order == definitions.BYTE_ORDER_BIG_ENDIAN:
-        return mapped_value.bytes
+        value = mapped_value.bytes
       elif self._byte_order == definitions.BYTE_ORDER_LITTLE_ENDIAN:
-        return mapped_value.bytes_le
+        value = mapped_value.bytes_le
 
     except Exception as exception:
       error_string = (
@@ -529,6 +537,8 @@ class UUIDMap(StorageDataTypeMap):
           'with error: {2!s}').format(
               self._data_type_definition.name, byte_offset, exception)
       raise errors.FoldingError(error_string)
+
+    return value
 
   def MapByteStream(
       self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
@@ -744,8 +754,10 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    if self._element_data_type_map:
-      return self._element_data_type_map.GetStructByteOrderString()
+    if not self._element_data_type_map:
+      return None
+
+    return self._element_data_type_map.GetStructByteOrderString()
 
   @abc.abstractmethod
   def MapByteStream(self, byte_stream, **unused_kwargs):
@@ -987,18 +999,22 @@ class SequenceMap(ElementSequenceDataTypeMap):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    if self._element_data_type_map:
-      number_of_elements = None
-      if self._data_type_definition.elements_data_size:
-        element_byte_size = self._element_data_type_definition.GetByteSize()
-        number_of_elements, _ = divmod(
-            self._data_type_definition.elements_data_size, element_byte_size)
-      elif self._data_type_definition.number_of_elements:
-        number_of_elements = self._data_type_definition.number_of_elements
+    if not self._element_data_type_map:
+      return None
 
-      format_string = self._element_data_type_map.GetStructFormatString()
-      if number_of_elements and format_string:
-        return '{0:d}{1:s}'.format(number_of_elements, format_string)
+    number_of_elements = None
+    if self._data_type_definition.elements_data_size:
+      element_byte_size = self._element_data_type_definition.GetByteSize()
+      number_of_elements, _ = divmod(
+          self._data_type_definition.elements_data_size, element_byte_size)
+    elif self._data_type_definition.number_of_elements:
+      number_of_elements = self._data_type_definition.number_of_elements
+
+    format_string = self._element_data_type_map.GetStructFormatString()
+    if not number_of_elements or not format_string:
+      return None
+
+    return '{0:d}{1:s}'.format(number_of_elements, format_string)
 
   def MapByteStream(self, byte_stream, **kwargs):
     """Maps the data type on a byte stream.
@@ -1203,8 +1219,10 @@ class StreamMap(ElementSequenceDataTypeMap):
           cannot be determined.
     """
     byte_size = self.GetByteSize()
-    if byte_size:
-      return '{0:d}B'.format(byte_size)
+    if not byte_size:
+      return None
+
+    return '{0:d}B'.format(byte_size)
 
   def MapByteStream(self, byte_stream, **kwargs):
     """Maps the data type on a byte stream.
@@ -1631,11 +1649,11 @@ class StructureMap(StorageDataTypeMap):
       format_strings = []
       for member_data_type_map in self._data_type_maps:
         if member_data_type_map is None:
-          return
+          return None
 
         member_format_string = member_data_type_map.GetStructFormatString()
         if member_format_string is None:
-          return
+          return None
 
         format_strings.append(member_format_string)
 
@@ -1715,8 +1733,10 @@ class EnumerationMap(SemanticDataTypeMap):
           enumeration value was found.
     """
     value = self._data_type_definition.values_per_number.get(number, None)
-    if value:
-      return value.name
+    if not value:
+      return None
+
+    return value.name
 
 
 class DataTypeMapFactory(object):
@@ -1760,7 +1780,7 @@ class DataTypeMapFactory(object):
     data_type_definition = self._definitions_registry.GetDefinitionByName(
         definition_name)
     if not data_type_definition:
-      return
+      return None
 
     return DataTypeMapFactory.CreateDataTypeMapByType(data_type_definition)
 
@@ -1778,6 +1798,6 @@ class DataTypeMapFactory(object):
     data_type_map_class = cls._MAP_PER_DEFINITION.get(
         data_type_definition.TYPE_INDICATOR, None)
     if not data_type_map_class:
-      return
+      return None
 
     return data_type_map_class(data_type_definition)

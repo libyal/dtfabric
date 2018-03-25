@@ -508,7 +508,7 @@ class SemanticDataTypeDefinition(DataTypeDefinition):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    return
+    return None
 
 
 class ConstantDefinition(SemanticDataTypeDefinition):
@@ -634,7 +634,7 @@ class LayoutDataTypeDefinition(DataTypeDefinition):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    return
+    return None
 
 
 class FormatDefinition(LayoutDataTypeDefinition):

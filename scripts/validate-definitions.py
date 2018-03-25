@@ -51,6 +51,8 @@ class DefinitionsValidator(object):
     Returns:
       bool: True if the file contains valid definitions.
     """
+    print('Checking: {0:s}'.format(path))
+
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
     result = False

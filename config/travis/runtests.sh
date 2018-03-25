@@ -12,7 +12,7 @@ if test "${TARGET}" = "pylint";
 then
 	pylint --version
 
-	for FILE in `find setup.py dtfabric tests -name \*.py`;
+	for FILE in `find setup.py config dtfabric scripts tests -name \*.py`;
 	do
 		echo "Checking: ${FILE}";
 
