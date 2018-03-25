@@ -115,8 +115,10 @@ class FixedSizeDataTypeDefinition(StorageDataTypeDefinition):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if self.size != definitions.SIZE_NATIVE and self.units == 'bytes':
-      return self.size
+    if self.size == definitions.SIZE_NATIVE or self.units != 'bytes':
+      return None
+
+    return self.size
 
 
 class BooleanDefinition(FixedSizeDataTypeDefinition):
@@ -253,14 +255,20 @@ class ElementSequenceDataTypeDefinition(StorageDataTypeDefinition):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if self.element_data_type_definition:
-      if self.elements_data_size:
-        return self.elements_data_size
+    if not self.element_data_type_definition:
+      return None
 
-      if self.number_of_elements:
-        element_byte_size = self.element_data_type_definition.GetByteSize()
-        if element_byte_size:
-          return element_byte_size * self.number_of_elements
+    if self.elements_data_size:
+      return self.elements_data_size
+
+    if not self.number_of_elements:
+      return None
+
+    element_byte_size = self.element_data_type_definition.GetByteSize()
+    if not element_byte_size:
+      return None
+
+    return element_byte_size * self.number_of_elements
 
 
 class SequenceDefinition(ElementSequenceDataTypeDefinition):
@@ -394,8 +402,10 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if self.member_data_type_definition:
-      return self.member_data_type_definition.GetByteSize()
+    if not self.member_data_type_definition:
+      return None
+
+    return self.member_data_type_definition.GetByteSize()
 
   def IsComposite(self):
     """Determines if the data type is composite.
