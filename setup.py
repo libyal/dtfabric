@@ -3,6 +3,9 @@
 """Installation and deployment script."""
 
 from __future__ import print_function
+
+import glob
+import os
 import sys
 
 try:
@@ -89,8 +92,21 @@ else:
           in_description = True
 
         elif line.startswith('%files'):
-          line = '%files -f INSTALLED_FILES -n {0:s}-%{{name}}'.format(
-              python_package)
+          # Cannot use %{_libdir} here since it can expand to "lib64".
+          lines = [
+              '%files -n {0:s}-%{{name}}'.format(python_package),
+              '%defattr(644,root,root,755)',
+              '%doc ACKNOWLEDGEMENTS AUTHORS LICENSE README',
+              '%{_prefix}/lib/python*/site-packages/**/*.py',
+              '%{_prefix}/lib/python*/site-packages/dtfabric*.egg-info/*',
+              '',
+              '%exclude %{_prefix}/share/doc/*',
+              '%exclude %{_prefix}/lib/python*/site-packages/**/*.pyc',
+              '%exclude %{_prefix}/lib/python*/site-packages/**/*.pyo',
+              '%exclude %{_prefix}/lib/python*/site-packages/**/__pycache__/*']
+
+          python_spec_file.extend(lines)
+          break
 
         elif line.startswith('%prep'):
           in_description = False
@@ -116,11 +132,11 @@ else:
 
 
 dtfabric_description = (
-    'Data type fabric (dtfabric).')
+    'Data type fabric (dtfabric)')
 
 dtfabric_long_description = (
-    'dtfabric is a project to manage data types and structures, as used in '
-    'the libyal projects.')
+    'dtFabric, or data type fabric, is a project to manage data types and '
+    'structures, as used in the libyal projects.')
 
 setup(
     name='dtfabric',
@@ -131,20 +147,21 @@ setup(
     url='https://github.com/libyal/dtfabric',
     maintainer='Joachim Metz',
     maintainer_email='joachim.metz@gmail.com',
+    cmdclass={
+        'bdist_msi': BdistMSICommand,
+        'bdist_rpm': BdistRPMCommand},
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
     ],
-    cmdclass={
-        'bdist_msi': BdistMSICommand,
-        'bdist_rpm': BdistRPMCommand},
     packages=find_packages('.', exclude=[
-        'tests', 'tests.*', 'utils']),
+        'scripts', 'tests', 'tests.*', 'utils']),
     package_dir={
         'dtfabric': 'dtfabric'
     },
+    scripts=glob.glob(os.path.join('scripts', '*.py')),
     data_files=[
         ('share/doc/dtfabric', [
             'AUTHORS', 'LICENSE', 'README']),
