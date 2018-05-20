@@ -1093,6 +1093,7 @@ class StreamMap(ElementSequenceDataTypeMap):
       tuple[object, ...]: mapped values.
 
     Raises:
+      ByteStreamTooSmallError: if the byte stream is too small.
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
@@ -1139,8 +1140,11 @@ class StreamMap(ElementSequenceDataTypeMap):
             elements_data_offset:next_elements_data_offset]
 
       if element_value != elements_terminator:
-        raise errors.MappingError(
-            'Byte stream too small unable to find elements terminator.')
+        error_string = (
+            'Unable to read: {0:s} from byte stream at offset: {1:d} '
+            'with error: unable to find elements terminator').format(
+                self._data_type_definition.name, byte_offset)
+        raise errors.ByteStreamTooSmallError(error_string)
 
     if context:
       context.byte_size = elements_data_size

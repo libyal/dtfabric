@@ -1010,7 +1010,7 @@ class StringMapTest(test_lib.BaseTestCase):
     string_value = data_type_map.MapByteStream(byte_stream)
     self.assertEqual(string_value, 'dtFabric\x00')
 
-    with self.assertRaises(errors.MappingError):
+    with self.assertRaises(errors.ByteStreamTooSmallError):
       data_type_map.MapByteStream(byte_stream[:7])
 
 
