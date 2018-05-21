@@ -66,7 +66,7 @@ class DataTypeMap(object):
     return self._data_type_definition.GetByteSize()
 
   def GetSizeHint(self, **unused_kwargs):
-    """Retrieves size hints.
+    """Retrieves a hint about the size.
 
     Returns:
       int: hint of the number of bytes needed from the byte stream or None.
@@ -713,14 +713,17 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
     """
 
   def GetSizeHint(self, context=None, **unused_kwargs):
-    """Retrieves size hints.
+    """Retrieves a hint about the size.
 
     Args:
-      context (Optional[DataTypeMapContext]): data type map context.
+      context (Optional[DataTypeMapContext]): data type map context, used to
+          determine the size hint.
 
     Returns:
       int: hint of the number of bytes needed from the byte stream or None.
     """
+    context_state = getattr(context, 'state', {})
+
     elements_data_size = self.GetByteSize()
     if elements_data_size:
       return elements_data_size
@@ -734,7 +737,10 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
         pass
 
     elif self._data_type_definition.elements_terminator is not None:
-      elements_data_size = self._element_data_type_definition.GetByteSize()
+      size_hints = context_state.get('size_hints', {})
+
+      elements_data_size = size_hints.get(self._data_type_definition.name, 0)
+      elements_data_size += self._element_data_type_definition.GetByteSize()
 
     elif (self._data_type_definition.number_of_elements is not None or
           self._data_type_definition.number_of_elements_expression is not None):
@@ -859,6 +865,7 @@ class SequenceMap(ElementSequenceDataTypeMap):
     element_value = None
     members_data_size = 0
     mapped_values = context_state.get('mapped_values', [])
+    size_hints = context_state.get('size_hints', {})
     subcontext = context_state.get('context', None)
 
     if not subcontext:
@@ -903,8 +910,12 @@ class SequenceMap(ElementSequenceDataTypeMap):
       raise errors.ByteStreamTooSmallError(error_string)
 
     if elements_terminator is not None and element_value != elements_terminator:
+      size_hints[self._data_type_definition.name] = (
+          len(byte_stream) - byte_offset)
+
       context_state['context'] = subcontext
       context_state['mapped_values'] = mapped_values
+      context_state['size_hints'] = size_hints
 
       error_string = (
           'Unable to read: {0:s} from byte stream at offset: {1:d} '
@@ -1102,6 +1113,10 @@ class StreamMap(ElementSequenceDataTypeMap):
     elements_data_size = None
     elements_terminator = None
 
+    context_state = getattr(context, 'state', {})
+
+    size_hints = context_state.get('size_hints', {})
+
     if (self._data_type_definition.elements_data_size is not None or
         self._data_type_definition.elements_data_size_expression is not None):
       elements_data_size = self._EvaluateElementsDataSize(context)
@@ -1140,6 +1155,11 @@ class StreamMap(ElementSequenceDataTypeMap):
             elements_data_offset:next_elements_data_offset]
 
       if element_value != elements_terminator:
+        size_hints[self._data_type_definition.name] = (
+            len(byte_stream) - byte_offset)
+
+        context_state['size_hints'] = size_hints
+
         error_string = (
             'Unable to read: {0:s} from byte stream at offset: {1:d} '
             'with error: unable to find elements terminator').format(
@@ -1617,18 +1637,20 @@ class StructureMap(StorageDataTypeMap):
     return self._fold_byte_stream(mapped_value, **kwargs)
 
   def GetSizeHint(self, context=None, **unused_kwargs):
-    """Retrieves size hints.
+    """Retrieves a hint about the size.
 
     Args:
-      context (Optional[DataTypeMapContext]): data type map context.
+      context (Optional[DataTypeMapContext]): data type map context, used to
+          determine the size hint.
 
     Returns:
       int: hint of the number of bytes needed from the byte stream or None.
     """
     context_state = getattr(context, 'state', {})
-    mapped_values = context_state.get('mapped_values', None)
+
     subcontext = context_state.get('context', None)
     if not subcontext:
+      mapped_values = context_state.get('mapped_values', None)
       subcontext = DataTypeMapContext(values={
           type(mapped_values).__name__: mapped_values})
 
