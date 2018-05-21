@@ -1657,7 +1657,7 @@ class StructureMap(StorageDataTypeMap):
     size_hint = 0
     for data_type_map in self._data_type_maps:
       data_type_size = data_type_map.GetSizeHint(context=subcontext)
-      if not data_type_size:
+      if data_type_size is None:
         break
 
       size_hint += data_type_size
