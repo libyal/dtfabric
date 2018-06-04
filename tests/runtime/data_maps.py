@@ -62,6 +62,17 @@ class DataTypeMapTest(test_lib.BaseTestCase):
     data_type_map = data_maps.DataTypeMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
+  def testName(self):
+    """Tests the name property."""
+    definitions_file = self._GetTestFilePath(['integer.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    data_type_definition = definitions_registry.GetDefinitionByName('int32le')
+
+    data_type_map = data_maps.DataTypeMap(data_type_definition)
+
+    self.assertEqual(data_type_map.name, 'int32le')
+
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
     definitions_file = self._GetTestFilePath(['integer.yaml'])

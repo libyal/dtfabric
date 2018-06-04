@@ -2,6 +2,7 @@
 """Data type definitions."""
 
 from __future__ import unicode_literals
+
 import abc
 
 from dtfabric import definitions

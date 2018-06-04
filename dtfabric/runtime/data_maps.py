@@ -54,6 +54,14 @@ class DataTypeMap(object):
     super(DataTypeMap, self).__init__()
     self._data_type_definition = data_type_definition
 
+  @property
+  def name(self):
+    """str: name of the data type definition or None if not available."""
+    if not self._data_type_definition:
+      return None
+
+    return self._data_type_definition.name
+
   def GetByteSize(self):
     """Retrieves the byte size of the data type map.
 
