@@ -1321,6 +1321,12 @@ class StringMap(StreamMap):
     byte_stream = super(StringMap, self).MapByteStream(
         byte_stream, byte_offset=byte_offset, **kwargs)
 
+    if self._data_type_definition.elements_terminator is not None:
+      # Remove the elements terminator and any trailing data from
+      # the byte stream.
+      byte_stream = byte_stream.split(
+          self._data_type_definition.elements_terminator)[0]
+
     try:
       return byte_stream.decode(self._data_type_definition.encoding)
 
