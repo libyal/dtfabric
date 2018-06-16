@@ -753,11 +753,12 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
     elif (self._data_type_definition.number_of_elements is not None or
           self._data_type_definition.number_of_elements_expression is not None):
       element_byte_size = self._element_data_type_definition.GetByteSize()
-      try:
-        number_of_elements = self._EvaluateNumberOfElements(context)
-        elements_data_size = number_of_elements * element_byte_size
-      except errors.MappingError:
-        pass
+      if element_byte_size is not None:
+        try:
+          number_of_elements = self._EvaluateNumberOfElements(context)
+          elements_data_size = number_of_elements * element_byte_size
+        except errors.MappingError:
+          pass
 
     return elements_data_size
 
@@ -855,6 +856,9 @@ class SequenceMap(ElementSequenceDataTypeMap):
         self._data_type_definition.elements_data_size_expression is not None):
       element_byte_size = self._element_data_type_definition.GetByteSize()
       elements_data_size = self._EvaluateElementsDataSize(context)
+      if element_byte_size is None:
+        raise errors.MappingError('Unable to determine element byte size')
+
       number_of_elements, _ = divmod(elements_data_size, element_byte_size)
 
     elif self._data_type_definition.elements_terminator is not None:
@@ -1024,8 +1028,12 @@ class SequenceMap(ElementSequenceDataTypeMap):
     number_of_elements = None
     if self._data_type_definition.elements_data_size:
       element_byte_size = self._element_data_type_definition.GetByteSize()
+      if element_byte_size is None:
+        return None
+
       number_of_elements, _ = divmod(
           self._data_type_definition.elements_data_size, element_byte_size)
+
     elif self._data_type_definition.number_of_elements:
       number_of_elements = self._data_type_definition.number_of_elements
 

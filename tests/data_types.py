@@ -142,6 +142,8 @@ class ElementSequenceDataTypeDefinitionTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 128)
 
+    # TODO: test self.element_data_type_definition.GetByteSize() returns None
+
 
 class SequenceDefinitionTest(test_lib.BaseTestCase):
   """Sequence data type definition tests."""
