@@ -96,7 +96,7 @@ else:
           lines = [
               '%files -n {0:s}-%{{name}}'.format(python_package),
               '%defattr(644,root,root,755)',
-              '%doc AUTHORS LICENSE README',
+              '%doc ACKNOWLEDGEMENTS AUTHORS LICENSE README',
               '%{_prefix}/lib/python*/site-packages/**/*.py',
               '%{_prefix}/lib/python*/site-packages/dtfabric*.egg-info/*',
               '',
@@ -164,6 +164,6 @@ setup(
     scripts=glob.glob(os.path.join('scripts', '*.py')),
     data_files=[
         ('share/doc/dtfabric', [
-            'AUTHORS', 'LICENSE', 'README']),
+            'ACKNOWLEDGEMENTS', 'AUTHORS', 'LICENSE', 'README']),
     ],
 )
