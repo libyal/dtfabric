@@ -96,7 +96,7 @@ else:
           lines = [
               '%files -n {0:s}-%{{name}}'.format(python_package),
               '%defattr(644,root,root,755)',
-              '%doc ACKNOWLEDGEMENTS AUTHORS LICENSE README',
+              '%doc AUTHORS LICENSE README',
               '%{_prefix}/lib/python*/site-packages/**/*.py',
               '%{_prefix}/lib/python*/site-packages/dtfabric*.egg-info/*',
               '',
