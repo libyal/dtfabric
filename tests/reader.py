@@ -889,6 +889,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
   @test_lib.skipUnlessHasTestFile(['sequence.yaml'])
+  @test_lib.skipUnlessHasTestFile(['sequence_with_structure.yaml'])
   def testReadFileObjectSequence(self):
     """Tests the ReadFileObject function of a sequence data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
@@ -911,6 +912,15 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 16)
+
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath(['sequence_with_structure.yaml'])
+
+    with self.assertRaises(errors.FormatError):
+      with open(definitions_file, 'rb') as file_object:
+        definitions_reader.ReadFileObject(definitions_registry, file_object)
 
   @test_lib.skipUnlessHasTestFile(['stream.yaml'])
   def testReadFileObjectStream(self):

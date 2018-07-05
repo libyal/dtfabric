@@ -286,6 +286,12 @@ class DataTypeDefinitionsReader(object):
           element_data_type)
       raise errors.DefinitionReaderError(definition_name, error_message)
 
+    if not element_data_type_definition.GetByteSize():
+      error_message = (
+          'unsupported variable size element data type: {0:s}'.format(
+              element_data_type))
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
     aliases = definition_values.get('aliases', None)
     description = definition_values.get('description', None)
     urls = definition_values.get('urls', None)
