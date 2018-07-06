@@ -38,6 +38,27 @@ class DataTypeMapContext(object):
     self.values = values or {}
 
 
+class DataTypeMapSizeHint(object):
+  """Data type map size hint.
+
+  Attributes:
+    byte_size (int): byte size.
+    is_complete (bool): True if the size is the complete size of the data type.
+  """
+
+  def __init__(self, byte_size, is_complete=False):
+    """Initializes a data type map size hint.
+
+    Args:
+      byte_size (int): byte size.
+      is_complete (optional[bool]): True if the size is the complete size of
+          the data type.
+    """
+    super(DataTypeMapSizeHint, self).__init__()
+    self.byte_size = byte_size
+    self.is_complete = is_complete
+
+
 class DataTypeMap(object):
   """Data type map."""
 
@@ -746,9 +767,15 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
 
     elif self._data_type_definition.elements_terminator is not None:
       size_hints = context_state.get('size_hints', {})
+      size_hint = size_hints.get(self._data_type_definition.name, None)
 
-      elements_data_size = size_hints.get(self._data_type_definition.name, 0)
-      elements_data_size += self._element_data_type_definition.GetByteSize()
+      elements_data_size = 0
+
+      if size_hint:
+        elements_data_size = size_hint.byte_size
+
+      if not size_hint or not size_hint.is_complete:
+        elements_data_size += self._element_data_type_definition.GetByteSize()
 
     elif (self._data_type_definition.number_of_elements is not None or
           self._data_type_definition.number_of_elements_expression is not None):
@@ -922,8 +949,10 @@ class SequenceMap(ElementSequenceDataTypeMap):
       raise errors.ByteStreamTooSmallError(error_string)
 
     if elements_terminator is not None and element_value != elements_terminator:
-      size_hints[self._data_type_definition.name] = (
-          len(byte_stream) - byte_offset)
+      byte_stream_size = len(byte_stream)
+
+      size_hints[self._data_type_definition.name] = DataTypeMapSizeHint(
+          byte_stream_size - byte_offset)
 
       context_state['context'] = subcontext
       context_state['mapped_values'] = mapped_values
@@ -1153,6 +1182,8 @@ class StreamMap(ElementSequenceDataTypeMap):
       self._CheckByteStreamSize(byte_stream, byte_offset, elements_data_size)
 
     elif elements_terminator is not None:
+      byte_stream_size = len(byte_stream)
+
       element_byte_size = self._element_data_type_definition.GetByteSize()
       elements_data_offset = byte_offset
       next_elements_data_offset = elements_data_offset + element_byte_size
@@ -1171,8 +1202,8 @@ class StreamMap(ElementSequenceDataTypeMap):
             elements_data_offset:next_elements_data_offset]
 
       if element_value != elements_terminator:
-        size_hints[self._data_type_definition.name] = (
-            len(byte_stream) - byte_offset)
+        size_hints[self._data_type_definition.name] = DataTypeMapSizeHint(
+            byte_stream_size - byte_offset)
 
         context_state['size_hints'] = size_hints
 
@@ -1184,6 +1215,11 @@ class StreamMap(ElementSequenceDataTypeMap):
 
     if context:
       context.byte_size = elements_data_size
+
+      size_hints[self._data_type_definition.name] = DataTypeMapSizeHint(
+          elements_data_size, is_complete=True)
+
+      context_state['size_hints'] = size_hints
 
     return byte_stream[byte_offset:byte_offset + elements_data_size]
 
