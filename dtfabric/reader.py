@@ -286,7 +286,10 @@ class DataTypeDefinitionsReader(object):
           element_data_type)
       raise errors.DefinitionReaderError(definition_name, error_message)
 
-    if not element_data_type_definition.GetByteSize():
+    element_byte_size = element_data_type_definition.GetByteSize()
+    element_type_indicator = element_data_type_definition.TYPE_INDICATOR
+    if not element_byte_size and element_type_indicator != (
+        definitions.TYPE_INDICATOR_STRING):
       error_message = (
           'unsupported variable size element data type: {0:s}'.format(
               element_data_type))

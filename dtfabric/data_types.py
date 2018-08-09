@@ -7,8 +7,6 @@ import abc
 
 from dtfabric import definitions
 
-# TODO: BooleanDefinition allow to set false_value to None in definition.
-
 
 class DataTypeDefinition(object):
   """Data type definition interface.
@@ -134,18 +132,20 @@ class BooleanDefinition(FixedSizeDataTypeDefinition):
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_BOOLEAN
 
-  def __init__(self, name, aliases=None, description=None, urls=None):
+  def __init__(
+      self, name, aliases=None, description=None, false_value=0, urls=None):
     """Initializes a boolean data type definition.
 
     Args:
       name (str): name.
       aliases (Optional[list[str]]): aliases.
       description (Optional[str]): description.
+      false_value (Optional[int]): value that represents false.
       urls (Optional[list[str]]): URLs.
     """
     super(BooleanDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.false_value = 0
+    self.false_value = false_value
     self.true_value = None
 
 
@@ -170,18 +170,25 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_INTEGER
 
-  def __init__(self, name, aliases=None, description=None, urls=None):
+  def __init__(
+      self, name, aliases=None, description=None, urls=None):
     """Initializes an integer data type definition.
 
     Args:
       name (str): name.
       aliases (Optional[list[str]]): aliases.
       description (Optional[str]): description.
+      maximum_value (Optional[int]): maximum allowed value of the integer
+          data type.
+      minimum_value (Optional[int]): minimum allowed value of the integer
+          data type.
       urls (Optional[list[str]]): URLs.
     """
     super(IntegerDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.format = definitions.FORMAT_SIGNED
+    self.maximum_value = None
+    self.minimum_value = None
 
 
 class UUIDDefinition(FixedSizeDataTypeDefinition):

@@ -1112,6 +1112,28 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
 
+  @test_lib.skipUnlessHasTestFile(['string_array.yaml'])
+  def testReadFileObjectStructureWithStringArray(self):
+    """Tests the ReadFileObject function of a string array."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath(['string_array.yaml'])
+    with open(definitions_file, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    self.assertEqual(len(definitions_registry._definitions), 4)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'string_array')
+    self.assertIsInstance(data_type_definition, data_types.StructureDefinition)
+    self.assertEqual(data_type_definition.name, 'string_array')
+
+    self.assertEqual(len(data_type_definition.members), 2)
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
+
   @test_lib.skipUnlessHasTestFile(['structure_family.yaml'])
   def testReadFileObjectStructureFamily(self):
     """Tests the ReadFileObject function of a structure family data type."""

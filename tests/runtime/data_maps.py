@@ -1394,6 +1394,36 @@ class StructureMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(byte_stream)
 
+  @test_lib.skipUnlessHasTestFile(['string_array.yaml'])
+  def testMapByteStreamWithStringArray(self):
+    """Tests the MapByteStream function with a string array."""
+    definitions_file = self._GetTestFilePath(['string_array.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'string_array')
+    data_type_map = data_maps.StructureMap(data_type_definition)
+
+    text_stream1 = 'dtFabric\x00'.encode('ascii')
+    text_stream2 = 'supports\x00'.encode('ascii')
+    text_stream3 = 'a string array\x00'.encode('ascii')
+    byte_stream = b''.join([
+        bytes(bytearray([3, 0, 0, 0])), text_stream1, text_stream2,
+        text_stream3])
+
+    string_array = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(string_array.number_of_strings, 3)
+    self.assertEqual(string_array.strings[0], 'dtFabric')
+    self.assertEqual(string_array.strings[1], 'supports')
+    self.assertEqual(string_array.strings[2], 'a string array')
+
+    byte_stream = b''.join([
+        bytes(bytearray([3, 0, 0, 0])), text_stream1, text_stream2])
+
+    with self.assertRaises(errors.ByteStreamTooSmallError):
+      data_type_map.MapByteStream(byte_stream)
+
   @test_lib.skipUnlessHasTestFile(['structure_with_string.yaml'])
   def testGetSizeHint(self):
     """Tests the GetSizeHint function with a string."""
