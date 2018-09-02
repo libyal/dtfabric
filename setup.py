@@ -5,6 +5,7 @@
 from __future__ import print_function
 
 import glob
+import locale
 import os
 import sys
 
@@ -23,9 +24,21 @@ try:
 except ImportError:
   bdist_rpm = None
 
-if sys.version < '2.7':
+version_tuple = (sys.version_info[0], sys.version_info[1])
+if version_tuple[0] not in (2, 3):
   print('Unsupported Python version: {0:s}.'.format(sys.version))
-  print('Supported Python versions are 2.7 or a later 2.x version.')
+  sys.exit(1)
+
+elif version_tuple[0] == 2 and version_tuple < (2, 7):
+  print((
+      'Unsupported Python 2 version: {0:s}, version 2.7 or higher '
+      'required.').format(sys.version))
+  sys.exit(1)
+
+elif version_tuple[0] == 3 and version_tuple < (3, 4):
+  print((
+      'Unsupported Python 3 version: {0:s}, version 3.4 or higher '
+      'required.').format(sys.version))
   sys.exit(1)
 
 # Change PYTHONPATH to include dtfabric so that we can get the version.
@@ -131,6 +144,20 @@ else:
       return python_spec_file
 
 
+if version_tuple[0] == 2:
+  encoding = sys.stdin.encoding  # pylint: disable=invalid-name
+
+  # Note that sys.stdin.encoding can be None.
+  if not encoding:
+    encoding = locale.getpreferredencoding()
+
+  # Make sure the default encoding is set correctly otherwise on Python 2
+  # setup.py sdist will fail to include filenames with Unicode characters.
+  reload(sys)  # pylint: disable=undefined-variable
+
+  sys.setdefaultencoding(encoding)  # pylint: disable=no-member
+
+
 dtfabric_description = (
     'Data type fabric (dtfabric)')
 
@@ -161,7 +188,7 @@ setup(
     package_dir={
         'dtfabric': 'dtfabric'
     },
-    scripts=glob.glob(os.path.join('scripts', '*.py')),
+    scripts=glob.glob(os.path.join('scripts', '[a-z]*.py')),
     data_files=[
         ('share/doc/dtfabric', [
             'ACKNOWLEDGEMENTS', 'AUTHORS', 'LICENSE', 'README']),
