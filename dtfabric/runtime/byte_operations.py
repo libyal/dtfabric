@@ -69,6 +69,7 @@ class StructOperation(ByteStreamOperation):
 
     Raises:
       IOError: if byte stream cannot be read.
+      OSError: if byte stream cannot be read.
     """
     try:
       return self._struct.unpack_from(byte_stream)
@@ -87,6 +88,7 @@ class StructOperation(ByteStreamOperation):
 
     Raises:
       IOError: if byte stream cannot be written.
+      OSError: if byte stream cannot be read.
     """
     try:
       return self._struct.pack(*values)

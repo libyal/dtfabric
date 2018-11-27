@@ -101,9 +101,11 @@ class DataTypeDefinitionsReader(object):
 
     return definition_object
 
+  # pylint: disable=unused-argument
+
   def _ReadDataTypeDefinition(
-      self, unused_definitions_registry, definition_values,
-      data_type_definition_class, definition_name):
+      self, definitions_registry, definition_values, data_type_definition_class,
+      definition_name):
     """Reads a data type definition.
 
     Args:

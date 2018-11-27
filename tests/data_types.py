@@ -340,6 +340,8 @@ class UnionDefinitionTest(test_lib.BaseTestCase):
 class SemanticDataTypeDefinitionTest(test_lib.BaseTestCase):
   """Semantic data type definition tests."""
 
+  # pylint: disable=assignment-from-none
+
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
     data_type_definition = data_types.SemanticDataTypeDefinition(
@@ -396,6 +398,8 @@ class EnumerationDefinitionTest(test_lib.BaseTestCase):
 
 class LayoutDataTypeDefinitionTest(test_lib.BaseTestCase):
   """Layout data type definition tests."""
+
+  # pylint: disable=assignment-from-none
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""

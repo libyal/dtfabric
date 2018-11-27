@@ -18,25 +18,25 @@ from tests import test_lib
 class EmptyDataTypeDefinition(data_types.DataTypeDefinition):
   """Empty data type definition for testing."""
 
-  def GetByteSize(self):
+  def GetByteSize(self):  # pylint: disable=redundant-returns-doc
     """Determines the byte size of the data type definition.
 
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    return
+    return None
 
 
 class TestDataTypeDefinition(data_types.DataTypeDefinition):
   """Data type definition for testing."""
 
-  def GetByteSize(self):
+  def GetByteSize(self):  # pylint: disable=redundant-returns-doc
     """Determines the byte size of the data type definition.
 
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    return
+    return None
 
 
 class DataTypeMapContextTest(test_lib.BaseTestCase):
@@ -102,7 +102,7 @@ class DataTypeMapTest(test_lib.BaseTestCase):
 class StorageDataTypeMapTest(test_lib.BaseTestCase):
   """Storage data type map tests."""
 
-  # pylint: disable=protected-access
+  # pylint: disable=assignment-from-none,protected-access
 
   # TODO: add tests for _CheckByteStreamSize
 

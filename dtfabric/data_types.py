@@ -166,12 +166,15 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
 
   Attributes:
     format (str): format of the data type.
+    maximum_value (int): maximum allowed value of the integer data type.
+    minimum_value (int): minimum allowed value of the integer data type.
   """
 
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_INTEGER
 
   def __init__(
-      self, name, aliases=None, description=None, urls=None):
+      self, name, aliases=None, description=None, maximum_value=None,
+      minimum_value=None, urls=None):
     """Initializes an integer data type definition.
 
     Args:
@@ -187,8 +190,8 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
     super(IntegerDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.format = definitions.FORMAT_SIGNED
-    self.maximum_value = None
-    self.minimum_value = None
+    self.maximum_value = maximum_value
+    self.minimum_value = minimum_value
 
 
 class UUIDDefinition(FixedSizeDataTypeDefinition):
@@ -520,7 +523,7 @@ class SemanticDataTypeDefinition(DataTypeDefinition):
     byte_order (str): byte-order the data type.
   """
 
-  def GetByteSize(self):
+  def GetByteSize(self):  # pylint: disable=redundant-returns-doc
     """Retrieves the byte size of the data type definition.
 
     Returns:
@@ -646,7 +649,7 @@ class LayoutDataTypeDefinition(DataTypeDefinition):
 
   _IS_COMPOSITE = True
 
-  def GetByteSize(self):
+  def GetByteSize(self):  # pylint: disable=redundant-returns-doc
     """Retrieves the byte size of the data type definition.
 
     Returns:

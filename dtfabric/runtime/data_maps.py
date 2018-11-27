@@ -171,7 +171,7 @@ class StorageDataTypeMap(DataTypeMap):
       ByteStreamOperation: byte stream operation or None if unable to determine.
     """
     byte_order_string = self.GetStructByteOrderString()
-    format_string = self.GetStructFormatString()
+    format_string = self.GetStructFormatString()  # pylint: disable=assignment-from-none
     if not format_string:
       return None
 
@@ -191,7 +191,7 @@ class StorageDataTypeMap(DataTypeMap):
     return self._BYTE_ORDER_STRINGS.get(
         self._data_type_definition.byte_order, None)
 
-  def GetStructFormatString(self):
+  def GetStructFormatString(self):  # pylint: disable=redundant-returns-doc
     """Retrieves the Python struct format string.
 
     Returns:
@@ -1776,7 +1776,7 @@ class StructureMap(StorageDataTypeMap):
 class SemanticDataTypeMap(DataTypeMap):
   """Semantic data type map."""
 
-  def FoldByteStream(self, mapped_value, **unused_kwargs):
+  def FoldByteStream(self, mapped_value, **unused_kwargs):  # pylint: disable=redundant-returns-doc
     """Folds the data type into a byte stream.
 
     Args:
@@ -1793,7 +1793,7 @@ class SemanticDataTypeMap(DataTypeMap):
         'Unable to fold {0:s} data type into byte stream'.format(
             self._data_type_definition.TYPE_INDICATOR))
 
-  def MapByteStream(self, byte_stream, **unused_kwargs):
+  def MapByteStream(self, byte_stream, **unused_kwargs):  # pylint: disable=redundant-returns-doc
     """Maps the data type on a byte stream.
 
     Args:
