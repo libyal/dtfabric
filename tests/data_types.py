@@ -327,6 +327,8 @@ class UnionDefinitionTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
 
+    # TODO: test member_definition.GetByteSize() returns None
+
   def testIsComposite(self):
     """Tests the IsComposite function."""
     data_type_definition = data_types.UnionDefinition(

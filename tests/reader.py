@@ -125,6 +125,16 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
         'point3d')
     self.assertIsNotNone(definition_object)
 
+    # Test with incorrect byte order.
+    definition_values['attributes']['byte_order'] = 'bogus'
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadDataTypeDefinitionWithMembers(
+          definitions_registry, definition_values,
+          data_types.StructureDefinition, 'point3d')
+
+    definition_values['attributes']['byte_order'] = 'big-endian'
+
   @test_lib.skipUnlessHasTestFile(['definitions', 'integers.yaml'])
   def testReadElementSequenceDataTypeDefinition(self):
     """Tests the _ReadElementSequenceDataTypeDefinition function."""
@@ -186,6 +196,17 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
 
     definition_values['number_of_elements'] = 4
 
+    # Test with elements data size and number of elements definition set at
+    # at the same time.
+    definition_values['elements_data_size'] = 32
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadElementSequenceDataTypeDefinition(
+          definitions_registry, definition_values,
+          data_types.SequenceDefinition, 'vector4')
+
+    del definition_values['elements_data_size']
+
     # Test with unusuported attributes definition.
     definition_values['attributes'] = {'byte_order': 'little-endian'}
 
@@ -195,6 +216,30 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
           data_types.SequenceDefinition, 'vector4')
 
     del definition_values['attributes']
+
+    # Test with elements terminator.
+    definition_values = {
+        'description': 'vector with terminator',
+        'element_data_type': 'int32',
+        'elements_terminator': b'\xff\xff\xff\xff',
+    }
+
+    data_type_definition = (
+        definitions_reader._ReadElementSequenceDataTypeDefinition(
+            definitions_registry, definition_values,
+            data_types.SequenceDefinition, 'vector4'))
+    self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(data_type_definition, data_types.SequenceDefinition)
+
+    # Test with (Unicode) string elements terminator.
+    definition_values['elements_terminator'] = '\0'
+
+    data_type_definition = (
+        definitions_reader._ReadElementSequenceDataTypeDefinition(
+            definitions_registry, definition_values,
+            data_types.SequenceDefinition, 'vector4'))
+    self.assertIsNotNone(data_type_definition)
+    self.assertIsInstance(data_type_definition, data_types.SequenceDefinition)
 
   def testReadEnumerationDataTypeDefinition(self):
     """Tests the _ReadEnumerationDataTypeDefinition function."""
@@ -220,7 +265,16 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     self.assertIsInstance(
         data_type_definition, data_types.EnumerationDefinition)
 
-    # Test with missing name in enumeration value definition.
+    # Test with missing name in first enumeration value definition.
+    del definition_values['values'][0]['name']
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadEnumerationDataTypeDefinition(
+          definitions_registry, definition_values, 'enum')
+
+    definition_values['values'][0]['name'] = 'MiniHandleObjectInformationNone'
+
+    # Test with missing name in successive enumeration value definition.
     del definition_values['values'][-1]['name']
 
     with self.assertRaises(errors.DefinitionReaderError):
@@ -368,6 +422,16 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     self.assertIsInstance(
         data_type_definition, data_types.EnumerationDefinition)
 
+    # Test with incorrect byte order.
+    definition_values['attributes']['byte_order'] = 'bogus'
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadLayoutDataTypeDefinition(
+          definitions_registry, definition_values,
+          data_types.EnumerationDefinition, 'format')
+
+    definition_values['attributes']['byte_order'] = 'big-endian'
+
   @test_lib.skipUnlessHasTestFile(['definitions', 'integers.yaml'])
   def testReadMemberDataTypeDefinitionMember(self):
     """Tests the _ReadMemberDataTypeDefinitionMember function."""
@@ -385,6 +449,41 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
 
     # TODO: implement.
     _ = definition_object
+
+    # Test without definitions values.
+    definition_values = {}
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadMemberDataTypeDefinitionMember(
+          definitions_registry, definition_values, 'point3d')
+
+    # Test definitions values without name.
+    definition_values = {'bogus': 'BOGUS'}
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadMemberDataTypeDefinitionMember(
+          definitions_registry, definition_values, 'point3d')
+
+    # Test definitions values without data type and type.
+    definition_values = {'name': 'x'}
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadMemberDataTypeDefinitionMember(
+          definitions_registry, definition_values, 'point3d')
+
+    # Test definitions values with both data type and type.
+    definition_values = {'name': 'x', 'data_type': 'int32', 'type': 'bogus'}
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadMemberDataTypeDefinitionMember(
+          definitions_registry, definition_values, 'point3d')
+
+    # Test definitions values with unresolvable type.
+    definition_values = {'name': 'x', 'type': 'bogus'}
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadMemberDataTypeDefinitionMember(
+          definitions_registry, definition_values, 'point3d')
 
   def testReadSemanticDataTypeDefinition(self):
     """Tests the _ReadSemanticDataTypeDefinition function."""
@@ -505,6 +604,15 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.StringDefinition)
 
+    # Test definitions values without encoding.
+    del definition_values['encoding']
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadStringDataTypeDefinition(
+          definitions_registry, definition_values, 'string4')
+
+    definition_values['encoding'] = 'ascii'
+
   @test_lib.skipUnlessHasTestFile(['definitions', 'integers.yaml'])
   def testReadStructureDataTypeDefinition(self):
     """Tests the _ReadStructureDataTypeDefinition function."""
@@ -547,6 +655,8 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadStructureDataTypeDefinition(
           definitions_registry, definition_values, 'point3d')
+
+  # TODO: add tests for _ReadStructureFamilyDataTypeDefinition
 
   @test_lib.skipUnlessHasTestFile(['definitions', 'integers.yaml'])
   def testReadUnionDataTypeDefinition(self):
@@ -660,6 +770,8 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
   """YAML data type definitions reader tests."""
 
   # pylint: disable=protected-access
+
+  # TODO: add tests for _GetFormatErrorLocation
 
   @test_lib.skipUnlessHasTestFile(['boolean.yaml'])
   def testReadFileObjectBoolean(self):
