@@ -377,7 +377,7 @@ class DataTypeDefinitionsReader(object):
       definition_name (str): name of the definition.
 
     Returns:
-      FloatingPointDefinition floating-point data type definition.
+      FloatingPointDefinition: floating-point data type definition.
     """
     return self._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values,

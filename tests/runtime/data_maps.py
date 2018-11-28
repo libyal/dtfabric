@@ -691,6 +691,7 @@ class ElementSequenceDataTypeMapTest(test_lib.BaseTestCase):
     data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
+  # TODO: add tests for _CalculateElementsDataSize.
   # TODO: add tests for _EvaluateElementsDataSize.
   # TODO: add tests for _EvaluateNumberOfElements.
 
@@ -713,6 +714,10 @@ class ElementSequenceDataTypeMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.FormatError):
       data_type_definition = EmptyDataTypeDefinition('empty')
       data_type_map._GetElementDataTypeDefinition(data_type_definition)
+
+  # TODO: add tests for _HasElementsDataSize.
+  # TODO: add tests for _HasElementsTerminator.
+  # TODO: add tests for _HasNumberOfElements.
 
   # TODO: add tests for GetSizeHint.
 
@@ -874,43 +879,48 @@ class StreamMapTest(test_lib.BaseTestCase):
     data_type_map = data_maps.StreamMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
-  # TODO: add tests for _CompositeFoldByteStream.
-  # TODO: add tests for _CompositeMapByteStream.
-  # TODO: add tests for _LinearFoldByteStream.
-
-  def testLinearMapByteStream(self):
-    """Tests the _LinearMapByteStream function."""
-    definitions_file = self._GetTestFilePath(['stream.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName(
-        'utf16le_stream')
-
-    data_type_map = data_maps.StreamMap(data_type_definition)
-
-    byte_stream = 'dtFabric'.encode('utf-16-le')
-    stream_value = data_type_map._LinearMapByteStream(byte_stream)
-    self.assertEqual(stream_value, b'd\x00t\x00F\x00a\x00b\x00r\x00i\x00c\x00')
-
-    with self.assertRaises(errors.MappingError):
-      data_type_map._LinearMapByteStream(None)
-
-    with self.assertRaises(errors.ByteStreamTooSmallError):
-      data_type_map._LinearMapByteStream(b'\x12\x34\x56')
-
   def testFoldByteStream(self):
     """Tests the FoldByteStream function."""
     definitions_file = self._GetTestFilePath(['stream.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
+
     data_type_definition = definitions_registry.GetDefinitionByName(
         'utf16le_stream')
 
     data_type_map = data_maps.StreamMap(data_type_definition)
 
-    exptected_byte_stream = b'd\x00t\x00F\x00a\x00b\x00r\x00i\x00c\x00'
-    byte_stream = data_type_map.FoldByteStream(exptected_byte_stream)
-    self.assertEqual(byte_stream, exptected_byte_stream)
+    expected_byte_stream = b'd\x00t\x00F\x00a\x00b\x00r\x00i\x00c\x00'
+    byte_stream = data_type_map.FoldByteStream(expected_byte_stream)
+    self.assertEqual(byte_stream, expected_byte_stream)
+
+    # Test with data type definition with elements date size.
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'utf16le_stream_with_size')
+
+    data_type_map = data_maps.StreamMap(data_type_definition)
+
+    context = data_maps.DataTypeMapContext({'size': 16})
+
+    expected_byte_stream = b'd\x00t\x00F\x00a\x00b\x00r\x00i\x00c\x00'
+    byte_stream = data_type_map.FoldByteStream(
+        expected_byte_stream, context=context)
+    self.assertEqual(byte_stream, expected_byte_stream)
+
+    context = data_maps.DataTypeMapContext({'size': 8})
+
+    with self.assertRaises(errors.FoldingError):
+      data_type_map.FoldByteStream(expected_byte_stream, context=context)
+
+    # Test with data type definition with elements terminator.
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'utf16le_stream_with_terminator')
+
+    data_type_map = data_maps.StreamMap(data_type_definition)
+
+    expected_byte_stream = b'd\x00t\x00F\x00a\x00b\x00r\x00i\x00c\x00\x00\x00'
+    byte_stream = data_type_map.FoldByteStream(expected_byte_stream)
+    self.assertEqual(byte_stream, expected_byte_stream)
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
@@ -949,6 +959,12 @@ class StreamMapTest(test_lib.BaseTestCase):
     byte_stream = 'dtFabric'.encode('utf-16-le')
     stream_value = data_type_map.MapByteStream(byte_stream)
     self.assertEqual(stream_value, b'd\x00t\x00F\x00a\x00b\x00r\x00i\x00c\x00')
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(None)
+
+    with self.assertRaises(errors.ByteStreamTooSmallError):
+      data_type_map.MapByteStream(b'\x12\x34\x56')
 
 
 @test_lib.skipUnlessHasTestFile(['string.yaml'])

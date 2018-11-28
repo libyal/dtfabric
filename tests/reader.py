@@ -932,7 +932,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
-    self.assertEqual(len(definitions_registry._definitions), 2)
+    self.assertEqual(len(definitions_registry._definitions), 4)
 
     data_type_definition = definitions_registry.GetDefinitionByName(
         'utf16le_stream')

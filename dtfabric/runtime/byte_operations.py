@@ -11,6 +11,10 @@ from dtfabric import errors
 class ByteStreamOperation(object):
   """Byte stream operation."""
 
+  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
+  # methods.
+  # pylint: disable=redundant-returns-doc
+
   @abc.abstractmethod
   def ReadFrom(self, byte_stream):
     """Read values from a byte stream.

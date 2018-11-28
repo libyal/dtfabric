@@ -13,3 +13,15 @@ type: stream
 description: UTF-16 little-endian stream
 element_data_type: wchar16
 number_of_elements: 8
+---
+name: utf16le_stream_with_size
+type: stream
+description: UTF-16 little-endian stream with size
+element_data_type: wchar16
+elements_data_size: size
+---
+name: utf16le_stream_with_terminator
+type: stream
+description: UTF-16 little-endian stream with terminator
+element_data_type: wchar16
+elements_terminator: "\x00\x00"

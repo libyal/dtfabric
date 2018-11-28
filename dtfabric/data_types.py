@@ -19,6 +19,10 @@ class DataTypeDefinition(object):
     urls (list[str]): URLs.
   """
 
+  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
+  # methods.
+  # pylint: disable=redundant-returns-doc
+
   TYPE_INDICATOR = None
 
   _IS_COMPOSITE = False
@@ -63,6 +67,10 @@ class StorageDataTypeDefinition(DataTypeDefinition):
   Attributes:
     byte_order (str): byte-order the data type.
   """
+
+  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
+  # methods.
+  # pylint: disable=redundant-returns-doc
 
   def __init__(self, name, aliases=None, description=None, urls=None):
     """Initializes a storage data type definition.
@@ -330,6 +338,10 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
     members (list[DataTypeDefinition]): member data type definitions.
     sections (list[MemberSectionDefinition]): member section definitions.
   """
+
+  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
+  # methods.
+  # pylint: disable=redundant-returns-doc
 
   _IS_COMPOSITE = True
 
