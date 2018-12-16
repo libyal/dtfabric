@@ -73,7 +73,7 @@ class DataTypeMap(object):
       data_type_definition (DataTypeDefinition): data type definition.
 
     Raises:
-      FormatError: if the data type map cannot be determed from the data
+      FormatError: if the data type map cannot be determined from the data
           type definition.
     """
     super(DataTypeMap, self).__init__()
@@ -341,7 +341,7 @@ class PrimitiveDataTypeMap(StorageDataTypeMap):
 
 
 class BooleanMap(PrimitiveDataTypeMap):
-  """Boolen data type map."""
+  """Boolean data type map."""
 
   # We use 'I' here instead of 'L' because 'L' behaves architecture dependent.
 
@@ -358,7 +358,7 @@ class BooleanMap(PrimitiveDataTypeMap):
       data_type_definition (DataTypeDefinition): data type definition.
 
     Raises:
-      FormatError: if the data type map cannot be determed from the data
+      FormatError: if the data type map cannot be determined from the data
           type definition.
     """
     if (data_type_definition.false_value is None and
@@ -743,7 +743,7 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
       DataTypeDefinition: element data type definition.
 
     Raises:
-      FormatError: if the element data type cannot be determed from the data
+      FormatError: if the element data type cannot be determined from the data
           type definition.
     """
     if not data_type_definition:
@@ -1150,7 +1150,7 @@ class StreamMap(ElementSequenceDataTypeMap):
       data_type_definition (DataTypeDefinition): data type definition.
 
     Raises:
-      FormatError: if the data type map cannot be determed from the data
+      FormatError: if the data type map cannot be determined from the data
           type definition.
     """
     super(StreamMap, self).__init__(data_type_definition)
@@ -1399,7 +1399,7 @@ class StructureMap(StorageDataTypeMap):
       bool: True if a composite map is needed, False otherwise.
 
     Raises:
-      FormatError: if a composite map is needed cannot be determed from the
+      FormatError: if a composite map is needed cannot be determined from the
           data type definition.
     """
     if not data_type_definition:
@@ -1551,7 +1551,7 @@ class StructureMap(StorageDataTypeMap):
       list[str]: attribute names.
 
     Raises:
-      FormatError: if the attribute names cannot be determed from the data
+      FormatError: if the attribute names cannot be determined from the data
           type definition.
     """
     if not data_type_definition:
@@ -1574,7 +1574,7 @@ class StructureMap(StorageDataTypeMap):
       list[DataTypeMap]: member data type maps.
 
     Raises:
-      FormatError: if the data type maps cannot be determed from the data
+      FormatError: if the data type maps cannot be determined from the data
           type definition.
     """
     if not data_type_definition:

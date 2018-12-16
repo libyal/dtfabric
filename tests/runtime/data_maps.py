@@ -1469,7 +1469,7 @@ class StructureMapTest(test_lib.BaseTestCase):
 
 @test_lib.skipUnlessHasTestFile(['constant.yaml'])
 class SemanticDataTypeMapTest(test_lib.BaseTestCase):
-  """Semantic datat type map tests."""
+  """Semantic data type map tests."""
 
   def testFoldByteStream(self):
     """Tests the FoldByteStream function."""

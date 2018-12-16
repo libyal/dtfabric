@@ -207,7 +207,7 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
 
     del definition_values['elements_data_size']
 
-    # Test with unusuported attributes definition.
+    # Test with unsupported attributes definition.
     definition_values['attributes'] = {'byte_order': 'little-endian'}
 
     with self.assertRaises(errors.DefinitionReaderError):

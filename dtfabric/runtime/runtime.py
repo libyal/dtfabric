@@ -119,7 +119,7 @@ class StructureValuesClassFactory(object):
 
   @classmethod
   def _ValidateDataTypeDefinition(cls, data_type_definition):
-    """Validates the data type defintion.
+    """Validates the data type definition.
 
     Args:
       data_type_definition (DataTypeDefinition): data type definition.

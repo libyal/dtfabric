@@ -48,7 +48,7 @@ class StructOperation(ByteStreamOperation):
       format_string (str): format string as used by Python struct.
 
     Raises:
-      FormatError: if the struct operation cannot be determed from the data
+      FormatError: if the struct operation cannot be determined from the data
           type definition.
     """
     try:

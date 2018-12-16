@@ -229,7 +229,7 @@ class ElementSequenceDataTypeDefinition(StorageDataTypeDefinition):
   Attributes:
     elements_data_size (int): data size of the sequence elements.
     elements_data_size_expression (str): expression to determine the data
-        size of the sequenc eelements.
+        size of the sequence elements.
     element_data_type (str): name of the sequence element data type.
     element_data_type_definition (DataTypeDefinition): sequence element
         data type definition.
@@ -704,7 +704,7 @@ class StructureFamilyDefinition(LayoutDataTypeDefinition):
   TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRUCTURE_FAMILY
 
   def __init__(self, name, aliases=None, description=None, urls=None):
-    """Initializes a structure famility data type definition.
+    """Initializes a structure family data type definition.
 
     Args:
       name (str): name.
