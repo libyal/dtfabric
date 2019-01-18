@@ -86,6 +86,7 @@ else:
         python_package = 'python3'
 
       description = []
+      requires = ''
       summary = ''
       in_description = False
 
@@ -99,9 +100,10 @@ else:
               python_package)
 
         elif line.startswith('Requires: '):
+          requires = line[10:]
           if python_package == 'python3':
-            line = line.replace('python-', 'python3-')
-            line = line.replace('python2-', 'python3-')
+            requires = requires.replace('python-', 'python3-')
+            requires = requires.replace('python2-', 'python3-')
 
         elif line.startswith('%description'):
           in_description = True
@@ -122,7 +124,8 @@ else:
           lines = [
               '%files -n {0:s}-%{{name}}'.format(python_package),
               '%defattr(644,root,root,755)',
-              '%doc ACKNOWLEDGEMENTS AUTHORS LICENSE README']
+              '%license LICENSE',
+              '%doc ACKNOWLEDGEMENTS AUTHORS README']
 
           if python_package == 'python3':
             lines.extend([
@@ -130,10 +133,10 @@ else:
                 '%{python3_sitelib}/dtfabric/*/*.py',
                 '%{python3_sitelib}/dtfabric*.egg-info/*',
                 '',
-                '%exclude %{_bindir}/*',
                 '%exclude %{_prefix}/share/doc/*',
                 '%exclude %{python3_sitelib}/dtfabric/__pycache__/*',
-                '%exclude %{python3_sitelib}/dtfabric/*/__pycache__/*'])
+                '%exclude %{python3_sitelib}/dtfabric/*/__pycache__/*',
+                '%exclude %{_bindir}/*.py'])
 
           else:
             lines.extend([
@@ -141,12 +144,12 @@ else:
                 '%{python2_sitelib}/dtfabric/*/*.py',
                 '%{python2_sitelib}/dtfabric*.egg-info/*',
                 '',
-                '%exclude %{_bindir}/*',
                 '%exclude %{_prefix}/share/doc/*',
                 '%exclude %{python2_sitelib}/dtfabric/*.pyc',
                 '%exclude %{python2_sitelib}/dtfabric/*.pyo',
                 '%exclude %{python2_sitelib}/dtfabric/*/*.pyc',
-                '%exclude %{python2_sitelib}/dtfabric/*/*.pyo'])
+                '%exclude %{python2_sitelib}/dtfabric/*/*.pyo',
+                '%exclude %{_bindir}/*.py'])
 
           python_spec_file.extend(lines)
           break
@@ -157,15 +160,16 @@ else:
           python_spec_file.append(
               '%package -n {0:s}-%{{name}}'.format(python_package))
           if python_package == 'python2':
-            python_spec_file.append(
-                'Obsoletes: python-dtfabric < %{version}')
-            python_spec_file.append(
-                'Provides: python-dtfabric = %{version}')
+            python_spec_file.extend([
+                'Obsoletes: python-dtfabric < %{version}',
+                'Provides: python-dtfabric = %{version}'])
 
-          python_spec_file.append('{0:s}'.format(summary))
-          python_spec_file.append('')
-          python_spec_file.append(
-              '%description -n {0:s}-%{{name}}'.format(python_package))
+          python_spec_file.extend([
+              'Requires: {0:s}'.format(requires),
+              '{0:s}'.format(summary),
+              '',
+              '%description -n {0:s}-%{{name}}'.format(python_package)])
+
           python_spec_file.extend(description)
 
         elif in_description:
