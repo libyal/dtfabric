@@ -1234,7 +1234,7 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
-    self.assertEqual(len(definitions_registry._definitions), 4)
+    self.assertEqual(len(definitions_registry._definitions), 5)
 
     data_type_definition = definitions_registry.GetDefinitionByName(
         'string_array')

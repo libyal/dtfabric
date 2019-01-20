@@ -749,7 +749,7 @@ class SequenceMapTest(test_lib.BaseTestCase):
     data_type_map = data_maps.SequenceMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
-  # TODO: add tests for _CompositeFoldByteStream.
+  # TODO: add tests for _CompositeFoldByteStream once implemented.
 
   def testCompositeMapByteStream(self):
     """Tests the _CompositeMapByteStream function."""
@@ -1436,6 +1436,29 @@ class StructureMapTest(test_lib.BaseTestCase):
 
     byte_stream = b''.join([
         bytes(bytearray([3, 0, 0, 0])), text_stream1, text_stream2])
+
+    with self.assertRaises(errors.ByteStreamTooSmallError):
+      data_type_map.MapByteStream(byte_stream)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'string_array_with_size')
+    data_type_map = data_maps.StructureMap(data_type_definition)
+
+    text_stream1 = 'dtFabric\x00'.encode('ascii')
+    text_stream2 = 'supports\x00'.encode('ascii')
+    text_stream3 = 'a string array\x00'.encode('ascii')
+    byte_stream = b''.join([
+        bytes(bytearray([33, 0, 0, 0])), text_stream1, text_stream2,
+        text_stream3])
+
+    string_array = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(string_array.strings_data_size, 33)
+    self.assertEqual(string_array.strings[0], 'dtFabric')
+    self.assertEqual(string_array.strings[1], 'supports')
+    self.assertEqual(string_array.strings[2], 'a string array')
+
+    byte_stream = b''.join([
+        bytes(bytearray([33, 0, 0, 0])), text_stream1, text_stream2])
 
     with self.assertRaises(errors.ByteStreamTooSmallError):
       data_type_map.MapByteStream(byte_stream)
