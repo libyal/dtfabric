@@ -1,0 +1,31 @@
+name: uint16
+type: integer
+attributes:
+  format: unsigned
+  size: 2
+  units: bytes
+---
+name: uint32
+type: integer
+attributes:
+  format: unsigned
+  size: 4
+  units: bytes
+---
+name: structure_with_condition
+type: structure
+members:
+- name: flags
+  data_type: uint16
+- name: data1
+  data_type: uint32
+- name: conditional_data1
+  data_type: uint32
+  condition: structure_with_condition.flags & 0x0001 != 0
+- name: data2
+  data_type: uint32
+- name: conditional_data2
+  data_type: uint32
+  condition: structure_with_condition.flags & 0x8000 != 0
+- name: data3
+  data_type: uint32

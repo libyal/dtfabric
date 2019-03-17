@@ -1272,6 +1272,49 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertEqual(box.triangles[0].a.y, 2)
     self.assertEqual(box.triangles[0].a.z, 3)
 
+  @test_lib.skipUnlessHasTestFile(['structure_with_condition.yaml'])
+  def testMapByteStreamWithSequenceWithCondition(self):
+    """Tests the MapByteStream function with a sequence with condition."""
+    definitions_file = self._GetTestFilePath(['structure_with_condition.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'structure_with_condition')
+    data_type_map = data_maps.StructureMap(data_type_definition)
+
+    byte_values = [0x01, 0x80]
+    for value in range(1, 6):
+      byte_value_upper, byte_value_lower = divmod(value, 256)
+      byte_values.extend([byte_value_lower, byte_value_upper, 0, 0])
+
+    byte_stream = bytes(bytearray(byte_values))
+
+    structure_with_condition = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(structure_with_condition.flags, 0x8001)
+
+    self.assertEqual(structure_with_condition.data1, 1)
+    self.assertEqual(structure_with_condition.conditional_data1, 2)
+    self.assertEqual(structure_with_condition.data2, 3)
+    self.assertEqual(structure_with_condition.conditional_data2, 4)
+    self.assertEqual(structure_with_condition.data3, 5)
+
+    byte_values = [0x01, 0x00]
+    for value in range(1, 6):
+      byte_value_upper, byte_value_lower = divmod(value, 256)
+      byte_values.extend([byte_value_lower, byte_value_upper, 0, 0])
+
+    byte_stream = bytes(bytearray(byte_values))
+
+    structure_with_condition = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(structure_with_condition.flags, 0x0001)
+
+    self.assertEqual(structure_with_condition.data1, 1)
+    self.assertEqual(structure_with_condition.conditional_data1, 2)
+    self.assertEqual(structure_with_condition.data2, 3)
+    self.assertIsNone(structure_with_condition.conditional_data2)
+    self.assertEqual(structure_with_condition.data3, 4)
+
   @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testMapByteStreamWithSequenceWithExpression(self):
     """Tests the MapByteStream function with a sequence with expression."""

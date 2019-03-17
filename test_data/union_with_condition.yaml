@@ -1,0 +1,22 @@
+name: uint16
+type: integer
+attributes:
+  format: unsigned
+  size: 2
+  units: bytes
+---
+name: uint32
+type: integer
+attributes:
+  format: unsigned
+  size: 4
+  units: bytes
+---
+name: union_with_condition
+type: union
+members:
+- name: flags
+  data_type: uint16
+- name: long
+  data_type: uint32
+  condition: union_with_condition.flags & 0x8000 != 0

@@ -234,6 +234,10 @@ class MemberDataTypeDefinitionTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
 
+    data_type_definition.condition = 'bogus'
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
+
   def testIsComposite(self):
     """Tests the IsComposite function."""
     definitions_file = self._GetTestFilePath(['structure.yaml'])
@@ -251,6 +255,10 @@ class MemberDataTypeDefinitionTest(test_lib.BaseTestCase):
     data_type_definition.member_data_type_definition = member_definition
     result = data_type_definition.IsComposite()
     self.assertFalse(result)
+
+    data_type_definition.condition = 'bogus'
+    result = data_type_definition.IsComposite()
+    self.assertTrue(result)
 
 
 class MemberSectionDefinitionTest(test_lib.BaseTestCase):

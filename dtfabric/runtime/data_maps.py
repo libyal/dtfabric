@@ -82,10 +82,7 @@ class DataTypeMap(object):
   @property
   def name(self):
     """str: name of the data type definition or None if not available."""
-    if not self._data_type_definition:
-      return None
-
-    return self._data_type_definition.name
+    return getattr(self._data_type_definition, 'name', None)
 
   def GetByteSize(self):
     """Retrieves the byte size of the data type map.
@@ -1521,6 +1518,29 @@ class StructureMap(StorageDataTypeMap):
     for attribute_index in range(attribute_index, self._number_of_attributes):
       attribute_name = self._attribute_names[attribute_index]
       data_type_map = self._data_type_maps[attribute_index]
+      member_definition = self._data_type_definition.members[attribute_index]
+
+      # TODO: determine how to apply a condition on a non-member data type
+      # definition.
+      condition = getattr(member_definition, 'condition', None)
+      if condition:
+        namespace = dict(subcontext.values)
+        # Make sure __builtins__ contains an empty dictionary.
+        namespace['__builtins__'] = {}
+
+        try:
+          condition_result = eval(condition, namespace)  # pylint: disable=eval-used
+        except Exception as exception:
+          raise errors.MappingError(
+              'Unable to evaluate condition with error: {0!s}'.format(
+                  exception))
+
+        if not isinstance(condition_result, bool):
+          raise errors.MappingError(
+              'Condition does not result in a boolean value')
+
+        if not condition_result:
+          continue
 
       try:
         value = data_type_map.MapByteStream(

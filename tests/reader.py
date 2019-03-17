@@ -1187,13 +1187,35 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
-  @test_lib.skipUnlessHasTestFile(['structure_with_sections.yaml'])
-  def testReadFileObjectStructureWithSections(self):
-    """Tests the ReadFileObject function of a structure with sections."""
+  @test_lib.skipUnlessHasTestFile(['structure_with_condition.yaml'])
+  def testReadFileObjectStructureWithCondition(self):
+    """Tests the ReadFileObject function of a structure with condition."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
-    definitions_file = self._GetTestFilePath(['structure_with_sections.yaml'])
+    definitions_file = self._GetTestFilePath(['structure_with_condition.yaml'])
+    with open(definitions_file, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    self.assertEqual(len(definitions_registry._definitions), 3)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'structure_with_condition')
+    self.assertIsInstance(data_type_definition, data_types.StructureDefinition)
+    self.assertEqual(data_type_definition.name, 'structure_with_condition')
+
+    self.assertEqual(len(data_type_definition.members), 6)
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
+
+  @test_lib.skipUnlessHasTestFile(['structure_with_section.yaml'])
+  def testReadFileObjectStructureWithSection(self):
+    """Tests the ReadFileObject function of a structure with section."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath(['structure_with_section.yaml'])
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1287,6 +1309,45 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertIsNone(byte_size)
 
     # TODO: add test for member already part of a family.
+
+  @test_lib.skipUnlessHasTestFile(['union.yaml'])
+  def testReadFileObjectUnion(self):
+    """Tests the ReadFileObject function of an union data type."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath(['union.yaml'])
+    with open(definitions_file, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    self.assertEqual(len(definitions_registry._definitions), 3)
+
+    data_type_definition = definitions_registry.GetDefinitionByName('union')
+    self.assertIsInstance(data_type_definition, data_types.UnionDefinition)
+    self.assertEqual(data_type_definition.name, 'union')
+
+    self.assertEqual(len(data_type_definition.members), 2)
+
+    member_definition = data_type_definition.members[0]
+    self.assertIsInstance(
+        member_definition, data_types.MemberDataTypeDefinition)
+    self.assertEqual(member_definition.name, 'long')
+    self.assertEqual(member_definition.member_data_type, 'int32')
+    self.assertIsNotNone(member_definition.member_data_type_definition)
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 4)
+
+  @test_lib.skipUnlessHasTestFile(['union_with_condition.yaml'])
+  def testReadFileObjectUnionWithCondition(self):
+    """Tests the ReadFileObject function of an union with condition."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath(['union_with_condition.yaml'])
+    with self.assertRaises(errors.FormatError):
+      with open(definitions_file, 'rb') as file_object:
+        definitions_reader.ReadFileObject(definitions_registry, file_object)
 
   @test_lib.skipUnlessHasTestFile(['uuid.yaml'])
   def testReadFileObjectUUID(self):

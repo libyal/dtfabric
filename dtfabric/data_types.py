@@ -394,20 +394,23 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
   """Member data type definition.
 
   Attributes:
+    condition (str): condition under which the data type applies.
     member_data_type (str): member data type.
     member_data_type_definition (DataTypeDefinition): member data type
         definition.
   """
 
   def __init__(
-      self, name, data_type_definition, aliases=None, data_type=None,
-      description=None, urls=None):
+      self, name, data_type_definition, aliases=None, condition=None,
+      data_type=None, description=None, urls=None):
     """Initializes a member data type definition.
 
     Args:
       name (str): name.
       data_type_definition (DataTypeDefinition): member data type definition.
       aliases (Optional[list[str]]): aliases.
+      condition (Optional[str]): condition under which the member is considered
+          present.
       data_type (Optional[str]): member data type.
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
@@ -416,6 +419,7 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
         name, aliases=aliases, description=description, urls=urls)
     self.byte_order = getattr(
         data_type_definition, 'byte_order', definitions.BYTE_ORDER_NATIVE)
+    self.condition = condition
     self.member_data_type = data_type
     self.member_data_type_definition = data_type_definition
 
@@ -425,7 +429,7 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if not self.member_data_type_definition:
+    if self.condition or not self.member_data_type_definition:
       return None
 
     return self.member_data_type_definition.GetByteSize()
@@ -438,8 +442,9 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
     Returns:
       bool: True if the data type is composite, False otherwise.
     """
-    return (self.member_data_type_definition and
-            self.member_data_type_definition.IsComposite())
+    return bool(self.condition) or (
+        self.member_data_type_definition and
+        self.member_data_type_definition.IsComposite())
 
 
 class MemberSectionDefinition(object):

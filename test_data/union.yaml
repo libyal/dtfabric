@@ -14,7 +14,7 @@ attributes:
   size: 4
   units: bytes
 ---
-name: my_union
+name: union
 type: union
 members:
 - name: long

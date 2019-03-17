@@ -131,7 +131,7 @@ class DataTypeDefinitionsReader(object):
 
   def _ReadDataTypeDefinitionWithMembers(
       self, definitions_registry, definition_values,
-      data_type_definition_class, definition_name):
+      data_type_definition_class, definition_name, supports_conditions=False):
     """Reads a data type definition with members.
 
     Args:
@@ -140,6 +140,8 @@ class DataTypeDefinitionsReader(object):
       definition_values (dict[str, object]): definition values.
       data_type_definition_class (str): data type definition class.
       definition_name (str): name of the definition.
+      supports_conditions (Optional[bool]): True if conditions are supported
+          by the data type definition.
 
     Returns:
       StringDefinition: string data type definition.
@@ -174,7 +176,8 @@ class DataTypeDefinitionsReader(object):
         definition_object.AddSectionDefinition(member_section_definition)
       else:
         member_data_type_definition = self._ReadMemberDataTypeDefinitionMember(
-            definitions_registry, member, definition_object.name)
+            definitions_registry, member, definition_object.name,
+            supports_conditions=supports_conditions)
         definition_object.AddMemberDefinition(member_data_type_definition)
 
     return definition_object
@@ -478,7 +481,8 @@ class DataTypeDefinitionsReader(object):
     return definition_object
 
   def _ReadMemberDataTypeDefinitionMember(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      supports_conditions=False):
     """Reads a member data type definition.
 
     Args:
@@ -486,6 +490,8 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      supports_conditions (Optional[bool]): True if conditions are supported
+          by the data type definition.
 
     Returns:
       DataTypeDefinition: structure member data type definition.
@@ -541,6 +547,15 @@ class DataTypeDefinitionsReader(object):
             exception.name or '<NAMELESS>', exception.message)
         raise errors.DefinitionReaderError(definition_name, error_message)
 
+      # TODO: determine how to apply a condition on a non-member data type
+      # definition.
+      condition = definition_values.get('condition', None)
+      if condition:
+        error_message = (
+            'invalid structure member: {0:s} unsupported condition').format(
+                name or '<NAMELESS>')
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
     if data_type is not None:
       data_type_definition = definitions_registry.GetDefinitionByName(
           data_type)
@@ -550,12 +565,19 @@ class DataTypeDefinitionsReader(object):
             '{1:s}').format(name or '<NAMELESS>', data_type)
         raise errors.DefinitionReaderError(definition_name, error_message)
 
+      condition = definition_values.get('condition', None)
+      if not supports_conditions and condition:
+        error_message = (
+            'invalid structure member: {0:s} unsupported condition').format(
+                name or '<NAMELESS>')
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
       aliases = definition_values.get('aliases', None)
       description = definition_values.get('description', None)
 
       definition_object = data_types.MemberDataTypeDefinition(
-          name, data_type_definition, aliases=aliases, data_type=data_type,
-          description=description)
+          name, data_type_definition, aliases=aliases, condition=condition,
+          data_type=data_type, description=description)
 
     return definition_object
 
@@ -712,7 +734,7 @@ class DataTypeDefinitionsReader(object):
     """
     return self._ReadDataTypeDefinitionWithMembers(
         definitions_registry, definition_values, data_types.StructureDefinition,
-        definition_name)
+        definition_name, supports_conditions=True)
 
   def _ReadStructureFamilyDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
@@ -791,7 +813,7 @@ class DataTypeDefinitionsReader(object):
     """
     return self._ReadDataTypeDefinitionWithMembers(
         definitions_registry, definition_values, data_types.UnionDefinition,
-        definition_name)
+        definition_name, supports_conditions=False)
 
   def _ReadUUIDDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
