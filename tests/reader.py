@@ -403,6 +403,17 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
       definitions_reader._ReadIntegerDataTypeDefinition(
           definitions_registry, definition_values, 'int32')
 
+    definition_values['attributes']['format'] = 'signed'
+
+    # Test with unsupported size.
+    definition_values['attributes']['size'] = 3
+
+    with self.assertRaises(errors.DefinitionReaderError):
+      definitions_reader._ReadIntegerDataTypeDefinition(
+          definitions_registry, definition_values, 'int32')
+
+    definition_values['attributes']['size'] = 4
+
   def testReadLayoutDataTypeDefinition(self):
     """Tests the _ReadLayoutDataTypeDefinition function."""
     definition_values = {

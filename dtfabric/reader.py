@@ -433,6 +433,11 @@ class DataTypeDefinitionsReader(object):
             format_attribute)
         raise errors.DefinitionReaderError(definition_name, error_message)
 
+      size = attributes.get('size', None)
+      if size is not None and size not in (1, 2, 4, 8):
+        error_message = 'unuspported size attribute: {0!s}'.format(size)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
       definition_object.format = format_attribute
 
     return definition_object
