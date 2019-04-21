@@ -1558,7 +1558,8 @@ class StructureMap(StorageDataTypeMap):
       if supported_values and value not in supported_values:
         raise errors.MappingError(
             'Value: {0!s} not in supported values: {1:s}'.format(
-                value, ', '.join(supported_values)))
+                value, ', '.join([
+                    '{0!s}'.format(value) for value in supported_values])))
 
       byte_offset += subcontext.byte_size
       members_data_size += subcontext.byte_size
@@ -1706,7 +1707,8 @@ class StructureMap(StorageDataTypeMap):
         if supported_values and value not in supported_values:
           raise errors.MappingError(
               'Value: {0!s} not in supported values: {1:s}'.format(
-                  value, ', '.join(supported_values)))
+                  value, ', '.join([
+                      '{0!s}'.format(value) for value in supported_values])))
 
         struct_values.append(value)
 

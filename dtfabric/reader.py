@@ -661,6 +661,15 @@ class DataTypeDefinitionsReader(object):
     if value:
       values = [value]
 
+    supported_values = None
+    if values:
+      supported_values = []
+      for value in values:
+        if isinstance(value, py2to3.UNICODE_TYPE):
+          value = value.encode('ascii')
+
+        supported_values.append(value)
+
     if type_indicator is not None:
       data_type_callback = self._DATA_TYPE_CALLBACKS.get(type_indicator, None)
       if data_type_callback:
@@ -678,9 +687,10 @@ class DataTypeDefinitionsReader(object):
             exception.name or '<NAMELESS>', exception.message)
         raise errors.DefinitionReaderError(definition_name, error_message)
 
-      if condition or values:
+      if condition or supported_values:
         definition_object = data_types.MemberDataTypeDefinition(
-            name, data_type_definition, condition=condition, values=values)
+            name, data_type_definition, condition=condition,
+            values=supported_values)
       else:
         definition_object = data_type_definition
 
@@ -705,7 +715,7 @@ class DataTypeDefinitionsReader(object):
 
       definition_object = data_types.MemberDataTypeDefinition(
           name, data_type_definition, aliases=aliases, condition=condition,
-          data_type=data_type, description=description, values=values)
+          data_type=data_type, description=description, values=supported_values)
 
     return definition_object
 

@@ -37,6 +37,8 @@ class StructureValuesClassFactory(object):
       definitions.TYPE_INDICATOR_CHARACTER: 'str',
       definitions.TYPE_INDICATOR_FLOATING_POINT: 'float',
       definitions.TYPE_INDICATOR_INTEGER: 'int',
+      definitions.TYPE_INDICATOR_STREAM: 'bytes',
+      definitions.TYPE_INDICATOR_STRING: 'str',
       definitions.TYPE_INDICATOR_UUID: 'uuid.UUID'}
 
   @classmethod
