@@ -1520,8 +1520,6 @@ class StructureMap(StorageDataTypeMap):
       data_type_map = self._data_type_maps[attribute_index]
       member_definition = self._data_type_definition.members[attribute_index]
 
-      # TODO: determine how to apply a condition on a non-member data type
-      # definition.
       condition = getattr(member_definition, 'condition', None)
       if condition:
         namespace = dict(subcontext.values)
@@ -1555,6 +1553,12 @@ class StructureMap(StorageDataTypeMap):
 
       except Exception as exception:
         raise errors.MappingError(exception)
+
+      supported_values = getattr(member_definition, 'values', None)
+      if supported_values and value not in supported_values:
+        raise errors.MappingError(
+            'Value: {0!s} not in supported values: {1:s}'.format(
+                value, ', '.join(supported_values)))
 
       byte_offset += subcontext.byte_size
       members_data_size += subcontext.byte_size
@@ -1691,10 +1695,22 @@ class StructureMap(StorageDataTypeMap):
 
     try:
       struct_tuple = self._operation.ReadFrom(byte_stream[byte_offset:])
-      values = [
-          self._data_type_maps[index].MapValue(value)
-          for index, value in enumerate(struct_tuple)]
-      mapped_value = self._structure_values_class(*values)
+      struct_values = []
+      for attribute_index, value in enumerate(struct_tuple):
+        data_type_map = self._data_type_maps[attribute_index]
+        member_definition = self._data_type_definition.members[attribute_index]
+
+        value = data_type_map.MapValue(value)
+
+        supported_values = getattr(member_definition, 'values', None)
+        if supported_values and value not in supported_values:
+          raise errors.MappingError(
+              'Value: {0!s} not in supported values: {1:s}'.format(
+                  value, ', '.join(supported_values)))
+
+        struct_values.append(value)
+
+      mapped_value = self._structure_values_class(*struct_values)
 
     except Exception as exception:
       error_string = (

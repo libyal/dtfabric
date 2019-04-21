@@ -1315,6 +1315,48 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertIsNone(structure_with_condition.conditional_data2)
     self.assertEqual(structure_with_condition.data3, 4)
 
+  @test_lib.skipUnlessHasTestFile(['structure_with_values.yaml'])
+  def testMapByteStreamWithSequenceWithValues(self):
+    """Tests the MapByteStream function with a sequence with values."""
+    definitions_file = self._GetTestFilePath(['structure_with_values.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'structure_with_values')
+    data_type_map = data_maps.StructureMap(data_type_definition)
+
+    byte_values = [0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+    byte_stream = bytes(bytearray(byte_values))
+
+    structure_with_values = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(structure_with_values.format_version, 2)
+    self.assertEqual(structure_with_values.data_size, 0)
+
+    byte_values = [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+    byte_stream = bytes(bytearray(byte_values))
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(byte_stream)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'structure_with_value')
+    data_type_map = data_maps.StructureMap(data_type_definition)
+
+    byte_values = [0x74, 0x65, 0x73, 0x74, 0x00, 0x00, 0x00, 0x00]
+    byte_stream = bytes(bytearray(byte_values))
+
+    structure_with_values = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(structure_with_values.signature, b'test')
+    self.assertEqual(structure_with_values.data_size, 0)
+    self.assertEqual(structure_with_values.data, b'')
+
+    byte_values = [0x54, 0x45, 0x53, 0x54, 0x00, 0x00, 0x00, 0x00]
+    byte_stream = bytes(bytearray(byte_values))
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(byte_stream)
+
   @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testMapByteStreamWithSequenceWithExpression(self):
     """Tests the MapByteStream function with a sequence with expression."""

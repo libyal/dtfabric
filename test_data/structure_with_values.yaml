@@ -20,8 +20,12 @@ members:
   element_data_type: byte
   elements_data_size: 4
   value: "test"
-- name: data1
+- name: data_size
   data_type: uint32
+- name: data
+  type: stream
+  element_data_type: byte
+  elements_data_size: structure_with_value.data_size
 ---
 name: structure_with_values
 type: structure
@@ -29,5 +33,5 @@ members:
 - name: format_version
   data_type: uint32
   values: [2, 3]
-- name: data1
+- name: data_size
   data_type: uint32

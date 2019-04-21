@@ -1272,10 +1272,10 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     self.assertIsInstance(data_type_definition, data_types.StructureDefinition)
     self.assertEqual(data_type_definition.name, 'structure_with_value')
 
-    self.assertEqual(len(data_type_definition.members), 2)
+    self.assertEqual(len(data_type_definition.members), 3)
 
     byte_size = data_type_definition.GetByteSize()
-    self.assertEqual(byte_size, 8)
+    self.assertIsNone(byte_size)
 
     data_type_definition = definitions_registry.GetDefinitionByName(
         'structure_with_values')
