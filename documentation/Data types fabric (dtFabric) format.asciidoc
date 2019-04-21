@@ -125,7 +125,8 @@ Valid options are: "big-endian", "little-endian", "native" +
 The default is native
 |===
 
-[NOTE] middle-endian is a valid byte-ordering but currently not supported.
+[NOTE]
+middle-endian is a valid byte-ordering but currently not supported.
 
 === Fixed-size data types
 
@@ -168,6 +169,8 @@ The default is 0
 The default is not-set, which represent any value except for the false_value
 |===
 
+Currently supported size attribute values are: 1, 2 and 4.
+
 === Character
 
 A character is a data type to represent elements of textual strings.
@@ -182,6 +185,8 @@ attributes:
 - size: 2
   units: bytes
 ----
+
+Currently supported size attribute values are: 1, 2 and 4.
 
 === Fixed-point
 
@@ -203,6 +208,8 @@ attributes:
   size: 8
   units: bytes
 ----
+
+Currently supported size attribute values are: 4 and 8.
 
 === Integer
 
@@ -230,6 +237,8 @@ Integer data type specfic attributes:
 The default is signed
 |===
 
+Currently supported size attribute values are: 1, 2, 4 and 8.
+
 === UUID (or GUID)
 
 An UUID (or GUID) is a data type to represent a Globally or Universal unique
@@ -243,6 +252,8 @@ description: Known folder identifier.
 attributes:
   byte_order: little-endian
 ----
+
+Currently supported size attribute values are: 16.
 
 === Variable-sized data types
 

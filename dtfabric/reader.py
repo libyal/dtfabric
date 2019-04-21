@@ -98,7 +98,7 @@ class DataTypeDefinitionsReader(object):
     return self._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values,
         data_types.BooleanDefinition, definition_name,
-        self._SUPPORTED_ATTRIBUTES_BOOLEAN)
+        self._SUPPORTED_ATTRIBUTES_BOOLEAN, supported_size_values=(1, 2, 4))
 
   def _ReadCharacterDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
@@ -116,7 +116,8 @@ class DataTypeDefinitionsReader(object):
     return self._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values,
         data_types.CharacterDefinition, definition_name,
-        self._SUPPORTED_ATTRIBUTES_FIXED_SIZE_DATA_TYPE)
+        self._SUPPORTED_ATTRIBUTES_FIXED_SIZE_DATA_TYPE,
+        supported_size_values=(1, 2, 4))
 
   def _ReadConstantDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
@@ -400,7 +401,8 @@ class DataTypeDefinitionsReader(object):
   def _ReadFixedSizeDataTypeDefinition(
       self, definitions_registry, definition_values, data_type_definition_class,
       definition_name, supported_attributes,
-      default_size=definitions.SIZE_NATIVE, default_units='bytes'):
+      default_size=definitions.SIZE_NATIVE, default_units='bytes',
+      supported_size_values=None):
     """Reads a fixed-size data type definition.
 
     Args:
@@ -412,6 +414,8 @@ class DataTypeDefinitionsReader(object):
       supported_attributes (set[str]): names of the supported attributes.
       default_size (Optional[int]): default size.
       default_units (Optional[str]): default units.
+      supported_size_values (Optional[tuple[int]]): supported size values,
+          or None if not set.
 
     Returns:
       FixedSizeDataTypeDefinition: fixed-size data type definition.
@@ -432,6 +436,10 @@ class DataTypeDefinitionsReader(object):
           int(size)
         except ValueError:
           error_message = 'unuspported size attribute: {0!s}'.format(size)
+          raise errors.DefinitionReaderError(definition_name, error_message)
+
+        if supported_size_values and size not in supported_size_values:
+          error_message = 'unuspported size value: {0!s}'.format(size)
           raise errors.DefinitionReaderError(definition_name, error_message)
 
       definition_object.size = size
@@ -455,7 +463,8 @@ class DataTypeDefinitionsReader(object):
     return self._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values,
         data_types.FloatingPointDefinition, definition_name,
-        self._SUPPORTED_ATTRIBUTES_FIXED_SIZE_DATA_TYPE)
+        self._SUPPORTED_ATTRIBUTES_FIXED_SIZE_DATA_TYPE,
+        supported_size_values=(4, 8))
 
   def _ReadFormatDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name):
@@ -498,7 +507,8 @@ class DataTypeDefinitionsReader(object):
     definition_object = self._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values,
         data_types.IntegerDefinition, definition_name,
-        self._SUPPORTED_ATTRIBUTES_INTEGER)
+        self._SUPPORTED_ATTRIBUTES_INTEGER,
+        supported_size_values=(1, 2, 4, 8))
 
     attributes = definition_values.get('attributes', None)
     if attributes:
@@ -902,16 +912,11 @@ class DataTypeDefinitionsReader(object):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
-    definition_object = self._ReadFixedSizeDataTypeDefinition(
+    return self._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values,
         data_types.UUIDDefinition, definition_name,
-        self._SUPPORTED_ATTRIBUTES_FIXED_SIZE_DATA_TYPE, default_size=16)
-
-    if definition_object.size != 16:
-      error_message = 'unsupported size: {0:d}.'.format(definition_object.size)
-      raise errors.DefinitionReaderError(definition_name, error_message)
-
-    return definition_object
+        self._SUPPORTED_ATTRIBUTES_FIXED_SIZE_DATA_TYPE, default_size=16,
+        supported_size_values=(16, ))
 
 
 class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
