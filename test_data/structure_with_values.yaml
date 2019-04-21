@@ -1,0 +1,33 @@
+name: byte
+type: integer
+attributes:
+  format: unsigned
+  size: 1
+  units: bytes
+---
+name: uint32
+type: integer
+attributes:
+  format: unsigned
+  size: 4
+  units: bytes
+---
+name: structure_with_value
+type: structure
+members:
+- name: signature
+  type: stream
+  element_data_type: byte
+  elements_data_size: 4
+  value: "test"
+- name: data1
+  data_type: uint32
+---
+name: structure_with_values
+type: structure
+members:
+- name: format_version
+  data_type: uint32
+  values: [2, 3]
+- name: data1
+  data_type: uint32

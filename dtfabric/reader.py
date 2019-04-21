@@ -22,8 +22,8 @@ class DataTypeDefinitionsReader(object):
           '_ReadEnumerationDataTypeDefinition'),
       definitions.TYPE_INDICATOR_FLOATING_POINT: (
           '_ReadFloatingPointDataTypeDefinition'),
-      definitions.TYPE_INDICATOR_INTEGER: '_ReadIntegerDataTypeDefinition',
       definitions.TYPE_INDICATOR_FORMAT: '_ReadFormatDataTypeDefinition',
+      definitions.TYPE_INDICATOR_INTEGER: '_ReadIntegerDataTypeDefinition',
       definitions.TYPE_INDICATOR_SEQUENCE: '_ReadSequenceDataTypeDefinition',
       definitions.TYPE_INDICATOR_STREAM: '_ReadStreamDataTypeDefinition',
       definitions.TYPE_INDICATOR_STRING: '_ReadStringDataTypeDefinition',
@@ -41,49 +41,55 @@ class DataTypeDefinitionsReader(object):
   _SUPPORTED_DEFINITION_VALUES_DATA_TYPE = set([
       'aliases', 'description', 'name', 'type', 'urls'])
 
+  _SUPPORTED_DEFINITION_VALUES_MEMBER_DATA_TYPE = set([
+      'aliases', 'condition', 'data_type', 'name', 'type', 'value', 'values'])
+
   _SUPPORTED_DEFINITION_VALUES_STORAGE_DATA_TYPE = set([
-      'aliases', 'attributes', 'description', 'name', 'type', 'urls'])
+      'attributes']).union(_SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
 
   _SUPPORTED_DEFINITION_VALUES_STORAGE_DATA_TYPE_WITH_MEMBERS = set([
-      'aliases', 'attributes', 'description', 'members', 'name', 'type',
-      'urls'])
+      'members']).union(_SUPPORTED_DEFINITION_VALUES_STORAGE_DATA_TYPE)
 
   _SUPPORTED_DEFINITION_VALUES_CONSTANT = set([
-      'aliases', 'description', 'name', 'type', 'urls', 'value'])
+      'value']).union(_SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
 
   _SUPPORTED_DEFINITION_VALUES_ENUMERATION = set([
-      'aliases', 'description', 'name', 'type', 'urls', 'values'])
+      'values']).union(_SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
 
-  _SUPPORTED_DEFINITION_VALUES_SEQUENCE = set([
-      'aliases', 'description', 'element_data_type', 'elements_data_size',
-      'elements_terminator', 'name', 'number_of_elements', 'type', 'urls'])
+  _SUPPORTED_DEFINITION_VALUES_ELEMENTS_DATA_TYPE = set([
+      'element_data_type', 'elements_data_size', 'elements_terminator',
+      'number_of_elements']).union(_SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
 
-  _SUPPORTED_DEFINITION_VALUES_STREAM = set([
-      'aliases', 'description', 'element_data_type', 'elements_data_size',
-      'elements_terminator', 'name', 'number_of_elements', 'type', 'urls'])
+  _SUPPORTED_DEFINITION_VALUES_ELEMENTS_MEMBER_DATA_TYPE = set([
+      'element_data_type', 'elements_data_size', 'elements_terminator',
+      'number_of_elements']).union(
+          _SUPPORTED_DEFINITION_VALUES_MEMBER_DATA_TYPE)
 
   _SUPPORTED_DEFINITION_VALUES_STRING = set([
-      'aliases', 'description', 'element_data_type', 'elements_data_size',
-      'elements_terminator', 'encoding', 'name', 'number_of_elements', 'type',
-      'urls'])
+      'encoding']).union(_SUPPORTED_DEFINITION_VALUES_ELEMENTS_DATA_TYPE)
+
+  _SUPPORTED_DEFINITION_VALUES_STRING_MEMBER = set([
+      'encoding']).union(_SUPPORTED_DEFINITION_VALUES_ELEMENTS_MEMBER_DATA_TYPE)
 
   _SUPPORTED_DEFINITION_VALUES_STRUCTURE_FAMILY = set([
-      'aliases', 'description', 'members', 'name', 'runtime', 'type', 'urls'])
+      'members', 'runtime']).union(_SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
 
   _SUPPORTED_ATTRIBUTES_STORAGE_DATA_TYPE = set([
       'byte_order'])
 
   _SUPPORTED_ATTRIBUTES_FIXED_SIZE_DATA_TYPE = set([
-      'byte_order', 'size', 'units'])
+      'size', 'units']).union(_SUPPORTED_ATTRIBUTES_STORAGE_DATA_TYPE)
 
   _SUPPORTED_ATTRIBUTES_BOOLEAN = set([
-      'byte_order', 'false_value', 'size', 'true_value', 'units'])
+      'false_value', 'true_value']).union(
+          _SUPPORTED_ATTRIBUTES_FIXED_SIZE_DATA_TYPE)
 
   _SUPPORTED_ATTRIBUTES_INTEGER = set([
-      'byte_order', 'format', 'size', 'units'])
+      'format']).union(_SUPPORTED_ATTRIBUTES_FIXED_SIZE_DATA_TYPE)
 
   def _ReadBooleanDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
     """Reads a boolean data type definition.
 
     Args:
@@ -91,6 +97,8 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       BooleanDataTypeDefinition: boolean data type definition.
@@ -98,10 +106,12 @@ class DataTypeDefinitionsReader(object):
     return self._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values,
         data_types.BooleanDefinition, definition_name,
-        self._SUPPORTED_ATTRIBUTES_BOOLEAN, supported_size_values=(1, 2, 4))
+        self._SUPPORTED_ATTRIBUTES_BOOLEAN, is_member=is_member,
+        supported_size_values=(1, 2, 4))
 
   def _ReadCharacterDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
     """Reads a character data type definition.
 
     Args:
@@ -109,6 +119,8 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       CharacterDataTypeDefinition: character data type definition.
@@ -117,10 +129,11 @@ class DataTypeDefinitionsReader(object):
         definitions_registry, definition_values,
         data_types.CharacterDefinition, definition_name,
         self._SUPPORTED_ATTRIBUTES_FIXED_SIZE_DATA_TYPE,
-        supported_size_values=(1, 2, 4))
+        is_member=is_member, supported_size_values=(1, 2, 4))
 
   def _ReadConstantDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
     """Reads a constant data type definition.
 
     Args:
@@ -128,6 +141,8 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       ConstantDataTypeDefinition: constant data type definition.
@@ -136,6 +151,10 @@ class DataTypeDefinitionsReader(object):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
+    if is_member:
+      error_message = 'data type not supported as member'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
     value = definition_values.get('value', None)
     if value is None:
       error_message = 'missing value'
@@ -248,7 +267,8 @@ class DataTypeDefinitionsReader(object):
     return definition_object
 
   def _ReadEnumerationDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
     """Reads an enumeration data type definition.
 
     Args:
@@ -256,6 +276,8 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       EnumerationDataTypeDefinition: enumeration data type definition.
@@ -264,6 +286,10 @@ class DataTypeDefinitionsReader(object):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
+    if is_member:
+      error_message = 'data type not supported as member'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
     values = definition_values.get('values')
     if not values:
       error_message = 'missing values'
@@ -402,7 +428,7 @@ class DataTypeDefinitionsReader(object):
       self, definitions_registry, definition_values, data_type_definition_class,
       definition_name, supported_attributes,
       default_size=definitions.SIZE_NATIVE, default_units='bytes',
-      supported_size_values=None):
+      is_member=False, supported_size_values=None):
     """Reads a fixed-size data type definition.
 
     Args:
@@ -414,6 +440,8 @@ class DataTypeDefinitionsReader(object):
       supported_attributes (set[str]): names of the supported attributes.
       default_size (Optional[int]): default size.
       default_units (Optional[str]): default units.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
       supported_size_values (Optional[tuple[int]]): supported size values,
           or None if not set.
 
@@ -426,7 +454,7 @@ class DataTypeDefinitionsReader(object):
     """
     definition_object = self._ReadStorageDataTypeDefinition(
         definitions_registry, definition_values, data_type_definition_class,
-        definition_name, supported_attributes)
+        definition_name, supported_attributes, is_member=is_member)
 
     attributes = definition_values.get('attributes', None)
     if attributes:
@@ -448,7 +476,8 @@ class DataTypeDefinitionsReader(object):
     return definition_object
 
   def _ReadFloatingPointDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
     """Reads a floating-point data type definition.
 
     Args:
@@ -456,6 +485,8 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       FloatingPointDefinition: floating-point data type definition.
@@ -464,10 +495,11 @@ class DataTypeDefinitionsReader(object):
         definitions_registry, definition_values,
         data_types.FloatingPointDefinition, definition_name,
         self._SUPPORTED_ATTRIBUTES_FIXED_SIZE_DATA_TYPE,
-        supported_size_values=(4, 8))
+        is_member=is_member, supported_size_values=(4, 8))
 
   def _ReadFormatDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
     """Reads a format data type definition.
 
     Args:
@@ -475,10 +507,20 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       FormatDefinition: format definition.
+
+    Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
     """
+    if is_member:
+      error_message = 'data type not supported as member'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
     definition_object = self._ReadLayoutDataTypeDefinition(
         definitions_registry, definition_values, data_types.FormatDefinition,
         definition_name, self._SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
@@ -488,7 +530,8 @@ class DataTypeDefinitionsReader(object):
     return definition_object
 
   def _ReadIntegerDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
     """Reads an integer data type definition.
 
     Args:
@@ -496,6 +539,8 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       IntegerDataTypeDefinition: integer data type definition.
@@ -507,7 +552,7 @@ class DataTypeDefinitionsReader(object):
     definition_object = self._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values,
         data_types.IntegerDefinition, definition_name,
-        self._SUPPORTED_ATTRIBUTES_INTEGER,
+        self._SUPPORTED_ATTRIBUTES_INTEGER, is_member=is_member,
         supported_size_values=(1, 2, 4, 8))
 
     attributes = definition_values.get('attributes', None)
@@ -516,11 +561,6 @@ class DataTypeDefinitionsReader(object):
       if format_attribute not in self._INTEGER_FORMAT_ATTRIBUTES:
         error_message = 'unsupported format attribute: {0!s}'.format(
             format_attribute)
-        raise errors.DefinitionReaderError(definition_name, error_message)
-
-      size = attributes.get('size', None)
-      if size is not None and size not in (1, 2, 4, 8):
-        error_message = 'unuspported size attribute: {0!s}'.format(size)
         raise errors.DefinitionReaderError(definition_name, error_message)
 
       definition_object.format = format_attribute
@@ -602,6 +642,25 @@ class DataTypeDefinitionsReader(object):
           'be set at the same time').format(name or '<NAMELESS>')
       raise errors.DefinitionReaderError(definition_name, error_message)
 
+    condition = definition_values.get('condition', None)
+    if not supports_conditions and condition:
+      error_message = (
+          'invalid structure member: {0:s} unsupported condition').format(
+              name or '<NAMELESS>')
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    value = definition_values.get('value', None)
+    values = definition_values.get('values', None)
+
+    if None not in (value, values):
+      error_message = (
+          'invalid structure member: {0:s} value and values not allowed to '
+          'be set at the same time').format(name or '<NAMELESS>')
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    if value:
+      values = [value]
+
     if type_indicator is not None:
       data_type_callback = self._DATA_TYPE_CALLBACKS.get(type_indicator, None)
       if data_type_callback:
@@ -612,23 +671,20 @@ class DataTypeDefinitionsReader(object):
         raise errors.DefinitionReaderError(name, error_message)
 
       try:
-        definition_object = data_type_callback(
-            definitions_registry, definition_values, name)
+        data_type_definition = data_type_callback(
+            definitions_registry, definition_values, name, is_member=True)
       except errors.DefinitionReaderError as exception:
         error_message = 'in: {0:s} {1:s}'.format(
             exception.name or '<NAMELESS>', exception.message)
         raise errors.DefinitionReaderError(definition_name, error_message)
 
-      # TODO: determine how to apply a condition on a non-member data type
-      # definition.
-      condition = definition_values.get('condition', None)
-      if condition:
-        error_message = (
-            'invalid structure member: {0:s} unsupported condition').format(
-                name or '<NAMELESS>')
-        raise errors.DefinitionReaderError(definition_name, error_message)
+      if condition or values:
+        definition_object = data_types.MemberDataTypeDefinition(
+            name, data_type_definition, condition=condition, values=values)
+      else:
+        definition_object = data_type_definition
 
-    if data_type is not None:
+    elif data_type is not None:
       data_type_definition = definitions_registry.GetDefinitionByName(
           data_type)
       if not data_type_definition:
@@ -637,11 +693,11 @@ class DataTypeDefinitionsReader(object):
             '{1:s}').format(name or '<NAMELESS>', data_type)
         raise errors.DefinitionReaderError(definition_name, error_message)
 
-      condition = definition_values.get('condition', None)
-      if not supports_conditions and condition:
-        error_message = (
-            'invalid structure member: {0:s} unsupported condition').format(
-                name or '<NAMELESS>')
+      unsupported_definition_values = set(definition_values.keys()).difference(
+          self._SUPPORTED_DEFINITION_VALUES_MEMBER_DATA_TYPE)
+      if unsupported_definition_values:
+        error_message = 'unsupported definition values: {0:s}'.format(
+            ', '.join(unsupported_definition_values))
         raise errors.DefinitionReaderError(definition_name, error_message)
 
       aliases = definition_values.get('aliases', None)
@@ -649,7 +705,7 @@ class DataTypeDefinitionsReader(object):
 
       definition_object = data_types.MemberDataTypeDefinition(
           name, data_type_definition, aliases=aliases, condition=condition,
-          data_type=data_type, description=description)
+          data_type=data_type, description=description, values=values)
 
     return definition_object
 
@@ -679,7 +735,8 @@ class DataTypeDefinitionsReader(object):
         definition_name, supported_definition_values)
 
   def _ReadSequenceDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
     """Reads a sequence data type definition.
 
     Args:
@@ -687,6 +744,8 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       SequenceDefinition: sequence data type definition.
@@ -695,13 +754,20 @@ class DataTypeDefinitionsReader(object):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
+    if is_member:
+      supported_definition_values = (
+          self._SUPPORTED_DEFINITION_VALUES_ELEMENTS_MEMBER_DATA_TYPE)
+    else:
+      supported_definition_values = (
+          self._SUPPORTED_DEFINITION_VALUES_ELEMENTS_DATA_TYPE)
+
     return self._ReadElementSequenceDataTypeDefinition(
         definitions_registry, definition_values, data_types.SequenceDefinition,
-        definition_name, self._SUPPORTED_DEFINITION_VALUES_SEQUENCE)
+        definition_name, supported_definition_values)
 
   def _ReadStorageDataTypeDefinition(
       self, definitions_registry, definition_values, data_type_definition_class,
-      definition_name, supported_attributes):
+      definition_name, supported_attributes, is_member=False):
     """Reads a storage data type definition.
 
     Args:
@@ -711,6 +777,8 @@ class DataTypeDefinitionsReader(object):
       data_type_definition_class (str): data type definition class.
       definition_name (str): name of the definition.
       supported_attributes (set[str]): names of the supported attributes.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       StorageDataTypeDefinition: storage data type definition.
@@ -719,12 +787,18 @@ class DataTypeDefinitionsReader(object):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
+    if is_member:
+      supported_definition_values = (
+          self._SUPPORTED_DEFINITION_VALUES_MEMBER_DATA_TYPE)
+    else:
+      supported_definition_values = (
+          self._SUPPORTED_DEFINITION_VALUES_STORAGE_DATA_TYPE)
+
     definition_object = self._ReadDataTypeDefinition(
         definitions_registry, definition_values, data_type_definition_class,
-        definition_name, self._SUPPORTED_DEFINITION_VALUES_STORAGE_DATA_TYPE)
+        definition_name, supported_definition_values)
 
     attributes = definition_values.get('attributes', None)
-
     if attributes:
       unsupported_attributes = set(attributes.keys()).difference(
           supported_attributes)
@@ -744,7 +818,8 @@ class DataTypeDefinitionsReader(object):
     return definition_object
 
   def _ReadStreamDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
     """Reads a stream data type definition.
 
     Args:
@@ -752,6 +827,8 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       StreamDefinition: stream data type definition.
@@ -760,12 +837,20 @@ class DataTypeDefinitionsReader(object):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
+    if is_member:
+      supported_definition_values = (
+          self._SUPPORTED_DEFINITION_VALUES_ELEMENTS_MEMBER_DATA_TYPE)
+    else:
+      supported_definition_values = (
+          self._SUPPORTED_DEFINITION_VALUES_ELEMENTS_DATA_TYPE)
+
     return self._ReadElementSequenceDataTypeDefinition(
         definitions_registry, definition_values, data_types.StreamDefinition,
-        definition_name, self._SUPPORTED_DEFINITION_VALUES_STREAM)
+        definition_name, supported_definition_values)
 
   def _ReadStringDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
     """Reads a string data type definition.
 
     Args:
@@ -773,6 +858,8 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       StringDefinition: string data type definition.
@@ -781,9 +868,15 @@ class DataTypeDefinitionsReader(object):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
+    if is_member:
+      supported_definition_values = (
+          self._SUPPORTED_DEFINITION_VALUES_STRING_MEMBER)
+    else:
+      supported_definition_values = self._SUPPORTED_DEFINITION_VALUES_STRING
+
     definition_object = self._ReadElementSequenceDataTypeDefinition(
         definitions_registry, definition_values, data_types.StringDefinition,
-        definition_name, self._SUPPORTED_DEFINITION_VALUES_STRING)
+        definition_name, supported_definition_values)
 
     encoding = definition_values.get('encoding', None)
     if not encoding:
@@ -795,7 +888,8 @@ class DataTypeDefinitionsReader(object):
     return definition_object
 
   def _ReadStructureDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
     """Reads a structure data type definition.
 
     Args:
@@ -803,6 +897,8 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       StructureDefinition: structure data type definition.
@@ -811,12 +907,17 @@ class DataTypeDefinitionsReader(object):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
+    if is_member:
+      error_message = 'data type not supported as member'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
     return self._ReadDataTypeDefinitionWithMembers(
         definitions_registry, definition_values, data_types.StructureDefinition,
         definition_name, supports_conditions=True)
 
   def _ReadStructureFamilyDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
     """Reads a structure family data type definition.
 
     Args:
@@ -824,6 +925,8 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       StructureDefinition: structure data type definition.
@@ -832,6 +935,10 @@ class DataTypeDefinitionsReader(object):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
+    if is_member:
+      error_message = 'data type not supported as member'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
     definition_object = self._ReadLayoutDataTypeDefinition(
         definitions_registry, definition_values,
         data_types.StructureFamilyDefinition, definition_name,
@@ -875,7 +982,8 @@ class DataTypeDefinitionsReader(object):
     return definition_object
 
   def _ReadUnionDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
     """Reads an union data type definition.
 
     Args:
@@ -883,6 +991,8 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       UnionDefinition: union data type definition.
@@ -896,7 +1006,8 @@ class DataTypeDefinitionsReader(object):
         definition_name, supports_conditions=False)
 
   def _ReadUUIDDataTypeDefinition(
-      self, definitions_registry, definition_values, definition_name):
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
     """Reads an UUID data type definition.
 
     Args:
@@ -904,6 +1015,8 @@ class DataTypeDefinitionsReader(object):
           registry.
       definition_values (dict[str, object]): definition values.
       definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
 
     Returns:
       UUIDDataTypeDefinition: UUID data type definition.
@@ -916,7 +1029,7 @@ class DataTypeDefinitionsReader(object):
         definitions_registry, definition_values,
         data_types.UUIDDefinition, definition_name,
         self._SUPPORTED_ATTRIBUTES_FIXED_SIZE_DATA_TYPE, default_size=16,
-        supported_size_values=(16, ))
+        is_member=is_member, supported_size_values=(16, ))
 
 
 class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):

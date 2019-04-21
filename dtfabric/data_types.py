@@ -398,11 +398,12 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
     member_data_type (str): member data type.
     member_data_type_definition (DataTypeDefinition): member data type
         definition.
+    values (list[int|str]): supported values.
   """
 
   def __init__(
       self, name, data_type_definition, aliases=None, condition=None,
-      data_type=None, description=None, urls=None):
+      data_type=None, description=None, urls=None, values=None):
     """Initializes a member data type definition.
 
     Args:
@@ -414,6 +415,8 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
       data_type (Optional[str]): member data type.
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
+      values (Optional[list[int|str]]): supported values
+          defined.
     """
     super(MemberDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
@@ -422,6 +425,7 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
     self.condition = condition
     self.member_data_type = data_type
     self.member_data_type_definition = data_type_definition
+    self.values = values
 
   def GetByteSize(self):
     """Retrieves the byte size of the data type definition.

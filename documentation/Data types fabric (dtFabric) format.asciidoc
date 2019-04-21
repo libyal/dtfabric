@@ -61,15 +61,15 @@ language to specify format and data types.
 
 == [[data_type_definition]]Data type definition
 
-[cols="1,1,5",options="header"]
+[cols="1,1,1,5",options="header"]
 |===
-| Attribute name | Attribute type | Description
-| name | string | Name of the format
-| aliases | List of strings | List of aliases
-| type | string | Definition type +
+| Attribute name | Attribute type | Required | Description
+| aliases | List of strings | No | List of alternative names for the data type
+| description | string | No | Description of the data type
+| name | string | Yes | Name of the data type
+| type | string | Yes | Definition type +
 See section: <<data_type_definition_types,Data type definition types>>
-| description | string | Description of the format
-| urls | List of strings | List of URLS that contain more information about the format
+| urls | List of strings | No | List of URLS that contain more information about the data type
 |===
 
 === [[data_type_definition_types]]Data type definition types
@@ -79,6 +79,7 @@ See section: <<data_type_definition_types,Data type definition types>>
 | Identifier | Description
 | boolean | Boolean
 | character | Character
+| constant | Constant
 | enumeration | Enumeration
 | floating-point | Floating-point
 | format | Data format metadata +
@@ -96,9 +97,9 @@ See section: <<data_format,Data format>>
 |===
 | Identifier | Description
 | bit-field | Bit field (or group of bits)
-| constant | Constant
 | fixed-point | Fixed-point data type
 | reference | [yellow-background]*TODO*
+| structure-family | [yellow-background]*TODO*
 | union | Union data type
 |===
 
@@ -108,19 +109,19 @@ Storage data types are data types that represent stored (or serialized) values.
 In addition to the <<data_type_definition,Data type definition attributes>>
 storage data types also define:
 
-[cols="1,1,5",options="header"]
+[cols="1,1,1,5",options="header"]
 |===
-| Attribute name | Attribute type | Description
-| attributes | | Data type attributes +
+| Attribute name | Attribute type | Required | Description
+| attributes | | No | Data type attributes +
 See section: <<storage_data_type_definition_attributes,Storage data type definition attributes>>
 |===
 
 === [[storage_data_type_definition_attributes]]Storage data type definition attributes
 
-[cols="1,1,5",options="header"]
+[cols="1,1,1,5",options="header"]
 |===
-| Attribute name | Attribute type | Description
-| byte_order | string | Optional byte-order of the data type +
+| Attribute name | Attribute type | Required | Description
+| byte_order | string | No | Byte-order of the data type +
 Valid options are: "big-endian", "little-endian", "native" +
 The default is native
 |===
@@ -133,15 +134,16 @@ middle-endian is a valid byte-ordering but currently not supported.
 In addition to the <<storage_data_type_definition_attributes,Storage data type definition attributes>>
 fixed-size data types also define the following attributes:
 
-[cols="1,1,5",options="header"]
+[cols="1,1,1,5",options="header"]
 |===
-| Attribute name | Attribute type | Description
-| size | integer or string | size of data type in number of units or "native" if architecture dependent
-| units | string | units of the size of the data type +
+| Attribute name | Attribute type | Required | Description
+| size | integer or string | No | size of data type in number of units or "native" if architecture dependent +
+The default is "native"
+| units | string | No | units of the size of the data type +
 The default is bytes
 |===
 
-=== Boolean
+==== Boolean
 
 A boolean is a data type to represent true-or-false values.
 
@@ -160,18 +162,18 @@ attributes:
 
 Boolean data type specfic attributes:
 
-[cols="1,1,5",options="header"]
+[cols="1,1,1,5",options="header"]
 |===
-| Attribute name | Attribute type | Description
-| false_value | integer | Integer value that represents False +
+| Attribute name | Attribute type | Required | Description
+| false_value | integer | No | Integer value that represents False +
 The default is 0
-| true_value | integer | Integer value that represents True +
+| true_value | integer | No | Integer value that represents True +
 The default is not-set, which represent any value except for the false_value
 |===
 
 Currently supported size attribute values are: 1, 2 and 4.
 
-=== Character
+==== Character
 
 A character is a data type to represent elements of textual strings.
 
@@ -188,13 +190,13 @@ attributes:
 
 Currently supported size attribute values are: 1, 2 and 4.
 
-=== Fixed-point
+==== Fixed-point
 
 A fixed-point is a data type to represent elements of fixed-point values.
 
 [yellow-background]*TODO: add example*
 
-=== Floating-point
+==== Floating-point
 
 A floating-point is a data type to represent elements of floating-point values.
 
@@ -211,7 +213,7 @@ attributes:
 
 Currently supported size attribute values are: 4 and 8.
 
-=== Integer
+==== Integer
 
 An integer is a data type to represent elements of integer values.
 
@@ -230,16 +232,16 @@ attributes:
 
 Integer data type specfic attributes:
 
-[cols="1,1,5",options="header"]
+[cols="1,1,1,5",options="header"]
 |===
-| Attribute name | Attribute type | Description
-| format | string | Signed or unsiged +
+| Attribute name | Attribute type | Required | Description
+| format | string | No | Signed or unsiged +
 The default is signed
 |===
 
 Currently supported size attribute values are: 1, 2, 4 and 8.
 
-=== UUID (or GUID)
+==== UUID (or GUID)
 
 An UUID (or GUID) is a data type to represent a Globally or Universal unique
 identifier (GUID or UUID) data types.
@@ -257,7 +259,7 @@ Currently supported size attribute values are: 16.
 
 === Variable-sized data types
 
-=== Sequence
+==== Sequence
 
 A sequence is a data type to represent a sequence of individual elements such
 as an array of integers.
@@ -273,18 +275,22 @@ number_of_elements: 32
 
 Sequence data type specfic attributes:
 
-[cols="1,1,5",options="header"]
+[cols="1,1,1,5",options="header"]
 |===
-| Attribute name | Attribute type | Description
-| element_data_type | string | Data type of sequence element
-| elements_data_size | integer or string | Integer value or expression to determine the data size of the elements in the sequence
-| elements_terminator | integer | element value that indicates the end-of-string
-| number_of_elements | integer or string | Integer value or expression to determine the number of elements in the sequence
+| Attribute name | Attribute type | Required | Description
+| element_data_type | string | Yes | Data type of sequence element
+| elements_data_size | integer or string | See note | Integer value or expression to determine the data size of the elements in the sequence
+| elements_terminator | integer | See note | element value that indicates the end-of-string
+| number_of_elements | integer or string | See note | Integer value or expression to determine the number of elements in the sequence
 |===
+
+[NOTE]
+One of the elements attributes: "elements_data_size", "elements_terminator"
+or "number_of_elements" must be set.
 
 [yellow-background]*TODO: describe expressions and the map context*
 
-=== Stream
+==== Stream
 
 A stream is a data type to represent a continous sequence of elements such as
 a byte stream.
@@ -299,18 +305,22 @@ number_of_elements: data_size
 
 Stream data type specfic attributes:
 
-[cols="1,1,5",options="header"]
+[cols="1,1,1,5",options="header"]
 |===
-| Attribute name | Attribute type | Description
-| element_data_type | string | Data type of stream element
-| elements_data_size | integer or string | Integer value or expression to determine the data size of the elements in the stream
-| elements_terminator | integer | element value that indicates the end-of-string
-| number_of_elements | integer or string | Integer value or expression to determine the number of elements in the stream
+| Attribute name | Attribute type | Required | Description
+| element_data_type | string | Yes | Data type of stream element
+| elements_data_size | integer or string | See note | Integer value or expression to determine the data size of the elements in the stream
+| elements_terminator | integer | See note | element value that indicates the end-of-string
+| number_of_elements | integer or string | See note | Integer value or expression to determine the number of elements in the stream
 |===
+
+[NOTE]
+One of the elements attributes: "elements_data_size", "elements_terminator"
+or "number_of_elements" must be set.
 
 [yellow-background]*TODO: describe expressions and the map context*
 
-=== String
+==== String
 
 A string is a data type to represent a continous sequence of elements with a
 known encoding such as an UTF-16 formatted string.
@@ -335,19 +345,69 @@ elements_terminator: "\x00\x00"
 
 String data type specfic attributes:
 
-[cols="1,1,5",options="header"]
+[cols="1,1,1,5",options="header"]
 |===
-| Attribute name | Attribute type | Description
-| encoding | string | Encoding of the string
-| element_data_type | string | Data type of string element
-| elements_data_size | integer or string | Integer value or expression to determine the data size of the elements in the string
-| elements_terminator | integer | element value that indicates the end-of-string
-| number_of_elements | integer or string | Integer value or expression to determine the number of elements in the string
+| Attribute name | Attribute type | Required | Description
+| encoding | string | Yes | Encoding of the string
+| element_data_type | string | Yes | Data type of string element
+| elements_data_size | integer or string | See note | Integer value or expression to determine the data size of the elements in the string
+| elements_terminator | integer | See note | element value that indicates the end-of-string
+| number_of_elements | integer or string | See note | Integer value or expression to determine the number of elements in the string
 |===
+
+[NOTE]
+One of the elements attributes: "elements_data_size", "elements_terminator"
+or "number_of_elements" must be set.
 
 [yellow-background]*TODO: describe elements_data_size and number_of_elements expressions and the map context*
 
-=== Structure
+=== Storage data types with members
+
+In addition to the <<storage_data_type_definition_attributes,Storage data type definition attributes>>
+storage data types with member also define the following attributes:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Required | Description
+| members | list | Yes | List of member definitions +
+See section: <<member_definition,Member definition>>
+|===
+
+==== [[member_definition]]Member definition
+
+A member definition supports the following attributes:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Required | Description
+| aliases | List of strings | No | List of alternative names for the member
+| condition | string | No | Condition under which the member is condisidered to be present
+| data_type | string | See note | Name of the data type definition of the member
+| name | string | See note | Name of the member
+| type | string | See note | Name of the definition type of the member +
+See section: <<data_type_definition_types,Data type definition types>>
+| value | integer or string | See note | Supported value
+| values | List of integers or strings | See note | Supported values
+|===
+
+[NOTE]
+The name attribute: "name" must be set for storage data types with members
+except for the Union type where it is optional.
+
+[NOTE]
+One of the type attributes: "data_type" or "type" must be set. The following
+definition types cannot be directly defined as a member definition: "constant",
+"enumeration", "format" and "structure".
+
+[yellow-background]*TODO: describe member definition not supporting attributes.*
+
+[NOTE]
+Both the value attributes: "value" and "values" are optional but only one is
+supported at a time.
+
+[yellow-background]*TODO: describe conditions*
+
+==== Structure
 
 A structure is a data type to represent a composition of members of other
 data types.
@@ -386,16 +446,9 @@ members:
   number_of_elements: sphere3d.number_of_triangles
 ----
 
-Structure data type specfic attributes:
+==== Union
 
-[cols="1,1,5",options="header"]
-|===
-| Attribute name | Attribute type | Description
-| members | list | List of member definitions +
-A member definition needs to specify either 'type' or 'data_type'
-|===
-
-[yellow-background]*TODO: describe short-hand and long form*
+[yellow-background]*TODO: describe union*
 
 == Semantic types
 
@@ -417,10 +470,10 @@ value: 13
 
 Constant data type specfic attributes:
 
-[cols="1,1,5",options="header"]
+[cols="1,1,1,5",options="header"]
 |===
-| Attribute name | Attribute type | Description
-| value | integer or string | Integer or string value that the constant represents
+| Attribute name | Attribute type | Required | Description
+| value | integer or string | Yes | Integer or string value that the constant represents
 |===
 
 === Enumeration
@@ -452,13 +505,13 @@ values:
 
 Enumeration value attributes:
 
-[cols="1,1,5",options="header"]
+[cols="1,1,1,5",options="header"]
 |===
-| Attribute name | Attribute type | Description
-| aliases | list of strings | Optional aliases the enumeration value maps to
-| description | string | Optional description of the enumeration value
-| name | string | Name the enumeration value maps to
-| number | integer | Number the enumeration value maps to
+| Attribute name | Attribute type | Required | Description
+| aliases | list of strings | No | List of alternative names for the enumeration
+| description | string | No | Description of the enumeration value
+| name | string | Yes | Name the enumeration value maps to
+| number | integer | Yes | Number the enumeration value maps to
 |===
 
 [yellow-background]*TODO: add description*
@@ -467,15 +520,15 @@ Enumeration value attributes:
 
 === [[data_format]]Data format
 
-[cols="1,1,5",options="header"]
+[cols="1,1,1,5",options="header"]
 |===
-| Attribute name | Attribute type | Description
-| name | string | Name of the format
-| type | string | Definition type +
+| Attribute name | Attribute type | Required | Description
+| description | string | No | Description of the format
+| layout | [yellow-background]*TODO* | Yes | Format layout definition
+| name | string | Yes | Name of the format
+| type | string | Yes | Definition type +
 See section: <<data_type_definition_types,Data type definition types>>
-| description | string | Description of the format
-| urls | List of strings | List of URLS that contain more information about the format
-| layout | [yellow-background]*TODO* | Format layout definition
+| urls | List of strings | No | List of URLS that contain more information about the format
 |===
 
 Example:
