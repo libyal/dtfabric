@@ -97,7 +97,7 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
 
     data_type_definition = definitions_reader._ReadDataTypeDefinition(
         definitions_registry, definition_values, data_types.IntegerDefinition,
-        'int32')
+        'int32', definitions_reader._SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.IntegerDefinition)
 
@@ -152,7 +152,8 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     data_type_definition = (
         definitions_reader._ReadElementSequenceDataTypeDefinition(
             definitions_registry, definition_values,
-            data_types.SequenceDefinition, 'vector4'))
+            data_types.SequenceDefinition, 'vector4',
+            definitions_reader._SUPPORTED_DEFINITION_VALUES_SEQUENCE))
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.SequenceDefinition)
 
@@ -162,7 +163,8 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadElementSequenceDataTypeDefinition(
           definitions_registry, definition_values,
-          data_types.SequenceDefinition, 'vector4')
+          data_types.SequenceDefinition, 'vector4',
+          definitions_reader._SUPPORTED_DEFINITION_VALUES_SEQUENCE)
 
     definition_values['attributes'] = None
 
@@ -172,7 +174,8 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadElementSequenceDataTypeDefinition(
           definitions_registry, definition_values,
-          data_types.SequenceDefinition, 'vector4')
+          data_types.SequenceDefinition, 'vector4',
+          definitions_reader._SUPPORTED_DEFINITION_VALUES_SEQUENCE)
 
     definition_values['element_data_type'] = 'int32'
 
@@ -182,7 +185,8 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadElementSequenceDataTypeDefinition(
           definitions_registry, definition_values,
-          data_types.SequenceDefinition, 'vector4')
+          data_types.SequenceDefinition, 'vector4',
+          definitions_reader._SUPPORTED_DEFINITION_VALUES_SEQUENCE)
 
     definition_values['element_data_type'] = 'int32'
 
@@ -192,7 +196,8 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadElementSequenceDataTypeDefinition(
           definitions_registry, definition_values,
-          data_types.SequenceDefinition, 'vector4')
+          data_types.SequenceDefinition, 'vector4',
+          definitions_reader._SUPPORTED_DEFINITION_VALUES_SEQUENCE)
 
     definition_values['number_of_elements'] = 4
 
@@ -203,7 +208,8 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadElementSequenceDataTypeDefinition(
           definitions_registry, definition_values,
-          data_types.SequenceDefinition, 'vector4')
+          data_types.SequenceDefinition, 'vector4',
+          definitions_reader._SUPPORTED_DEFINITION_VALUES_SEQUENCE)
 
     del definition_values['elements_data_size']
 
@@ -213,7 +219,8 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadElementSequenceDataTypeDefinition(
           definitions_registry, definition_values,
-          data_types.SequenceDefinition, 'vector4')
+          data_types.SequenceDefinition, 'vector4',
+          definitions_reader._SUPPORTED_DEFINITION_VALUES_SEQUENCE)
 
     del definition_values['attributes']
 
@@ -227,7 +234,8 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     data_type_definition = (
         definitions_reader._ReadElementSequenceDataTypeDefinition(
             definitions_registry, definition_values,
-            data_types.SequenceDefinition, 'vector4'))
+            data_types.SequenceDefinition, 'vector4',
+            definitions_reader._SUPPORTED_DEFINITION_VALUES_SEQUENCE))
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.SequenceDefinition)
 
@@ -237,7 +245,8 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     data_type_definition = (
         definitions_reader._ReadElementSequenceDataTypeDefinition(
             definitions_registry, definition_values,
-            data_types.SequenceDefinition, 'vector4'))
+            data_types.SequenceDefinition, 'vector4',
+            definitions_reader._SUPPORTED_DEFINITION_VALUES_SEQUENCE))
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.SequenceDefinition)
 
@@ -327,7 +336,7 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
 
     data_type_definition = definitions_reader._ReadFixedSizeDataTypeDefinition(
         definitions_registry, definition_values, data_types.IntegerDefinition,
-        'int32')
+        'int32', definitions_reader._SUPPORTED_ATTRIBUTES_INTEGER)
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.IntegerDefinition)
     self.assertEqual(data_type_definition.size, 4)
@@ -338,7 +347,7 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadFixedSizeDataTypeDefinition(
           definitions_registry, definition_values, data_types.IntegerDefinition,
-          'int32')
+          'int32', definitions_reader._SUPPORTED_ATTRIBUTES_INTEGER)
 
     definition_values['attributes']['size'] = 4
 
@@ -418,9 +427,6 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     """Tests the _ReadLayoutDataTypeDefinition function."""
     definition_values = {
         'description': 'layout data type',
-        'attributes': {
-            'byte_order': 'little-endian',
-        },
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
@@ -428,20 +434,10 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
 
     data_type_definition = definitions_reader._ReadLayoutDataTypeDefinition(
         definitions_registry, definition_values,
-        data_types.EnumerationDefinition, 'format')
+        data_types.FormatDefinition, 'format',
+        definitions_reader._SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
     self.assertIsNotNone(data_type_definition)
-    self.assertIsInstance(
-        data_type_definition, data_types.EnumerationDefinition)
-
-    # Test with incorrect byte order.
-    definition_values['attributes']['byte_order'] = 'bogus'
-
-    with self.assertRaises(errors.DefinitionReaderError):
-      definitions_reader._ReadLayoutDataTypeDefinition(
-          definitions_registry, definition_values,
-          data_types.EnumerationDefinition, 'format')
-
-    definition_values['attributes']['byte_order'] = 'big-endian'
+    self.assertIsInstance(data_type_definition, data_types.FormatDefinition)
 
   @test_lib.skipUnlessHasTestFile(['definitions', 'integers.yaml'])
   def testReadMemberDataTypeDefinitionMember(self):
@@ -507,7 +503,8 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
 
     data_type_definition = definitions_reader._ReadSemanticDataTypeDefinition(
         definitions_registry, definition_values,
-        data_types.EnumerationDefinition, 'enum')
+        data_types.EnumerationDefinition, 'enum',
+        definitions_reader._SUPPORTED_DEFINITION_VALUES_ENUMERATION)
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(
         data_type_definition, data_types.EnumerationDefinition)
@@ -518,7 +515,8 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadSemanticDataTypeDefinition(
           definitions_registry, definition_values,
-          data_types.EnumerationDefinition, 'enum')
+          data_types.EnumerationDefinition, 'enum',
+          definitions_reader._SUPPORTED_DEFINITION_VALUES_ENUMERATION)
 
     definition_values['attributes'] = None
 
@@ -557,7 +555,7 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
 
     data_type_definition = definitions_reader._ReadStorageDataTypeDefinition(
         definitions_registry, definition_values, data_types.IntegerDefinition,
-        'int32')
+        'int32', definitions_reader._SUPPORTED_ATTRIBUTES_INTEGER)
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.IntegerDefinition)
     self.assertEqual(
@@ -569,7 +567,7 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.DefinitionReaderError):
       definitions_reader._ReadStorageDataTypeDefinition(
           definitions_registry, definition_values, data_types.IntegerDefinition,
-          'int32')
+          'int32', definitions_reader._SUPPORTED_ATTRIBUTES_INTEGER)
 
     definition_values['attributes']['byte_order'] = 'little-endian'
 

@@ -65,6 +65,7 @@ language to specify format and data types.
 |===
 | Attribute name | Attribute type | Description
 | name | string | Name of the format
+| aliases | List of strings | List of aliases
 | type | string | Definition type +
 See section: <<data_type_definition_types,Data type definition types>>
 | description | string | Description of the format
@@ -139,7 +140,7 @@ fixed-size data types also define the following attributes:
 The default is bytes
 |===
 
-==== Boolean
+=== Boolean
 
 A boolean is a data type to represent true-or-false values.
 
@@ -151,7 +152,7 @@ type: boolean
 description: 32-bit boolean type
 attributes:
 - size: 4
-  units: byte
+  units: bytes
   false_value: 0
   true_value: 1
 ----
@@ -179,7 +180,7 @@ type: character
 description: 16-bit wide character type
 attributes:
 - size: 2
-  units: byte
+  units: bytes
 ----
 
 === Fixed-point
@@ -205,7 +206,7 @@ attributes:
 
 === Integer
 
-A integer is a data type to represent elements of integer values.
+An integer is a data type to represent elements of integer values.
 
 [source,yaml]
 ----
@@ -217,7 +218,7 @@ attributes:
 - byte_order: little-endian
   format: signed
   size: 4
-  units: byte
+  units: bytes
 ----
 
 Integer data type specfic attributes:
@@ -266,8 +267,8 @@ Sequence data type specfic attributes:
 | Attribute name | Attribute type | Description
 | element_data_type | string | Data type of sequence element
 | elements_data_size | integer or string | Integer value or expression to determine the data size of the elements in the sequence
-| number_of_elements | integer or string | Integer value or expression to determine the number of elements in the sequence
 | elements_terminator | integer | element value that indicates the end-of-string
+| number_of_elements | integer or string | Integer value or expression to determine the number of elements in the sequence
 |===
 
 [yellow-background]*TODO: describe expressions and the map context*
@@ -292,8 +293,8 @@ Stream data type specfic attributes:
 | Attribute name | Attribute type | Description
 | element_data_type | string | Data type of stream element
 | elements_data_size | integer or string | Integer value or expression to determine the data size of the elements in the stream
-| number_of_elements | integer or string | Integer value or expression to determine the number of elements in the stream
 | elements_terminator | integer | element value that indicates the end-of-string
+| number_of_elements | integer or string | Integer value or expression to determine the number of elements in the stream
 |===
 
 [yellow-background]*TODO: describe expressions and the map context*
@@ -305,14 +306,23 @@ known encoding such as an UTF-16 formatted string.
 
 [source,yaml]
 ----
-name: utf16le_string
+name: utf16le_string_with_size
 type: string
 ecoding: utf-16-le
 element_data_type: wchar16
 elements_data_size: string_data_size
 ----
 
-Stream data type specfic attributes:
+[source,yaml]
+----
+name: utf16le_string_with_terminator
+type: string
+ecoding: utf-16-le
+element_data_type: wchar16
+elements_terminator: "\x00\x00"
+----
+
+String data type specfic attributes:
 
 [cols="1,1,5",options="header"]
 |===
@@ -320,14 +330,11 @@ Stream data type specfic attributes:
 | encoding | string | Encoding of the string
 | element_data_type | string | Data type of string element
 | elements_data_size | integer or string | Integer value or expression to determine the data size of the elements in the string
-| number_of_elements | integer or string | Integer value or expression to determine the number of elements in the string
 | elements_terminator | integer | element value that indicates the end-of-string
+| number_of_elements | integer or string | Integer value or expression to determine the number of elements in the string
 |===
 
-[yellow-background]*TODO: describe expressions and the map context*
-
-[yellow-background]*TODO: add definition of attributes*
-[yellow-background]*TODO: what about NUL-terminated strings?*
+[yellow-background]*TODO: describe elements_data_size and number_of_elements expressions and the map context*
 
 === Structure
 
