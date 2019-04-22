@@ -376,6 +376,9 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     definition_values = {
         'description': 'Windows Shortcut (LNK) file format',
         'type': 'format',
+        'layout': [
+            'file_header',
+        ],
     }
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()

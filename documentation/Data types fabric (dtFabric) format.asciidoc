@@ -112,7 +112,7 @@ storage data types also define:
 [cols="1,1,1,5",options="header"]
 |===
 | Attribute name | Attribute type | Required | Description
-| attributes | | No | Data type attributes +
+| attributes | mapping | No | Data type attributes +
 See section: <<storage_data_type_definition_attributes,Storage data type definition attributes>>
 |===
 
@@ -154,7 +154,7 @@ aliases: [BOOL]
 type: boolean
 description: 32-bit boolean type
 attributes:
-- size: 4
+  size: 4
   units: bytes
   false_value: 0
   true_value: 1
@@ -184,7 +184,7 @@ aliases: [WCHAR]
 type: character
 description: 16-bit wide character type
 attributes:
-- size: 2
+  size: 2
   units: bytes
 ----
 
@@ -224,7 +224,7 @@ aliases: [LONG, LONG32]
 type: integer
 description: 32-bit little-endian signed integer type
 attributes:
-- byte_order: little-endian
+  byte_order: little-endian
   format: signed
   size: 4
   units: bytes
@@ -383,6 +383,7 @@ A member definition supports the following attributes:
 | aliases | List of strings | No | List of alternative names for the member
 | condition | string | No | Condition under which the member is condisidered to be present
 | data_type | string | See note | Name of the data type definition of the member
+| description | string | No | Description of the member
 | name | string | See note | Name of the member
 | type | string | See note | Name of the definition type of the member +
 See section: <<data_type_definition_types,Data type definition types>>
@@ -523,8 +524,11 @@ Enumeration value attributes:
 [cols="1,1,1,5",options="header"]
 |===
 | Attribute name | Attribute type | Required | Description
+| attributes | mapping | No | Data type attributes +
+See section: <<data_format_attributes,Data format attributes>>
 | description | string | No | Description of the format
-| layout | [yellow-background]*TODO* | Yes | Format layout definition
+| layout | mapping | Yes | Format layout definition
+| metadata | mapping | No | Metadata
 | name | string | Yes | Name of the format
 | type | string | Yes | Definition type +
 See section: <<data_type_definition_types,Data type definition types>>
@@ -540,7 +544,21 @@ type: format
 description: Minidump file format
 urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680369(v=vs.85).aspx']
 layout:
+- file_header
 ----
+
+==== [[data_format_attributes]]Data format attributes
+
+[cols="1,1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Required | Description
+| byte_order | string | No | Byte-order of the data type +
+Valid options are: "big-endian", "little-endian", "native" +
+The default is native
+|===
+
+[NOTE]
+middle-endian is a valid byte-ordering but currently not supported.
 
 === Structure family
 

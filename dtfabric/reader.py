@@ -42,7 +42,8 @@ class DataTypeDefinitionsReader(object):
       'aliases', 'description', 'name', 'type', 'urls'])
 
   _SUPPORTED_DEFINITION_VALUES_MEMBER_DATA_TYPE = set([
-      'aliases', 'condition', 'data_type', 'name', 'type', 'value', 'values'])
+      'aliases', 'condition', 'data_type', 'description', 'name', 'type',
+      'value', 'values'])
 
   _SUPPORTED_DEFINITION_VALUES_STORAGE_DATA_TYPE = set([
       'attributes']).union(_SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
@@ -65,6 +66,10 @@ class DataTypeDefinitionsReader(object):
       'number_of_elements']).union(
           _SUPPORTED_DEFINITION_VALUES_MEMBER_DATA_TYPE)
 
+  _SUPPORTED_DEFINITION_VALUES_FORMAT = set([
+      'attributes', 'layout', 'metadata']).union(
+          _SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
+
   _SUPPORTED_DEFINITION_VALUES_STRING = set([
       'encoding']).union(_SUPPORTED_DEFINITION_VALUES_ELEMENTS_DATA_TYPE)
 
@@ -83,6 +88,9 @@ class DataTypeDefinitionsReader(object):
   _SUPPORTED_ATTRIBUTES_BOOLEAN = set([
       'false_value', 'true_value']).union(
           _SUPPORTED_ATTRIBUTES_FIXED_SIZE_DATA_TYPE)
+
+  _SUPPORTED_ATTRIBUTES_FORMAT = set([
+      'byte_order'])
 
   _SUPPORTED_ATTRIBUTES_INTEGER = set([
       'format']).union(_SUPPORTED_ATTRIBUTES_FIXED_SIZE_DATA_TYPE)
@@ -523,9 +531,32 @@ class DataTypeDefinitionsReader(object):
 
     definition_object = self._ReadLayoutDataTypeDefinition(
         definitions_registry, definition_values, data_types.FormatDefinition,
-        definition_name, self._SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
+        definition_name, self._SUPPORTED_DEFINITION_VALUES_FORMAT)
+
+    # TODO: disabled for now
+    # layout = definition_values.get('layout', None)
+    # if layout is None:
+    #   error_message = 'missing layout'
+    #   raise errors.DefinitionReaderError(definition_name, error_message)
 
     definition_object.metadata = definition_values.get('metadata', {})
+
+    attributes = definition_values.get('attributes', None)
+    if attributes:
+      unsupported_attributes = set(attributes.keys()).difference(
+          self._SUPPORTED_ATTRIBUTES_FORMAT)
+      if unsupported_attributes:
+        error_message = 'unsupported attributes: {0:s}'.format(
+            ', '.join(unsupported_attributes))
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      byte_order = attributes.get('byte_order', definitions.BYTE_ORDER_NATIVE)
+      if byte_order not in definitions.BYTE_ORDERS:
+        error_message = 'unsupported byte-order attribute: {0!s}'.format(
+            byte_order)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      definition_object.byte_order = byte_order
 
     return definition_object
 
