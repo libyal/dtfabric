@@ -1410,6 +1410,39 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertEqual(sphere.triangles[2].c.y, 26)
     self.assertEqual(sphere.triangles[2].c.z, 27)
 
+  @test_lib.skipUnlessHasTestFile(['structure_with_padding.yaml'])
+  def testMapByteStreamWithPadding(self):
+    """Tests the MapByteStream function with padding."""
+    definitions_file = self._GetTestFilePath(['structure_with_padding.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'structure_with_padding')
+    data_type_map = data_maps.StructureMap(data_type_definition)
+
+    byte_values = [0, 1, 2, 3, 4, 5, 6, 7]
+    byte_stream = bytes(bytearray(byte_values))
+
+    structure = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(structure.data_size, 256)
+    self.assertEqual(structure.padding, b'\x02\x03\x04\x05\x06\x07')
+
+    with self.assertRaises(errors.ByteStreamTooSmallError):
+      data_type_map.MapByteStream(byte_stream[:7])
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'structure_with_padding_and_stream')
+    data_type_map = data_maps.StructureMap(data_type_definition)
+
+    byte_values = [1, 0, 2, 3, 4, 5, 6, 7]
+    byte_stream = bytes(bytearray(byte_values))
+
+    structure = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(structure.data_size, 1)
+    self.assertEqual(structure.data, b'\x02')
+    self.assertEqual(structure.padding, b'\x03\x04\x05\x06\x07')
+
   @test_lib.skipUnlessHasTestFile(['structure_with_sequence.yaml'])
   def testMapByteStreamWithSequenceWithExpression2(self):
     """Tests the MapByteStream function with a sequence with expression."""
@@ -1573,6 +1606,29 @@ class StructureMapTest(test_lib.BaseTestCase):
 
     size_hint = data_type_map.GetSizeHint(context=context)
     self.assertEqual(size_hint, 18)
+
+
+class PaddingMapTest(test_lib.BaseTestCase):
+  """Padding map tests."""
+
+  def testFoldByteStream(self):
+    """Tests the FoldByteStream function."""
+    data_type_definition = data_types.PaddingDefinition(
+        'padding', alignment_size=32, description='alignment_padding')
+    data_type_map = data_maps.PaddingMap(data_type_definition)
+
+    byte_stream = data_type_map.FoldByteStream(b'\x11\x22\x33')
+    self.assertEqual(byte_stream, b'\x11\x22\x33')
+
+  def testMapByteStream(self):
+    """Tests the MapByteStream function."""
+    data_type_definition = data_types.PaddingDefinition(
+        'padding', alignment_size=32, description='alignment_padding')
+    data_type_map = data_maps.PaddingMap(data_type_definition)
+    data_type_map.byte_size = 3
+
+    padding_value = data_type_map.MapByteStream(b'\x11\x22\x33')
+    self.assertEqual(padding_value, b'\x11\x22\x33')
 
 
 @test_lib.skipUnlessHasTestFile(['constant.yaml'])

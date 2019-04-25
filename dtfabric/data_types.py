@@ -223,6 +223,41 @@ class UUIDDefinition(FixedSizeDataTypeDefinition):
     self.size = 16
 
 
+class PaddingDefinition(StorageDataTypeDefinition):
+  """Padding data type definition.
+
+  Attributes:
+    alignment_size (int): alignment size.
+  """
+
+  TYPE_INDICATOR = definitions.TYPE_INDICATOR_PADDING
+
+  def __init__(
+      self, name, aliases=None, alignment_size=None, description=None,
+      urls=None):
+    """Initializes a padding data type definition.
+
+    Args:
+      name (str): name.
+      aliases (Optional[list[str]]): aliases.
+      alignment_size (Optional[int]): alignment size.
+      description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
+    """
+    super(PaddingDefinition, self).__init__(
+        name, aliases=aliases, description=description, urls=urls)
+    self.alignment_size = alignment_size
+
+  # pylint: disable=redundant-returns-doc
+  def GetByteSize(self):
+    """Retrieves the byte size of the data type definition.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    return None
+
+
 class ElementSequenceDataTypeDefinition(StorageDataTypeDefinition):
   """Element sequence data type definition.
 
@@ -502,10 +537,17 @@ class StructureDefinition(DataTypeDefinitionWithMembers):
     if self._byte_size is None and self.members:
       self._byte_size = 0
       for member_definition in self.members:
-        byte_size = member_definition.GetByteSize()
-        if byte_size is None:
-          self._byte_size = None
-          break
+        if isinstance(member_definition, PaddingDefinition):
+          _, byte_size = divmod(
+              self._byte_size, member_definition.alignment_size)
+          if byte_size > 0:
+            byte_size = member_definition.alignment_size - byte_size
+
+        else:
+          byte_size = member_definition.GetByteSize()
+          if byte_size is None:
+            self._byte_size = None
+            break
 
         self._byte_size += byte_size
 

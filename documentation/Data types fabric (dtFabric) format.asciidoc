@@ -85,9 +85,12 @@ See section: <<data_type_definition_types,Data type definition types>>
 | format | Data format metadata +
 See section: <<data_format,Data format>>
 | integer | Integer
+| padding | Alignment padding, only supported as a member definition of a structure data type
 | stream | Stream
 | string | String
 | structure | Structure
+| structure-family | [yellow-background]*TODO: describe*
+| union | Union data type
 | uuid | UUID (or GUID)
 |===
 
@@ -99,8 +102,6 @@ See section: <<data_format,Data format>>
 | bit-field | Bit field (or group of bits)
 | fixed-point | Fixed-point data type
 | reference | [yellow-background]*TODO*
-| structure-family | [yellow-background]*TODO*
-| union | Union data type
 |===
 
 == Storage data types
@@ -171,7 +172,7 @@ The default is 0
 The default is not-set, which represent any value except for the false_value
 |===
 
-Currently supported size attribute values are: 1, 2 and 4.
+Currently supported size attribute values are: 1, 2 and 4 bytes.
 
 ==== Character
 
@@ -188,7 +189,7 @@ attributes:
   units: bytes
 ----
 
-Currently supported size attribute values are: 1, 2 and 4.
+Currently supported size attribute values are: 1, 2 and 4 bytes.
 
 ==== Fixed-point
 
@@ -211,7 +212,7 @@ attributes:
   units: bytes
 ----
 
-Currently supported size attribute values are: 4 and 8.
+Currently supported size attribute values are: 4 and 8 bytes.
 
 ==== Integer
 
@@ -239,7 +240,7 @@ Integer data type specfic attributes:
 The default is signed
 |===
 
-Currently supported size attribute values are: 1, 2, 4 and 8.
+Currently supported size attribute values are: 1, 2, 4 and 8 bytes.
 
 ==== UUID (or GUID)
 
@@ -255,7 +256,7 @@ attributes:
   byte_order: little-endian
 ----
 
-Currently supported size attribute values are: 16.
+Currently supported size attribute values are: 16 bytes.
 
 === Variable-sized data types
 
@@ -446,6 +447,31 @@ members:
   element_data_type: triangle3d
   number_of_elements: sphere3d.number_of_triangles
 ----
+
+==== Padding
+
+Padding is a member definition to represent (alignment) padding as a byte
+stream.
+
+[source,yaml]
+----
+name: padding1
+type: padding
+alignment_size: 32
+----
+
+Padding data type specfic attributes:
+
+[cols="1,1,1,5",options="header"]
+|===
+| Attribute name | Attribute type | Required | Description
+| alignment_size | integer | Yes | Alignment size
+|===
+
+Currently supported alignment_size attribute values are: 2, 4, 8 and 16 bytes.
+
+[NOTE]
+The padding is currently considered as required in the data stream.
 
 ==== Union
 

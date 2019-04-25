@@ -1289,6 +1289,100 @@ class StreamMap(ElementSequenceDataTypeMap):
     return byte_stream[byte_offset:byte_offset + elements_data_size]
 
 
+class PaddingMap(DataTypeMap):
+  """Padding data type map.
+
+  Attributes:
+    byte_size (int): padding byte size.
+  """
+
+  # pylint: disable=arguments-differ
+
+  def __init__(self, data_type_definition):
+    """Initializes a padding data type map.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Raises:
+      FormatError: if the data type map cannot be determined from the data
+          type definition.
+    """
+    super(PaddingMap, self).__init__(data_type_definition)
+    self.byte_size = None
+
+  def FoldByteStream(self, mapped_value, **unused_kwargs):
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+    return mapped_value
+
+  def FoldValue(self, value):
+    """Folds the data type into a value.
+
+    Args:
+      value (object): value.
+
+    Returns:
+      object: folded value.
+
+    Raises:
+      ValueError: if the data type definition cannot be folded into the value.
+    """
+    return value
+
+  def GetStructFormatString(self):
+    """Retrieves the Python struct format string.
+
+    Returns:
+      str: format string as used by Python struct or None if format string
+          cannot be determined.
+    """
+    if self.byte_size is None:
+      return None
+
+    return '{0:d}s'.format(self.byte_size)
+
+  def MapByteStream(self, byte_stream, byte_offset=0, **unused_kwargs):
+    """Maps the data type on a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+      byte_offset (Optional[int]): offset into the byte stream where to start.
+
+    Returns:
+      object: mapped value.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+    return byte_stream[byte_offset:byte_offset + self.byte_size]
+
+  def MapValue(self, value):
+    """Maps the data type on a value.
+
+    Args:
+      value (object): value.
+
+    Returns:
+      object: mapped value.
+
+    Raises:
+      ValueError: if the data type definition cannot be mapped on the value.
+    """
+    return value
+
+
 class StringMap(StreamMap):
   """String data type map."""
 
@@ -1429,6 +1523,8 @@ class StructureMap(StorageDataTypeMap):
         is_composite_map = True
         break
 
+      # TODO: check for padding type
+      # TODO: determine if padding type can be defined as linear
       if (last_member_byte_order != definitions.BYTE_ORDER_NATIVE and
           member_definition.byte_order != definitions.BYTE_ORDER_NATIVE and
           last_member_byte_order != member_definition.byte_order):
@@ -1540,6 +1636,14 @@ class StructureMap(StorageDataTypeMap):
         if not condition_result:
           continue
 
+      if isinstance(member_definition, data_types.PaddingDefinition):
+        _, byte_size = divmod(
+            members_data_size, member_definition.alignment_size)
+        if byte_size > 0:
+          byte_size = member_definition.alignment_size - byte_size
+
+        data_type_map.byte_size = byte_size
+
       try:
         value = data_type_map.MapByteStream(
             byte_stream, byte_offset=byte_offset, context=subcontext)
@@ -1626,6 +1730,7 @@ class StructureMap(StorageDataTypeMap):
 
     data_type_maps = []
 
+    members_data_size = 0
     for member_definition in members:
       if isinstance(member_definition, data_types.MemberDataTypeDefinition):
         member_definition = member_definition.member_data_type_definition
@@ -1644,7 +1749,24 @@ class StructureMap(StorageDataTypeMap):
             member_definition)
         data_type_map_cache[member_definition.name] = data_type_map
 
-      data_type_maps.append(data_type_map_cache[member_definition.name])
+      data_type_map = data_type_map_cache[member_definition.name]
+      if members_data_size is not None:
+        if not isinstance(member_definition, data_types.PaddingDefinition):
+          byte_size = member_definition.GetByteSize()
+        else:
+          _, byte_size = divmod(
+              members_data_size, member_definition.alignment_size)
+          if byte_size > 0:
+            byte_size = member_definition.alignment_size - byte_size
+
+          data_type_map.byte_size = byte_size
+
+        if byte_size is None:
+          members_data_size = None
+        else:
+          members_data_size += byte_size
+
+      data_type_maps.append(data_type_map)
 
     return data_type_maps
 
@@ -1890,6 +2012,7 @@ class DataTypeMapFactory(object):
       definitions.TYPE_INDICATOR_ENUMERATION: EnumerationMap,
       definitions.TYPE_INDICATOR_FLOATING_POINT: FloatingPointMap,
       definitions.TYPE_INDICATOR_INTEGER: IntegerMap,
+      definitions.TYPE_INDICATOR_PADDING: PaddingMap,
       definitions.TYPE_INDICATOR_SEQUENCE: SequenceMap,
       definitions.TYPE_INDICATOR_STREAM: StreamMap,
       definitions.TYPE_INDICATOR_STRING: StringMap,

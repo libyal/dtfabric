@@ -1012,6 +1012,17 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.FormatError):
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
+  @test_lib.skipUnlessHasTestFile(['padding.yaml'])
+  def testReadFileObjectPadding(self):
+    """Tests the ReadFileObject function of a padding data type."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath(['padding.yaml'])
+    with open(definitions_file, 'rb') as file_object:
+      with self.assertRaises(errors.FormatError):
+        definitions_reader.ReadFileObject(definitions_registry, file_object)
+
   @test_lib.skipUnlessHasTestFile(['sequence.yaml'])
   @test_lib.skipUnlessHasTestFile(['sequence_with_structure.yaml'])
   def testReadFileObjectSequence(self):
@@ -1209,6 +1220,35 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
+
+  @test_lib.skipUnlessHasTestFile(['structure_with_padding.yaml'])
+  def testReadFileObjectStructureWithPadding(self):
+    """Tests the ReadFileObject function of a structure with padding."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath(['structure_with_padding.yaml'])
+    with open(definitions_file, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    self.assertEqual(len(definitions_registry._definitions), 4)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'structure_with_padding')
+    self.assertIsInstance(data_type_definition, data_types.StructureDefinition)
+    self.assertEqual(data_type_definition.name, 'structure_with_padding')
+
+    self.assertEqual(len(data_type_definition.members), 2)
+
+    member_definition = data_type_definition.members[1]
+    self.assertIsInstance(member_definition, data_types.PaddingDefinition)
+    self.assertEqual(member_definition.name, 'padding')
+    self.assertEqual(member_definition.alignment_size, 8)
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertEqual(byte_size, 8)
+
+    # TODO: add test with composite structure with padding?
 
   @test_lib.skipUnlessHasTestFile(['structure_with_section.yaml'])
   def testReadFileObjectStructureWithSection(self):
