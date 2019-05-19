@@ -1229,6 +1229,7 @@ class StreamMap(ElementSequenceDataTypeMap):
       tuple[object, ...]: mapped values.
 
     Raises:
+      ByteStreamTooSmallError: if the byte stream is too small.
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
@@ -1408,7 +1409,7 @@ class StringMap(StreamMap):
       error_string = (
           'Unable to write: {0:s} to byte stream with error: {1!s}').format(
               self._data_type_definition.name, exception)
-      raise errors.MappingError(error_string)
+      raise errors.FoldingError(error_string)
 
     return super(StringMap, self).FoldByteStream(byte_stream, **kwargs)
 
@@ -1594,6 +1595,7 @@ class StructureMap(StorageDataTypeMap):
       object: mapped value.
 
     Raises:
+      ByteStreamTooSmallError: if the byte stream is too small.
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """

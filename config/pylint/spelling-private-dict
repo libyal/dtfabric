@@ -1,5 +1,6 @@
 argparse
 args
+backports
 bool
 boolean
 config
@@ -12,6 +13,7 @@ dpkg
 dtfabric
 enumerationvalue
 filenames
+lzma
 macos
 membersectiondefinition
 metadata

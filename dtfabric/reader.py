@@ -328,13 +328,12 @@ class DataTypeDefinitionsReader(object):
         error_message = '{0:s} missing name or number'.format(error_location)
         raise errors.DefinitionReaderError(definition_name, error_message)
 
-      else:
-        try:
-          definition_object.AddValue(
-              name, number, aliases=aliases, description=description)
-        except KeyError as exception:
-          error_message = '{0!s}'.format(exception)
-          raise errors.DefinitionReaderError(definition_name, error_message)
+      try:
+        definition_object.AddValue(
+            name, number, aliases=aliases, description=description)
+      except KeyError as exception:
+        error_message = '{0!s}'.format(exception)
+        raise errors.DefinitionReaderError(definition_name, error_message)
 
       last_name = name
 
