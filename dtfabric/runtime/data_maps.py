@@ -9,7 +9,6 @@ import uuid
 from dtfabric import data_types
 from dtfabric import definitions
 from dtfabric import errors
-from dtfabric import py2to3
 from dtfabric.runtime import byte_operations
 from dtfabric.runtime import runtime
 
@@ -469,7 +468,7 @@ class CharacterMap(PrimitiveDataTypeMap):
     Raises:
       ValueError: if the data type definition cannot be mapped on the value.
     """
-    return py2to3.UNICHR(value)
+    return chr(value)
 
 
 class FloatingPointMap(PrimitiveDataTypeMap):

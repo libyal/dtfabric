@@ -8,7 +8,6 @@ import yaml
 from dtfabric import data_types
 from dtfabric import definitions
 from dtfabric import errors
-from dtfabric import py2to3
 
 
 class DataTypeDefinitionsReader(object):
@@ -422,7 +421,7 @@ class DataTypeDefinitionsReader(object):
         definition_object.elements_data_size_expression = elements_data_size
 
     elif elements_terminator is not None:
-      if isinstance(elements_terminator, py2to3.UNICODE_TYPE):
+      if isinstance(elements_terminator, str):
         elements_terminator = elements_terminator.encode('ascii')
 
       definition_object.elements_terminator = elements_terminator
@@ -699,7 +698,7 @@ class DataTypeDefinitionsReader(object):
     if values:
       supported_values = []
       for value in values:
-        if isinstance(value, py2to3.UNICODE_TYPE):
+        if isinstance(value, str):
           value = value.encode('ascii')
 
         supported_values.append(value)
