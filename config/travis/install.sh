@@ -7,7 +7,7 @@
 
 DPKG_PYTHON3_DEPENDENCIES="python3-yaml";
 
-DPKG_PYTHON3_TEST_DEPENDENCIES="python3-coverage python3-distutils python3-mock python3-pbr python3-setuptools python3-six";
+DPKG_PYTHON3_TEST_DEPENDENCIES="python3-distutils python3-mock python3-pbr python3-setuptools python3-six";
 
 RPM_PYTHON3_DEPENDENCIES="python3-pyyaml";
 
@@ -75,15 +75,11 @@ then
 	# Install packages.
 	if test -n "${TOXENV}";
 	then
-		DPKG_PACKAGES="build-essential python${TRAVIS_PYTHON_VERSION} python${TRAVIS_PYTHON_VERSION}-dev tox";
+		DPKG_PACKAGES="build-essential curl python${TRAVIS_PYTHON_VERSION} python${TRAVIS_PYTHON_VERSION}-dev tox";
 	else
 		DPKG_PACKAGES="";
 
-		if test "${TARGET}" = "coverage";
-		then
-			DPKG_PACKAGES="${DPKG_PACKAGES} curl git";
-
-		elif test "${TARGET}" = "jenkins3";
+		if test "${TARGET}" = "jenkins3";
 		then
 			DPKG_PACKAGES="${DPKG_PACKAGES} sudo";
 
