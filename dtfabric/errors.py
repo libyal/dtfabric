@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """The error objects."""
 
+from __future__ import unicode_literals
+
+
 class Error(Exception):
   """The error interface."""
 
@@ -17,7 +20,7 @@ class DefinitionReaderError(Error):
     message (str): error message.
   """
 
-  def __init__(self, name, message):
+  def __init__(self, name: str, message: str) -> None:
     """Initializes an error.
 
     Args:
@@ -26,8 +29,8 @@ class DefinitionReaderError(Error):
     """
     # pylint: disable=super-init-not-called
     # Do not call initialize of the super class.
-    self.name = name
-    self.message = message
+    self.name: str = name
+    self.message: str = message
 
 
 class FoldingError(Error):

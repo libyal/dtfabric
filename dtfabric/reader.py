@@ -2,6 +2,7 @@
 """The data type definition reader objects."""
 
 from __future__ import unicode_literals
+
 import abc
 import yaml
 

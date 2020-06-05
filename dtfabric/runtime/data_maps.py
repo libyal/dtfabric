@@ -2,6 +2,7 @@
 """Data type maps."""
 
 from __future__ import unicode_literals
+
 import abc
 import copy
 import uuid

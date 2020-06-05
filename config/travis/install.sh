@@ -37,9 +37,9 @@ then
 	else
 		RPM_PACKAGES="";
 
-		if test ${TARGET} = "pylint";
+		if test ${TARGET} = "lint_and_type_check";
 		then
-			RPM_PACKAGES="${RPM_PACKAGES} findutils pylint";
+			RPM_PACKAGES="${RPM_PACKAGES} findutils pylint python3-mypy";
 		fi
 		RPM_PACKAGES="${RPM_PACKAGES} python3 ${RPM_PYTHON3_DEPENDENCIES} ${RPM_PYTHON3_TEST_DEPENDENCIES}";
 	fi
@@ -56,7 +56,7 @@ then
 	docker run --name=${CONTAINER_NAME} --detach -i ubuntu:${UBUNTU_VERSION};
 
 	# Install add-apt-repository and locale-gen.
-	docker exec ${CONTAINER_NAME} apt-get update -q;
+	docker exec -e "DEBIAN_FRONTEND=noninteractive" ${CONTAINER_NAME} sh -c "apt-get update -q";
 	docker exec -e "DEBIAN_FRONTEND=noninteractive" ${CONTAINER_NAME} sh -c "apt-get install -y locales software-properties-common";
 
 	# Add additional apt repositories.
@@ -67,7 +67,7 @@ then
 	fi
 	docker exec ${CONTAINER_NAME} add-apt-repository ppa:gift/dev -y;
 
-	docker exec ${CONTAINER_NAME} apt-get update -q;
+	docker exec -e "DEBIAN_FRONTEND=noninteractive" ${CONTAINER_NAME} sh -c "apt-get update -q";
 
 	# Set locale to US English and UTF-8.
 	docker exec ${CONTAINER_NAME} locale-gen en_US.UTF-8;
@@ -83,9 +83,9 @@ then
 		then
 			DPKG_PACKAGES="${DPKG_PACKAGES} sudo";
 
-		elif test ${TARGET} = "pylint";
+		elif test ${TARGET} = "lint_and_type_check";
 		then
-			DPKG_PACKAGES="${DPKG_PACKAGES} python3-distutils pylint";
+			DPKG_PACKAGES="${DPKG_PACKAGES} mypy pylint python3-distutils";
 		fi
 		if test "${TARGET}" != "jenkins3";
 		then
@@ -100,7 +100,7 @@ elif test ${TRAVIS_OS_NAME} = "osx";
 then
 	brew update;
 
-	# Brew will exit with 1 and print some diagnostic information
+	# Brew will exit with 1 and print some diagnotisic information
 	# to prevent the CI test from failing || true is added.
 	brew install tox || true;
 fi

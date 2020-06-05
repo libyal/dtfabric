@@ -4,6 +4,9 @@
 from __future__ import unicode_literals
 
 import abc
+import typing
+
+from typing import Dict, List, Optional, Union  # pylint: disable=unused-import
 
 from dtfabric import definitions
 
@@ -23,11 +26,14 @@ class DataTypeDefinition(object):
   # methods.
   # pylint: disable=redundant-returns-doc
 
-  TYPE_INDICATOR = None
+  TYPE_INDICATOR: 'Union[str, None]' = None
 
-  _IS_COMPOSITE = False
+  _IS_COMPOSITE: 'bool' = False
 
-  def __init__(self, name, aliases=None, description=None, urls=None):
+  def __init__(
+      self, name: 'str', aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes a data type definition.
 
     Args:
@@ -37,20 +43,20 @@ class DataTypeDefinition(object):
       urls (Optional[list[str]]): URLs.
     """
     super(DataTypeDefinition, self).__init__()
-    self.aliases = aliases or []
-    self.description = description
-    self.name = name
-    self.urls = urls
+    self.aliases: 'List[str]' = aliases or []
+    self.description: 'Union[str, None]' = description
+    self.name: 'str' = name
+    self.urls: 'Union[List[str], None]' = urls
 
   @abc.abstractmethod
-  def GetByteSize(self):
+  def GetByteSize(self) -> 'Union[int, None]':
     """Retrieves the byte size of the data type definition.
 
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
 
-  def IsComposite(self):
+  def IsComposite(self) -> 'bool':
     """Determines if the data type is composite.
 
     A composite data type consists of other data types.
@@ -72,7 +78,10 @@ class StorageDataTypeDefinition(DataTypeDefinition):
   # methods.
   # pylint: disable=redundant-returns-doc
 
-  def __init__(self, name, aliases=None, description=None, urls=None):
+  def __init__(
+      self, name: 'str', aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes a storage data type definition.
 
     Args:
@@ -83,10 +92,10 @@ class StorageDataTypeDefinition(DataTypeDefinition):
     """
     super(StorageDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.byte_order = definitions.BYTE_ORDER_NATIVE
+    self.byte_order: 'str' = definitions.BYTE_ORDER_NATIVE
 
   @abc.abstractmethod
-  def GetByteSize(self):
+  def GetByteSize(self) -> 'Union[int, None]':
     """Retrieves the byte size of the data type definition.
 
     Returns:
@@ -102,7 +111,10 @@ class FixedSizeDataTypeDefinition(StorageDataTypeDefinition):
     units (str): units of the size of the data type.
   """
 
-  def __init__(self, name, aliases=None, description=None, urls=None):
+  def __init__(
+      self, name: 'str', aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes a fixed-size data type definition.
 
     Args:
@@ -113,10 +125,10 @@ class FixedSizeDataTypeDefinition(StorageDataTypeDefinition):
     """
     super(FixedSizeDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.size = definitions.SIZE_NATIVE
-    self.units = 'bytes'
+    self.size: 'Union[int, str]' = definitions.SIZE_NATIVE
+    self.units: 'str' = 'bytes'
 
-  def GetByteSize(self):
+  def GetByteSize(self) -> 'Union[int, None]':
     """Retrieves the byte size of the data type definition.
 
     Returns:
@@ -125,7 +137,7 @@ class FixedSizeDataTypeDefinition(StorageDataTypeDefinition):
     if self.size == definitions.SIZE_NATIVE or self.units != 'bytes':
       return None
 
-    return self.size
+    return typing.cast('Union[int, None]', self.size)
 
 
 class BooleanDefinition(FixedSizeDataTypeDefinition):
@@ -138,10 +150,12 @@ class BooleanDefinition(FixedSizeDataTypeDefinition):
       defined by false_value.
   """
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_BOOLEAN
+  TYPE_INDICATOR: 'Union[str, None]' = definitions.TYPE_INDICATOR_BOOLEAN
 
   def __init__(
-      self, name, aliases=None, description=None, false_value=0, urls=None):
+      self, name: 'str', aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None, false_value: 'int' = 0,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes a boolean data type definition.
 
     Args:
@@ -153,20 +167,21 @@ class BooleanDefinition(FixedSizeDataTypeDefinition):
     """
     super(BooleanDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.false_value = false_value
-    self.true_value = None
+    self.false_value: 'Union[int, None]' = false_value
+    self.true_value: 'Union[int, None]' = None
 
 
 class CharacterDefinition(FixedSizeDataTypeDefinition):
   """Character data type definition."""
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_CHARACTER
+  TYPE_INDICATOR: 'Union[str, None]' = definitions.TYPE_INDICATOR_CHARACTER
 
 
 class FloatingPointDefinition(FixedSizeDataTypeDefinition):
   """Floating point data type definition."""
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_FLOATING_POINT
+  TYPE_INDICATOR: 'Union[str, None]' = (
+      definitions.TYPE_INDICATOR_FLOATING_POINT)
 
 
 class IntegerDefinition(FixedSizeDataTypeDefinition):
@@ -178,11 +193,14 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
     minimum_value (int): minimum allowed value of the integer data type.
   """
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_INTEGER
+  TYPE_INDICATOR: 'Union[str, None]' = definitions.TYPE_INDICATOR_INTEGER
 
   def __init__(
-      self, name, aliases=None, description=None, maximum_value=None,
-      minimum_value=None, urls=None):
+      self, name: 'str', aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None,
+      maximum_value: 'Optional[int]' = None,
+      minimum_value: 'Optional[int]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes an integer data type definition.
 
     Args:
@@ -197,19 +215,22 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
     """
     super(IntegerDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.format = definitions.FORMAT_SIGNED
-    self.maximum_value = maximum_value
-    self.minimum_value = minimum_value
+    self.format: 'str' = definitions.FORMAT_SIGNED
+    self.maximum_value: 'Union[int, None]' = maximum_value
+    self.minimum_value: 'Union[int, None]' = minimum_value
 
 
 class UUIDDefinition(FixedSizeDataTypeDefinition):
   """UUID (or GUID) data type definition."""
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_UUID
+  TYPE_INDICATOR: 'Union[str, None]' = definitions.TYPE_INDICATOR_UUID
 
-  _IS_COMPOSITE = True
+  _IS_COMPOSITE: 'bool' = True
 
-  def __init__(self, name, aliases=None, description=None, urls=None):
+  def __init__(
+      self, name: 'str', aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes an UUID data type definition.
 
     Args:
@@ -220,7 +241,7 @@ class UUIDDefinition(FixedSizeDataTypeDefinition):
     """
     super(UUIDDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.size = 16
+    self.size: 'Union[int, str]' = 16
 
 
 class PaddingDefinition(StorageDataTypeDefinition):
@@ -230,11 +251,17 @@ class PaddingDefinition(StorageDataTypeDefinition):
     alignment_size (int): alignment size.
   """
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_PADDING
+  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
+  # methods.
+  # pylint: disable=redundant-returns-doc
+
+  TYPE_INDICATOR: 'Union[str, None]' = definitions.TYPE_INDICATOR_PADDING
 
   def __init__(
-      self, name, aliases=None, alignment_size=None, description=None,
-      urls=None):
+      self, name: 'str', aliases: 'Optional[List[str]]' = None,
+      alignment_size: 'Optional[int]' = None,
+      description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes a padding data type definition.
 
     Args:
@@ -246,10 +273,9 @@ class PaddingDefinition(StorageDataTypeDefinition):
     """
     super(PaddingDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.alignment_size = alignment_size
+    self.alignment_size: 'Union[int, None]' = alignment_size
 
-  # pylint: disable=redundant-returns-doc
-  def GetByteSize(self):
+  def GetByteSize(self) -> 'Union[int, None]':
     """Retrieves the byte size of the data type definition.
 
     Returns:
@@ -275,11 +301,14 @@ class ElementSequenceDataTypeDefinition(StorageDataTypeDefinition):
         of sequence elements.
   """
 
-  _IS_COMPOSITE = True
+  _IS_COMPOSITE: 'bool' = True
 
   def __init__(
-      self, name, data_type_definition, aliases=None, data_type=None,
-      description=None, urls=None):
+      self, name: 'str', data_type_definition: 'DataTypeDefinition',
+      aliases: 'Optional[List[str]]' = None,
+      data_type: 'Optional[str]' = None,
+      description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes a sequence data type definition.
 
     Args:
@@ -293,17 +322,18 @@ class ElementSequenceDataTypeDefinition(StorageDataTypeDefinition):
     """
     super(ElementSequenceDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.byte_order = getattr(
+    self.byte_order: 'str' = getattr(
         data_type_definition, 'byte_order', definitions.BYTE_ORDER_NATIVE)
-    self.elements_data_size = None
-    self.elements_data_size_expression = None
-    self.element_data_type = data_type
-    self.element_data_type_definition = data_type_definition
-    self.elements_terminator = None
-    self.number_of_elements = None
-    self.number_of_elements_expression = None
+    self.elements_data_size: 'Union[int, None]' = None
+    self.elements_data_size_expression: 'Union[str, None]' = None
+    self.element_data_type: 'Union[str, None]' = data_type
+    self.element_data_type_definition: 'DataTypeDefinition' = (
+        data_type_definition)
+    self.elements_terminator: 'Union[str, None]' = None
+    self.number_of_elements: 'Union[int, None]' = None
+    self.number_of_elements_expression: 'Union[str, None]' = None
 
-  def GetByteSize(self):
+  def GetByteSize(self) -> 'Union[int, None]':
     """Retrieves the byte size of the data type definition.
 
     Returns:
@@ -328,13 +358,13 @@ class ElementSequenceDataTypeDefinition(StorageDataTypeDefinition):
 class SequenceDefinition(ElementSequenceDataTypeDefinition):
   """Sequence data type definition."""
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_SEQUENCE
+  TYPE_INDICATOR: 'Union[str, None]' = definitions.TYPE_INDICATOR_SEQUENCE
 
 
 class StreamDefinition(ElementSequenceDataTypeDefinition):
   """Stream data type definition."""
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_STREAM
+  TYPE_INDICATOR: 'Union[str, None]' = definitions.TYPE_INDICATOR_STREAM
 
 
 class StringDefinition(ElementSequenceDataTypeDefinition):
@@ -344,11 +374,14 @@ class StringDefinition(ElementSequenceDataTypeDefinition):
     encoding (str): string encoding.
   """
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRING
+  TYPE_INDICATOR: 'Union[str, None]' = definitions.TYPE_INDICATOR_STRING
 
   def __init__(
-      self, name, data_type_definition, aliases=None, data_type=None,
-      description=None, urls=None):
+      self, name: 'str', data_type_definition: 'DataTypeDefinition',
+      aliases: 'Optional[List[str]]' = None,
+      data_type: 'Optional[str]' = None,
+      description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes a string data type definition.
 
     Args:
@@ -363,7 +396,7 @@ class StringDefinition(ElementSequenceDataTypeDefinition):
     super(StringDefinition, self).__init__(
         name, data_type_definition, aliases=aliases, data_type=data_type,
         description=description, urls=urls)
-    self.encoding = 'ascii'
+    self.encoding: 'str' = 'ascii'
 
 
 class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
@@ -378,9 +411,12 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
   # methods.
   # pylint: disable=redundant-returns-doc
 
-  _IS_COMPOSITE = True
+  _IS_COMPOSITE: 'bool' = True
 
-  def __init__(self, name, aliases=None, description=None, urls=None):
+  def __init__(
+      self, name: 'str', aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes a data type definition.
 
     Args:
@@ -391,11 +427,12 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
     """
     super(DataTypeDefinitionWithMembers, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self._byte_size = None
-    self.members = []
-    self.sections = []
+    self._byte_size: 'Union[int, None]' = None
+    self.members: 'List[DataTypeDefinition]' = []
+    self.sections: 'List[MemberSectionDefinition]' = []
 
-  def AddMemberDefinition(self, member_definition):
+  def AddMemberDefinition(
+      self, member_definition: 'DataTypeDefinition') -> 'None':
     """Adds a member definition.
 
     Args:
@@ -408,7 +445,8 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
       section_definition = self.sections[-1]
       section_definition.members.append(member_definition)
 
-  def AddSectionDefinition(self, section_definition):
+  def AddSectionDefinition(
+      self, section_definition: 'MemberSectionDefinition') -> 'None':
     """Adds a section definition.
 
     Args:
@@ -417,7 +455,7 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
     self.sections.append(section_definition)
 
   @abc.abstractmethod
-  def GetByteSize(self):
+  def GetByteSize(self) -> 'Union[int, None]':
     """Retrieves the byte size of the data type definition.
 
     Returns:
@@ -437,8 +475,11 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
   """
 
   def __init__(
-      self, name, data_type_definition, aliases=None, condition=None,
-      data_type=None, description=None, urls=None, values=None):
+      self, name: 'str', data_type_definition: 'DataTypeDefinition',
+      aliases: 'Optional[List[str]]' = None, condition: 'Optional[str]' = None,
+      data_type: 'Optional[str]' = None, description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None,
+      values: 'Optional[List[Union[int, str]]]' = None) -> 'None':
     """Initializes a member data type definition.
 
     Args:
@@ -455,14 +496,15 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
     """
     super(MemberDataTypeDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.byte_order = getattr(
+    self.byte_order: 'str' = getattr(
         data_type_definition, 'byte_order', definitions.BYTE_ORDER_NATIVE)
-    self.condition = condition
-    self.member_data_type = data_type
-    self.member_data_type_definition = data_type_definition
-    self.values = values
+    self.condition: 'Union[str, None]' = condition
+    self.member_data_type: 'Union[str, None]' = data_type
+    self.member_data_type_definition: 'DataTypeDefinition' = (
+        data_type_definition)
+    self.values: 'Union[List[Union[int, str]], None]' = values
 
-  def GetByteSize(self):
+  def GetByteSize(self) -> 'Union[int, None]':
     """Retrieves the byte size of the data type definition.
 
     Returns:
@@ -473,7 +515,7 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
 
     return self.member_data_type_definition.GetByteSize()
 
-  def IsComposite(self):
+  def IsComposite(self) -> 'bool':
     """Determines if the data type is composite.
 
     A composite data type consists of other data types.
@@ -481,7 +523,7 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
     Returns:
       bool: True if the data type is composite, False otherwise.
     """
-    return bool(self.condition) or (
+    return bool(self.condition) or bool(
         self.member_data_type_definition and
         self.member_data_type_definition.IsComposite())
 
@@ -494,15 +536,15 @@ class MemberSectionDefinition(object):
         the section.
   """
 
-  def __init__(self, name):
+  def __init__(self, name: 'str') -> 'None':
     """Initializes a member section definition.
 
     Args:
       name (str): name.
     """
     super(MemberSectionDefinition, self).__init__()
-    self.name = name
-    self.members = []
+    self.name: 'str' = name
+    self.members: 'List[DataTypeDefinition]' = []
 
 
 class StructureDefinition(DataTypeDefinitionWithMembers):
@@ -513,9 +555,12 @@ class StructureDefinition(DataTypeDefinitionWithMembers):
         definition.
   """
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRUCTURE
+  TYPE_INDICATOR: 'Union[str, None]' = definitions.TYPE_INDICATOR_STRUCTURE
 
-  def __init__(self, name, aliases=None, description=None, urls=None):
+  def __init__(
+      self, name: 'str', aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes a data type definition.
 
     Args:
@@ -526,9 +571,9 @@ class StructureDefinition(DataTypeDefinitionWithMembers):
     """
     super(StructureDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.family_definition = None
+    self.family_definition: 'Union[DataTypeDefinition, None]' = None
 
-  def GetByteSize(self):
+  def GetByteSize(self) -> 'Union[int, None]':
     """Retrieves the byte size of the data type definition.
 
     Returns:
@@ -537,17 +582,18 @@ class StructureDefinition(DataTypeDefinitionWithMembers):
     if self._byte_size is None and self.members:
       self._byte_size = 0
       for member_definition in self.members:
-        if isinstance(member_definition, PaddingDefinition):
-          _, byte_size = divmod(
-              self._byte_size, member_definition.alignment_size)
-          if byte_size > 0:
-            byte_size = member_definition.alignment_size - byte_size
-
-        else:
+        if (not isinstance(member_definition, PaddingDefinition) or
+            not member_definition.alignment_size):
           byte_size = member_definition.GetByteSize()
           if byte_size is None:
             self._byte_size = None
             break
+
+        else:
+          _, byte_size = divmod(
+              self._byte_size, member_definition.alignment_size)
+          if byte_size > 0:
+            byte_size = member_definition.alignment_size - byte_size
 
         self._byte_size += byte_size
 
@@ -557,9 +603,9 @@ class StructureDefinition(DataTypeDefinitionWithMembers):
 class UnionDefinition(DataTypeDefinitionWithMembers):
   """Union data type definition."""
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_UNION
+  TYPE_INDICATOR: 'Union[str, None]' = definitions.TYPE_INDICATOR_UNION
 
-  def GetByteSize(self):
+  def GetByteSize(self) -> 'Union[int, None]':
     """Retrieves the byte size of the data type definition.
 
     Returns:
@@ -578,7 +624,6 @@ class UnionDefinition(DataTypeDefinitionWithMembers):
     return self._byte_size
 
 
-
 class SemanticDataTypeDefinition(DataTypeDefinition):
   """Semantic data type definition interface.
 
@@ -586,7 +631,11 @@ class SemanticDataTypeDefinition(DataTypeDefinition):
     byte_order (str): byte-order the data type.
   """
 
-  def GetByteSize(self):  # pylint: disable=redundant-returns-doc
+  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
+  # methods.
+  # pylint: disable=redundant-returns-doc
+
+  def GetByteSize(self) -> 'Union[int, None]':
     """Retrieves the byte size of the data type definition.
 
     Returns:
@@ -602,9 +651,12 @@ class ConstantDefinition(SemanticDataTypeDefinition):
     value (int): constant value.
   """
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_CONSTANT
+  TYPE_INDICATOR: 'Union[str, None]' = definitions.TYPE_INDICATOR_CONSTANT
 
-  def __init__(self, name, aliases=None, description=None, urls=None):
+  def __init__(
+      self, name: 'str', aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes an enumeration data type definition.
 
     Args:
@@ -615,7 +667,7 @@ class ConstantDefinition(SemanticDataTypeDefinition):
     """
     super(ConstantDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.value = None
+    self.value: 'Union[int, None]' = None
 
 
 class EnumerationValue(object):
@@ -628,7 +680,10 @@ class EnumerationValue(object):
     number (int): number.
   """
 
-  def __init__(self, name, number, aliases=None, description=None):
+  def __init__(
+      self, name: 'str', number: 'int',
+      aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None) -> 'None':
     """Initializes an enumeration value.
 
     Args:
@@ -638,27 +693,31 @@ class EnumerationValue(object):
       description (Optional[str]): description.
     """
     super(EnumerationValue, self).__init__()
-    self.aliases = aliases or []
-    self.description = description
-    self.name = name
-    self.number = number
+    self.aliases: 'List[str]' = aliases or []
+    self.description: 'Union[str, None]' = description
+    self.name: 'str' = name
+    self.number: 'int' = number
 
 
 class EnumerationDefinition(SemanticDataTypeDefinition):
   """Enumeration data type definition.
 
   Attributes:
+    values (list[EnumerationValue]): enumeration values.
     values_per_alias (dict[str, EnumerationValue]): enumeration values per
         alias.
     values_per_name (dict[str, EnumerationValue]): enumeration values per name.
-    values_per_number (dict[str, EnumerationValue]): enumeration values per
+    values_per_number (dict[int, EnumerationValue]): enumeration values per
         number.
-    values(list[EnumerationValue]): enumeration values.
   """
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_ENUMERATION
+  TYPE_INDICATOR: 'Union[str, None]' = (
+      definitions.TYPE_INDICATOR_ENUMERATION)
 
-  def __init__(self, name, aliases=None, description=None, urls=None):
+  def __init__(
+      self, name: 'str', aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes an enumeration data type definition.
 
     Args:
@@ -669,12 +728,14 @@ class EnumerationDefinition(SemanticDataTypeDefinition):
     """
     super(EnumerationDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.values = []
-    self.values_per_alias = {}
-    self.values_per_name = {}
-    self.values_per_number = {}
+    self.values: 'List[EnumerationValue]' = []
+    self.values_per_alias: 'Dict[str, EnumerationValue]' = {}
+    self.values_per_name: 'Dict[str, EnumerationValue]' = {}
+    self.values_per_number: 'Dict[int, EnumerationValue]' = {}
 
-  def AddValue(self, name, number, aliases=None, description=None):
+  def AddValue(
+      self, name: 'str', number: 'int', aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None) -> 'None':
     """Adds an enumeration value.
 
     Args:
@@ -710,9 +771,13 @@ class EnumerationDefinition(SemanticDataTypeDefinition):
 class LayoutDataTypeDefinition(DataTypeDefinition):
   """Layout data type definition interface."""
 
-  _IS_COMPOSITE = True
+  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
+  # methods.
+  # pylint: disable=redundant-returns-doc
 
-  def GetByteSize(self):  # pylint: disable=redundant-returns-doc
+  _IS_COMPOSITE: 'bool' = True
+
+  def GetByteSize(self) -> 'Union[int, None]':
     """Retrieves the byte size of the data type definition.
 
     Returns:
@@ -728,9 +793,12 @@ class FormatDefinition(LayoutDataTypeDefinition):
     metadata (dict[str, object]): metadata.
   """
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_FORMAT
+  TYPE_INDICATOR: 'Union[str, None]' = definitions.TYPE_INDICATOR_FORMAT
 
-  def __init__(self, name, aliases=None, description=None, urls=None):
+  def __init__(
+      self, name: 'str', aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes a format data type definition.
 
     Args:
@@ -741,7 +809,7 @@ class FormatDefinition(LayoutDataTypeDefinition):
     """
     super(FormatDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.metadata = {}
+    self.metadata: 'Dict[str, object]' = {}
 
 
 class StructureFamilyDefinition(LayoutDataTypeDefinition):
@@ -752,9 +820,13 @@ class StructureFamilyDefinition(LayoutDataTypeDefinition):
     runtime (DataTypeDefinition): runtime data type definition.
   """
 
-  TYPE_INDICATOR = definitions.TYPE_INDICATOR_STRUCTURE_FAMILY
+  TYPE_INDICATOR: 'Union[str, None]' = (
+      definitions.TYPE_INDICATOR_STRUCTURE_FAMILY)
 
-  def __init__(self, name, aliases=None, description=None, urls=None):
+  def __init__(
+      self, name: 'str', aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes a structure family data type definition.
 
     Args:
@@ -765,23 +837,25 @@ class StructureFamilyDefinition(LayoutDataTypeDefinition):
     """
     super(StructureFamilyDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.members = []
-    self.runtime = None
+    self.members: 'List[DataTypeDefinition]' = []
+    self.runtime: 'Union[DataTypeDefinition, None]' = None
 
-  def AddMemberDefinition(self, member_definition):
+  def AddMemberDefinition(
+      self, member_definition: 'StructureDefinition') -> 'None':
     """Adds a member definition.
 
     Args:
-      member_definition (DataTypeDefinition): member data type definition.
+      member_definition (StructureDefinition): member data type definition.
     """
     self.members.append(member_definition)
     member_definition.family_definition = self
 
-  def AddRuntimeDefinition(self, runtime_definition):
+  def AddRuntimeDefinition(
+      self, runtime_definition: 'StructureDefinition') -> 'None':
     """Adds a runtime definition.
 
     Args:
-      runtime_definition (DataTypeDefinition): runtime data type definition.
+      runtime_definition (StructureDefinition): runtime data type definition.
     """
     self.runtime = runtime_definition
     runtime_definition.family_definition = self

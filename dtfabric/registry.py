@@ -3,20 +3,28 @@
 
 from __future__ import unicode_literals
 
+import typing
+
+from typing import Dict, List, Union  # pylint: disable=unused-import
+
 from dtfabric import definitions
+
+if typing.TYPE_CHECKING:
+  from dtfabric import data_types
 
 
 class DataTypeDefinitionsRegistry(object):
   """Data type definitions registry."""
 
-  def __init__(self):
+  def __init__(self) -> 'None':
     """Initializes a data type definitions registry."""
     super(DataTypeDefinitionsRegistry, self).__init__()
-    self._aliases = {}
-    self._definitions = {}
-    self._format_definitions = []
+    self._aliases: 'Dict[str, str]' = {}
+    self._definitions: 'Dict[str, data_types.DataTypeDefinition]' = {}
+    self._format_definitions: 'List[str]' = []
 
-  def DeregisterDefinition(self, data_type_definition):
+  def DeregisterDefinition(
+      self, data_type_definition: 'data_types.DataTypeDefinition') -> 'None':
     """Deregisters a data type definition.
 
     The data type definitions are identified based on their lower case name.
@@ -35,7 +43,8 @@ class DataTypeDefinitionsRegistry(object):
 
     del self._definitions[name]
 
-  def GetDefinitionByName(self, name):
+  def GetDefinitionByName(
+      self, name: 'str') -> 'Union[data_types.DataTypeDefinition, None]':
     """Retrieves a specific data type definition by name.
 
     Args:
@@ -46,19 +55,20 @@ class DataTypeDefinitionsRegistry(object):
     """
     lookup_name = name.lower()
     if lookup_name not in self._definitions:
-      lookup_name = self._aliases.get(name, None)
+      lookup_name = self._aliases.get(name, lookup_name)
 
     return self._definitions.get(lookup_name, None)
 
-  def GetDefinitions(self):
+  def GetDefinitions(self) -> 'List[data_types.DataTypeDefinition]':
     """Retrieves the data type definitions.
 
     Returns:
       list[DataTypeDefinition]: data type definitions.
     """
-    return self._definitions.values()
+    return list(self._definitions.values())
 
-  def RegisterDefinition(self, data_type_definition):
+  def RegisterDefinition(
+      self, data_type_definition: 'data_types.DataTypeDefinition') -> 'None':
     """Registers a data type definition.
 
     The data type definitions are identified based on their lower case name.

@@ -250,7 +250,7 @@ class MemberDataTypeDefinitionTest(test_lib.BaseTestCase):
         data_type='int32', description='my structure member')
 
     result = data_type_definition.IsComposite()
-    self.assertIsNone(result)
+    self.assertFalse(result)
 
     data_type_definition.member_data_type_definition = member_definition
     result = data_type_definition.IsComposite()

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """dtFabric helper objects."""
 
+from __future__ import unicode_literals
+
 import io
 
 from dtfabric import reader
