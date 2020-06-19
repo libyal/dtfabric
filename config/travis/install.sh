@@ -7,7 +7,7 @@
 
 DPKG_PYTHON3_DEPENDENCIES="python3-yaml";
 
-DPKG_PYTHON3_TEST_DEPENDENCIES="python3-distutils python3-mock python3-pbr python3-setuptools python3-six";
+DPKG_PYTHON3_TEST_DEPENDENCIES="python3-coverage python3-distutils python3-mock python3-pbr python3-setuptools python3-six";
 
 RPM_PYTHON3_DEPENDENCIES="python3-pyyaml";
 
@@ -35,13 +35,7 @@ then
 		RPM_PACKAGES="python3-tox";
 
 	else
-		RPM_PACKAGES="";
-
-		if test ${TARGET} = "lint_and_type_check";
-		then
-			RPM_PACKAGES="${RPM_PACKAGES} findutils pylint python3-mypy";
-		fi
-		RPM_PACKAGES="${RPM_PACKAGES} python3 ${RPM_PYTHON3_DEPENDENCIES} ${RPM_PYTHON3_TEST_DEPENDENCIES}";
+		RPM_PACKAGES="python3 ${RPM_PYTHON3_DEPENDENCIES} ${RPM_PYTHON3_TEST_DEPENDENCIES}";
 	fi
 	docker exec ${CONTAINER_NAME} dnf install -y ${RPM_PACKAGES};
 
@@ -76,21 +70,12 @@ then
 	if test -n "${TOXENV}";
 	then
 		DPKG_PACKAGES="build-essential curl python${TRAVIS_PYTHON_VERSION} python${TRAVIS_PYTHON_VERSION}-dev tox";
+
+	elif test "${TARGET}" = "jenkins3";
+	then
+		DPKG_PACKAGES="sudo";
 	else
-		DPKG_PACKAGES="";
-
-		if test "${TARGET}" = "jenkins3";
-		then
-			DPKG_PACKAGES="${DPKG_PACKAGES} sudo";
-
-		elif test ${TARGET} = "lint_and_type_check";
-		then
-			DPKG_PACKAGES="${DPKG_PACKAGES} mypy pylint python3-distutils";
-		fi
-		if test "${TARGET}" != "jenkins3";
-		then
-			DPKG_PACKAGES="${DPKG_PACKAGES} python3 ${DPKG_PYTHON3_DEPENDENCIES} ${DPKG_PYTHON3_TEST_DEPENDENCIES}";
-		fi
+		DPKG_PACKAGES="python3 ${DPKG_PYTHON3_DEPENDENCIES} ${DPKG_PYTHON3_TEST_DEPENDENCIES}";
 	fi
 	docker exec -e "DEBIAN_FRONTEND=noninteractive" ${CONTAINER_NAME} sh -c "apt-get install -y ${DPKG_PACKAGES}";
 
@@ -100,7 +85,7 @@ elif test ${TRAVIS_OS_NAME} = "osx";
 then
 	brew update;
 
-	# Brew will exit with 1 and print some diagnotisic information
+	# Brew will exit with 1 and print some diagnostic information
 	# to prevent the CI test from failing || true is added.
 	brew install tox || true;
 fi
