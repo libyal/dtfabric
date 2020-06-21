@@ -204,8 +204,10 @@ elements_terminator | integer | See note | element value that indicates the end-
 number_of_elements | integer or string | See note | Integer value or expression to determine the number of elements in the sequence
 
 ---
-**NOTE:** One of the elements attributes: "elements_data_size",
-"elements_terminator" or "number_of_elements" must be set.
+**NOTE:** At least one of the elements attributes: "elements_data_size",
+"elements_terminator" or "number_of_elements" must be set. As of version
+20200621 "elements_terminator" can be set in combination with
+"elements_data_size" or "number_of_elements".
 
 ---
 
@@ -233,8 +235,10 @@ elements_terminator | integer | See note | element value that indicates the end-
 number_of_elements | integer or string | See note | Integer value or expression to determine the number of elements in the stream
 
 ---
-**NOTE:** One of the elements attributes: "elements_data_size",
-"elements_terminator" or "number_of_elements" must be set.
+**NOTE:** At least one of the elements attributes: "elements_data_size",
+"elements_terminator" or "number_of_elements" must be set. As of version
+20200621 "elements_terminator" can be set in combination with
+"elements_data_size" or "number_of_elements".
 
 ---
 
@@ -272,8 +276,10 @@ elements_terminator | integer | See note | element value that indicates the end-
 number_of_elements | integer or string | See note | Integer value or expression to determine the number of elements in the string
 
 ---
-**NOTE:** One of the elements attributes: "elements_data_size",
-"elements_terminator" or "number_of_elements" must be set.
+**NOTE:** At least one of the elements attributes: "elements_data_size",
+"elements_terminator" or "number_of_elements" must be set. As of version
+20200621 "elements_terminator" can be set in combination with
+"elements_data_size" or "number_of_elements".
 
 ---
 

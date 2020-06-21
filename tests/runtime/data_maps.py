@@ -1040,6 +1040,17 @@ class StringMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.ByteStreamTooSmallError):
       data_type_map.MapByteStream(byte_stream[:7])
 
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'utf8_string_fixed_size')
+    data_type_map = data_maps.StringMap(data_type_definition)
+
+    byte_stream = 'dtFabric\x00and so.'.encode('utf8')
+    string_value = data_type_map.MapByteStream(byte_stream)
+    self.assertEqual(string_value, 'dtFabric')
+
+    with self.assertRaises(errors.ByteStreamTooSmallError):
+      data_type_map.MapByteStream(byte_stream[:15])
+
 
 class StructureMapTest(test_lib.BaseTestCase):
   """Structure map tests."""

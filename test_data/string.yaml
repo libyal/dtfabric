@@ -21,6 +21,14 @@ encoding: utf8
 element_data_type: char
 elements_terminator: "\x00"
 ---
+name: utf8_string_fixed_size
+type: string
+description: UTF-8 string
+encoding: utf8
+element_data_type: char
+elements_data_size: 16
+elements_terminator: "\x00"
+---
 name: utf16_string
 type: string
 description: UTF-16 string

@@ -385,10 +385,10 @@ class DataTypeDefinitionsReader(object):
           'elements')
       raise errors.DefinitionReaderError(definition_name, error_message)
 
-    if len(size_values) > 1:
+    if elements_data_size is not None and number_of_elements is not None:
       error_message = (
-          'element data size, elements terminator and number of elements '
-          'not allowed to be set at the same time')
+          'element data size and number of elements not allowed to be set '
+          'at the same time')
       raise errors.DefinitionReaderError(definition_name, error_message)
 
     element_data_type_definition = definitions_registry.GetDefinitionByName(
@@ -421,17 +421,17 @@ class DataTypeDefinitionsReader(object):
       except ValueError:
         definition_object.elements_data_size_expression = elements_data_size
 
-    elif elements_terminator is not None:
-      if isinstance(elements_terminator, str):
-        elements_terminator = elements_terminator.encode('ascii')
-
-      definition_object.elements_terminator = elements_terminator
-
     elif number_of_elements is not None:
       try:
         definition_object.number_of_elements = int(number_of_elements)
       except ValueError:
         definition_object.number_of_elements_expression = number_of_elements
+
+    if elements_terminator is not None:
+      if isinstance(elements_terminator, str):
+        elements_terminator = elements_terminator.encode('ascii')
+
+      definition_object.elements_terminator = elements_terminator
 
     return definition_object
 
