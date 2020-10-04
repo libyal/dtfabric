@@ -135,7 +135,6 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
 
     definition_values['attributes']['byte_order'] = 'big-endian'
 
-  @test_lib.skipUnlessHasTestFile(['definitions', 'integers.yaml'])
   def testReadElementSequenceDataTypeDefinition(self):
     """Tests the _ReadElementSequenceDataTypeDefinition function."""
     definition_values = {
@@ -442,7 +441,6 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.FormatDefinition)
 
-  @test_lib.skipUnlessHasTestFile(['definitions', 'integers.yaml'])
   def testReadMemberDataTypeDefinitionMember(self):
     """Tests the _ReadMemberDataTypeDefinitionMember function."""
     definition_values = {'name': 'x', 'data_type': 'int32'}
@@ -523,7 +521,6 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
 
     definition_values['attributes'] = None
 
-  @test_lib.skipUnlessHasTestFile(['definitions', 'integers.yaml'])
   def testReadSequenceDataTypeDefinition(self):
     """Tests the _ReadSequenceDataTypeDefinition function."""
     definition_values = {
@@ -574,7 +571,6 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
 
     definition_values['attributes']['byte_order'] = 'little-endian'
 
-  @test_lib.skipUnlessHasTestFile(['definitions', 'integers.yaml'])
   def testReadStreamDataTypeDefinition(self):
     """Tests the _ReadStreamDataTypeDefinition function."""
     definition_values = {
@@ -594,7 +590,6 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.StreamDefinition)
 
-  @test_lib.skipUnlessHasTestFile(['definitions', 'characters.yaml'])
   def testReadStringDataTypeDefinition(self):
     """Tests the _ReadStringDataTypeDefinition function."""
     definition_values = {
@@ -625,7 +620,6 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
 
     definition_values['encoding'] = 'ascii'
 
-  @test_lib.skipUnlessHasTestFile(['definitions', 'integers.yaml'])
   def testReadStructureDataTypeDefinition(self):
     """Tests the _ReadStructureDataTypeDefinition function."""
     definition_values = {
@@ -670,7 +664,6 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
 
   # TODO: add tests for _ReadStructureFamilyDataTypeDefinition
 
-  @test_lib.skipUnlessHasTestFile(['definitions', 'integers.yaml'])
   def testReadUnionDataTypeDefinition(self):
     """Tests the _ReadUnionDataTypeDefinition function."""
     definition_values = {
@@ -767,10 +760,10 @@ class DataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
       definitions_reader._ReadDefinition(
           definitions_registry, definition_values)
 
-  @test_lib.skipUnlessHasTestFile(['definitions', 'integers.yaml'])
   def testReadFile(self):
     """Tests the ReadFile function."""
     definitions_file = self._GetTestFilePath(['definitions', 'integers.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.DataTypeDefinitionsFileReader()
@@ -785,13 +778,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
   # TODO: add tests for _GetFormatErrorLocation
 
-  @test_lib.skipUnlessHasTestFile(['boolean.yaml'])
   def testReadFileObjectBoolean(self):
     """Tests the ReadFileObject function of a boolean data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['boolean.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -806,13 +800,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 1)
 
-  @test_lib.skipUnlessHasTestFile(['character.yaml'])
   def testReadFileObjectCharacter(self):
     """Tests the ReadFileObject function of a character data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['character.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -827,13 +822,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 1)
 
-  @test_lib.skipUnlessHasTestFile(['constant.yaml'])
   def testReadFileObjectConstant(self):
     """Tests the ReadFileObject function of a constant data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['constant.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -846,13 +842,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
         data_type_definition.name, 'maximum_number_of_back_traces')
     self.assertEqual(data_type_definition.value, 32)
 
-  @test_lib.skipUnlessHasTestFile(['enumeration.yaml'])
   def testReadFileObjectEnumeration(self):
     """Tests the ReadFileObject function of an enumeration data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['enumeration.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -868,13 +865,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
-  @test_lib.skipUnlessHasTestFile(['floating-point.yaml'])
   def testReadFileObjectFloatingPoint(self):
     """Tests the ReadFileObject function of a floating-point data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['floating-point.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1012,25 +1010,26 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.FormatError):
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
-  @test_lib.skipUnlessHasTestFile(['padding.yaml'])
   def testReadFileObjectPadding(self):
     """Tests the ReadFileObject function of a padding data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['padding.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       with self.assertRaises(errors.FormatError):
         definitions_reader.ReadFileObject(definitions_registry, file_object)
 
-  @test_lib.skipUnlessHasTestFile(['sequence.yaml'])
-  @test_lib.skipUnlessHasTestFile(['sequence_with_structure.yaml'])
   def testReadFileObjectSequence(self):
     """Tests the ReadFileObject function of a sequence data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['sequence.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1052,18 +1051,20 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['sequence_with_structure.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
 
     with self.assertRaises(errors.FormatError):
       with open(definitions_file, 'rb') as file_object:
         definitions_reader.ReadFileObject(definitions_registry, file_object)
 
-  @test_lib.skipUnlessHasTestFile(['stream.yaml'])
   def testReadFileObjectStream(self):
     """Tests the ReadFileObject function of a stream data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['stream.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1083,13 +1084,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 16)
 
-  @test_lib.skipUnlessHasTestFile(['string.yaml'])
   def testReadFileObjectString(self):
     """Tests the ReadFileObject function of a string data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['string.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1109,13 +1111,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
-  @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testReadFileObjectStructure(self):
     """Tests the ReadFileObject function of a structure data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['structure.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1141,13 +1144,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 12)
 
-  @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testReadFileObjectStructureWithSequence(self):
     """Tests the ReadFileObject function of a structure with a sequence."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['structure.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1170,13 +1174,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 432)
 
-  @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testReadFileObjectStructureWithSequenceWithExpression(self):
     """Tests the ReadFileObject function of a structure with a sequence."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['structure.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1199,13 +1204,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
-  @test_lib.skipUnlessHasTestFile(['structure_with_condition.yaml'])
   def testReadFileObjectStructureWithCondition(self):
     """Tests the ReadFileObject function of a structure with condition."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['structure_with_condition.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1221,13 +1227,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
-  @test_lib.skipUnlessHasTestFile(['structure_with_padding.yaml'])
   def testReadFileObjectStructureWithPadding(self):
     """Tests the ReadFileObject function of a structure with padding."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['structure_with_padding.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1250,13 +1257,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     # TODO: add test with composite structure with padding?
 
-  @test_lib.skipUnlessHasTestFile(['structure_with_section.yaml'])
   def testReadFileObjectStructureWithSection(self):
     """Tests the ReadFileObject function of a structure with section."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['structure_with_section.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1272,13 +1280,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 16)
 
-  @test_lib.skipUnlessHasTestFile(['structure_with_union.yaml'])
   def testReadFileObjectStructureWithUnion(self):
     """Tests the ReadFileObject function of a structure with an union."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['structure_with_union.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1298,13 +1307,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
 
-  @test_lib.skipUnlessHasTestFile(['structure_with_values.yaml'])
   def testReadFileObjectStructureWithValues(self):
     """Tests the ReadFileObject function of a structure with values."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['structure_with_values.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1330,13 +1340,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 8)
 
-  @test_lib.skipUnlessHasTestFile(['string_array.yaml'])
   def testReadFileObjectStructureWithStringArray(self):
     """Tests the ReadFileObject function of a string array."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['string_array.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1352,13 +1363,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)
 
-  @test_lib.skipUnlessHasTestFile(['structure_family.yaml'])
   def testReadFileObjectStructureFamily(self):
     """Tests the ReadFileObject function of a structure family data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['structure_family.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1383,13 +1395,14 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     # TODO: add test for member already part of a family.
 
-  @test_lib.skipUnlessHasTestFile(['union.yaml'])
   def testReadFileObjectUnion(self):
     """Tests the ReadFileObject function of an union data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['union.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
@@ -1411,24 +1424,26 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
 
-  @test_lib.skipUnlessHasTestFile(['union_with_condition.yaml'])
   def testReadFileObjectUnionWithCondition(self):
     """Tests the ReadFileObject function of an union with condition."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['union_with_condition.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with self.assertRaises(errors.FormatError):
       with open(definitions_file, 'rb') as file_object:
         definitions_reader.ReadFileObject(definitions_registry, file_object)
 
-  @test_lib.skipUnlessHasTestFile(['uuid.yaml'])
   def testReadFileObjectUUID(self):
     """Tests the ReadFileObject function of an UUID data type."""
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
 
     definitions_file = self._GetTestFilePath(['uuid.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
     with open(definitions_file, 'rb') as file_object:
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 

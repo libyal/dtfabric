@@ -198,7 +198,6 @@ class DataTypeDefinitionWithMembersTest(test_lib.BaseTestCase):
   # TODO: add tests for AddMemberDefinition
 
 
-@test_lib.skipUnlessHasTestFile(['structure.yaml'])
 class MemberDataTypeDefinitionTest(test_lib.BaseTestCase):
   """Member data type definition tests."""
 
@@ -274,7 +273,6 @@ class MemberSectionDefinitionTest(test_lib.BaseTestCase):
 class StructureDefinitionTest(test_lib.BaseTestCase):
   """Structure data type definition tests."""
 
-  @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
     data_type_definition = data_types.StructureDefinition(
@@ -329,7 +327,6 @@ class PaddingDefinitionTest(test_lib.BaseTestCase):
 class UnionDefinitionTest(test_lib.BaseTestCase):
   """Union data type definition tests."""
 
-  @test_lib.skipUnlessHasTestFile(['union.yaml'])
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
     data_type_definition = data_types.UnionDefinition(

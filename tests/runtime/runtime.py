@@ -15,7 +15,6 @@ class StructureValuesClassFactoryTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
-  @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testCreateClassTemplate(self):
     """Tests the _CreateClassTemplate function."""
     definitions_file = self._GetTestFilePath(['structure.yaml'])

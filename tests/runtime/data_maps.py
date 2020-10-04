@@ -48,7 +48,6 @@ class DataTypeMapContextTest(test_lib.BaseTestCase):
     self.assertIsNotNone(data_type_map_context)
 
 
-@test_lib.skipUnlessHasTestFile(['integer.yaml'])
 class DataTypeMapTest(test_lib.BaseTestCase):
   """Data type map tests."""
 
@@ -98,7 +97,6 @@ class DataTypeMapTest(test_lib.BaseTestCase):
     self.assertEqual(size_hint, 4)
 
 
-@test_lib.skipUnlessHasTestFile(['integer.yaml'])
 class StorageDataTypeMapTest(test_lib.BaseTestCase):
   """Storage data type map tests."""
 
@@ -150,7 +148,6 @@ class StorageDataTypeMapTest(test_lib.BaseTestCase):
     self.assertIsNone(format_string)
 
 
-@test_lib.skipUnlessHasTestFile(['integer.yaml'])
 class PrimitiveDataTypeMapTest(test_lib.BaseTestCase):
   """Primitive data type map tests."""
 
@@ -203,7 +200,6 @@ class PrimitiveDataTypeMapTest(test_lib.BaseTestCase):
     self.assertEqual(integer_value, 1)
 
 
-@test_lib.skipUnlessHasTestFile(['definitions', 'booleans.yaml'])
 class BooleanMapTest(test_lib.BaseTestCase):
   """Boolean map tests."""
 
@@ -333,14 +329,12 @@ class BooleanMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\x01\x00')
 
 
-@test_lib.skipUnlessHasTestFile(['definitions', 'characters.yaml'])
 class CharacterMapTest(test_lib.BaseTestCase):
   """Character map tests."""
 
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
-    definitions_file = self._GetTestFilePath([
-        'definitions', 'characters.yaml'])
+    definitions_file = self._GetTestFilePath(['definitions', 'characters.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
 
@@ -361,8 +355,7 @@ class CharacterMapTest(test_lib.BaseTestCase):
 
   def testFoldByteStream(self):
     """Tests the FoldByteStream function."""
-    definitions_file = self._GetTestFilePath([
-        'definitions', 'characters.yaml'])
+    definitions_file = self._GetTestFilePath(['definitions', 'characters.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
 
@@ -389,8 +382,7 @@ class CharacterMapTest(test_lib.BaseTestCase):
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
-    definitions_file = self._GetTestFilePath([
-        'definitions', 'characters.yaml'])
+    definitions_file = self._GetTestFilePath(['definitions', 'characters.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
 
@@ -419,7 +411,6 @@ class CharacterMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\xb6\x24')
 
 
-@test_lib.skipUnlessHasTestFile(['definitions', 'floating-points.yaml'])
 class FloatingPointMapTest(test_lib.BaseTestCase):
   """Floating-point map tests."""
 
@@ -492,7 +483,6 @@ class IntegerMapTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
-  @test_lib.skipUnlessHasTestFile(['integer.yaml'])
   def testGetByteStreamOperation(self):
     """Tests the _GetByteStreamOperation function."""
     definitions_file = self._GetTestFilePath(['integer.yaml'])
@@ -504,7 +494,6 @@ class IntegerMapTest(test_lib.BaseTestCase):
     map_operation = data_type_map._GetByteStreamOperation()
     self.assertIsInstance(map_operation, byte_operations.StructOperation)
 
-  @test_lib.skipUnlessHasTestFile(['definitions', 'integers.yaml'])
   def testGetStructFormatString(self):
     """Tests the GetStructFormatString function."""
     definitions_file = self._GetTestFilePath(['definitions', 'integers.yaml'])
@@ -592,7 +581,6 @@ class IntegerMapTest(test_lib.BaseTestCase):
     byte_stream = data_type_map.FoldByteStream(0xf0debc9a78563412)
     self.assertEqual(byte_stream, b'\x12\x34\x56\x78\x9a\xbc\xde\xf0')
 
-  @test_lib.skipUnlessHasTestFile(['definitions', 'integers.yaml'])
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
     definitions_file = self._GetTestFilePath(['definitions', 'integers.yaml'])
@@ -639,7 +627,6 @@ class IntegerMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\x12\x34\x56\x78')
 
 
-@test_lib.skipUnlessHasTestFile(['uuid.yaml'])
 class UUIDMapTest(test_lib.BaseTestCase):
   """UUID map tests."""
 
@@ -675,7 +662,6 @@ class UUIDMapTest(test_lib.BaseTestCase):
     self.assertEqual(uuid_value, expected_uuid_value)
 
 
-@test_lib.skipUnlessHasTestFile(['sequence.yaml'])
 class ElementSequenceDataTypeMapTest(test_lib.BaseTestCase):
   """Element sequence data type map tests."""
 
@@ -686,8 +672,8 @@ class ElementSequenceDataTypeMapTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath(['sequence.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
 
+    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
     data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
@@ -700,8 +686,8 @@ class ElementSequenceDataTypeMapTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath(['sequence.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
 
+    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
     data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
 
     element_data_type_definition = data_type_map._GetElementDataTypeDefinition(
@@ -733,7 +719,6 @@ class ElementSequenceDataTypeMapTest(test_lib.BaseTestCase):
     self.assertEqual(byte_order_string, '<')
 
 
-@test_lib.skipUnlessHasTestFile(['sequence.yaml'])
 class SequenceMapTest(test_lib.BaseTestCase):
   """Sequence map tests."""
 
@@ -744,8 +729,8 @@ class SequenceMapTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath(['sequence.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
 
+    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
     data_type_map = data_maps.SequenceMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
@@ -756,9 +741,9 @@ class SequenceMapTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath(['sequence.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
+
     data_type_definition = definitions_registry.GetDefinitionByName(
         'triangle4')
-
     data_type_map = data_maps.SequenceMap(data_type_definition)
 
     byte_values = []
@@ -783,8 +768,8 @@ class SequenceMapTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath(['sequence.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
 
+    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
     data_type_map = data_maps.SequenceMap(data_type_definition)
 
     byte_stream = data_type_map._LinearFoldByteStream((1, 2, 3, 4))
@@ -797,8 +782,8 @@ class SequenceMapTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath(['sequence.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
 
+    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
     data_type_map = data_maps.SequenceMap(data_type_definition)
 
     sequence_value = data_type_map._LinearMapByteStream(
@@ -816,8 +801,8 @@ class SequenceMapTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath(['sequence.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
 
+    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
     data_type_map = data_maps.SequenceMap(data_type_definition)
 
     byte_stream = data_type_map.FoldByteStream((1, 2, 3, 4))
@@ -853,8 +838,8 @@ class SequenceMapTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath(['sequence.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
 
+    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
     data_type_map = data_maps.SequenceMap(data_type_definition)
 
     sequence_value = data_type_map.MapByteStream(
@@ -862,7 +847,6 @@ class SequenceMapTest(test_lib.BaseTestCase):
     self.assertEqual(sequence_value, (1, 2, 3, 4))
 
 
-@test_lib.skipUnlessHasTestFile(['stream.yaml'])
 class StreamMapTest(test_lib.BaseTestCase):
   """Stream map tests."""
 
@@ -873,9 +857,9 @@ class StreamMapTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath(['stream.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
+
     data_type_definition = definitions_registry.GetDefinitionByName(
         'utf16le_stream')
-
     data_type_map = data_maps.StreamMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
@@ -887,7 +871,6 @@ class StreamMapTest(test_lib.BaseTestCase):
 
     data_type_definition = definitions_registry.GetDefinitionByName(
         'utf16le_stream')
-
     data_type_map = data_maps.StreamMap(data_type_definition)
 
     expected_byte_stream = b'd\x00t\x00F\x00a\x00b\x00r\x00i\x00c\x00'
@@ -951,9 +934,9 @@ class StreamMapTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath(['stream.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
+
     data_type_definition = definitions_registry.GetDefinitionByName(
         'utf16le_stream')
-
     data_type_map = data_maps.StreamMap(data_type_definition)
 
     byte_stream = 'dtFabric'.encode('utf-16-le')
@@ -967,7 +950,6 @@ class StreamMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(b'\x12\x34\x56')
 
 
-@test_lib.skipUnlessHasTestFile(['string.yaml'])
 class StringMapTest(test_lib.BaseTestCase):
   """String map tests."""
 
@@ -1057,7 +1039,6 @@ class StructureMapTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
-  @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testInitialize(self):
     """Tests the __init__ function."""
     definitions_file = self._GetTestFilePath(['structure.yaml'])
@@ -1068,7 +1049,6 @@ class StructureMapTest(test_lib.BaseTestCase):
     data_type_map = data_maps.StructureMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
-  @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testCheckCompositeMap(self):
     """Tests the _CheckCompositeMap function."""
     definitions_file = self._GetTestFilePath(['structure.yaml'])
@@ -1111,14 +1091,13 @@ class StructureMapTest(test_lib.BaseTestCase):
   # TODO: add tests for _CompositeFoldByteStream.
   # TODO: add tests for _CompositeMapByteStream.
 
-  @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testGetAttributeNames(self):
     """Tests the _GetAttributeNames function."""
     definitions_file = self._GetTestFilePath(['structure.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName('point3d')
 
+    data_type_definition = definitions_registry.GetDefinitionByName('point3d')
     data_type_map = data_maps.StructureMap(data_type_definition)
     attribute_names = data_type_map._GetAttributeNames(data_type_definition)
     self.assertEqual(attribute_names, ['x', 'y', 'z'])
@@ -1126,14 +1105,13 @@ class StructureMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.FormatError):
       data_type_map._GetAttributeNames(None)
 
-  @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testGetMemberDataTypeMaps(self):
     """Tests the _GetMemberDataTypeMaps function."""
     definitions_file = self._GetTestFilePath(['structure.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
-    data_type_definition = definitions_registry.GetDefinitionByName('point3d')
 
+    data_type_definition = definitions_registry.GetDefinitionByName('point3d')
     data_type_map = data_maps.StructureMap(data_type_definition)
 
     members_data_type_maps = data_type_map._GetMemberDataTypeMaps(
@@ -1147,7 +1125,6 @@ class StructureMapTest(test_lib.BaseTestCase):
       data_type_definition = EmptyDataTypeDefinition('empty')
       data_type_map._GetMemberDataTypeMaps(data_type_definition, {})
 
-  @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testLinearFoldByteStream(self):
     """Tests the _LinearFoldByteStream function."""
     definitions_file = self._GetTestFilePath(['structure.yaml'])
@@ -1168,7 +1145,6 @@ class StructureMapTest(test_lib.BaseTestCase):
     byte_stream = data_type_map._LinearFoldByteStream(point3d)
     self.assertEqual(byte_stream, expected_byte_stream)
 
-  @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testLinearMapByteStream(self):
     """Tests the _LinearMapByteStream function."""
     definitions_file = self._GetTestFilePath(['structure.yaml'])
@@ -1230,7 +1206,6 @@ class StructureMapTest(test_lib.BaseTestCase):
     struct_format_string = data_type_map.GetStructFormatString()
     self.assertIsNone(struct_format_string)
 
-  @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
     definitions_file = self._GetTestFilePath(['structure.yaml'])
@@ -1261,7 +1236,6 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertEqual(point3d.y, 0x02000000)
     self.assertEqual(point3d.z, 0x03000000)
 
-  @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testMapByteStreamWithSequence(self):
     """Tests the MapByteStream function with a sequence."""
     definitions_file = self._GetTestFilePath(['structure.yaml'])
@@ -1283,7 +1257,6 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertEqual(box.triangles[0].a.y, 2)
     self.assertEqual(box.triangles[0].a.z, 3)
 
-  @test_lib.skipUnlessHasTestFile(['structure_with_condition.yaml'])
   def testMapByteStreamWithSequenceWithCondition(self):
     """Tests the MapByteStream function with a sequence with condition."""
     definitions_file = self._GetTestFilePath(['structure_with_condition.yaml'])
@@ -1326,7 +1299,6 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertIsNone(structure_with_condition.conditional_data2)
     self.assertEqual(structure_with_condition.data3, 4)
 
-  @test_lib.skipUnlessHasTestFile(['structure_with_values.yaml'])
   def testMapByteStreamWithSequenceWithValues(self):
     """Tests the MapByteStream function with a sequence with values."""
     definitions_file = self._GetTestFilePath(['structure_with_values.yaml'])
@@ -1368,7 +1340,6 @@ class StructureMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(byte_stream)
 
-  @test_lib.skipUnlessHasTestFile(['structure.yaml'])
   def testMapByteStreamWithSequenceWithExpression(self):
     """Tests the MapByteStream function with a sequence with expression."""
     definitions_file = self._GetTestFilePath(['structure.yaml'])
@@ -1421,7 +1392,6 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertEqual(sphere.triangles[2].c.y, 26)
     self.assertEqual(sphere.triangles[2].c.z, 27)
 
-  @test_lib.skipUnlessHasTestFile(['structure_with_padding.yaml'])
   def testMapByteStreamWithPadding(self):
     """Tests the MapByteStream function with padding."""
     definitions_file = self._GetTestFilePath(['structure_with_padding.yaml'])
@@ -1454,7 +1424,6 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertEqual(structure.data, b'\x02')
     self.assertEqual(structure.padding, b'\x03\x04\x05\x06\x07')
 
-  @test_lib.skipUnlessHasTestFile(['structure_with_sequence.yaml'])
   def testMapByteStreamWithSequenceWithExpression2(self):
     """Tests the MapByteStream function with a sequence with expression."""
     definitions_file = self._GetTestFilePath(['structure_with_sequence.yaml'])
@@ -1485,7 +1454,6 @@ class StructureMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(byte_stream)
 
-  @test_lib.skipUnlessHasTestFile(['structure_with_stream.yaml'])
   def testMapByteStreamWithStream(self):
     """Tests the MapByteStream function with a stream."""
     definitions_file = self._GetTestFilePath(['structure_with_stream.yaml'])
@@ -1515,7 +1483,6 @@ class StructureMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(byte_stream)
 
-  @test_lib.skipUnlessHasTestFile(['structure_with_string.yaml'])
   def testMapByteStreamWithString(self):
     """Tests the MapByteStream function with a string."""
     definitions_file = self._GetTestFilePath(['structure_with_string.yaml'])
@@ -1539,7 +1506,6 @@ class StructureMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(byte_stream)
 
-  @test_lib.skipUnlessHasTestFile(['string_array.yaml'])
   def testMapByteStreamWithStringArray(self):
     """Tests the MapByteStream function with a string array."""
     definitions_file = self._GetTestFilePath(['string_array.yaml'])
@@ -1592,7 +1558,6 @@ class StructureMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.ByteStreamTooSmallError):
       data_type_map.MapByteStream(byte_stream)
 
-  @test_lib.skipUnlessHasTestFile(['structure_with_string.yaml'])
   def testGetSizeHint(self):
     """Tests the GetSizeHint function with a string."""
     definitions_file = self._GetTestFilePath(['structure_with_string.yaml'])
@@ -1642,7 +1607,6 @@ class PaddingMapTest(test_lib.BaseTestCase):
     self.assertEqual(padding_value, b'\x11\x22\x33')
 
 
-@test_lib.skipUnlessHasTestFile(['constant.yaml'])
 class SemanticDataTypeMapTest(test_lib.BaseTestCase):
   """Semantic data type map tests."""
 
@@ -1677,7 +1641,6 @@ class ConstantMapTest(test_lib.BaseTestCase):
   """Constant map tests."""
 
 
-@test_lib.skipUnlessHasTestFile(['enumeration.yaml'])
 class EnumerationMapTest(test_lib.BaseTestCase):
   """Enumeration map tests."""
 
@@ -1699,7 +1662,6 @@ class EnumerationMapTest(test_lib.BaseTestCase):
     self.assertIsNone(name)
 
 
-@test_lib.skipUnlessHasTestFile(['integer.yaml'])
 class DataTypeMapFactoryTest(test_lib.BaseTestCase):
   """Data type map factory tests."""
 
