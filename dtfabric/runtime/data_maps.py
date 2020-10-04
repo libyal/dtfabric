@@ -2041,12 +2041,14 @@ class DataTypeMapFactory(object):
       DataTypeMap: data type map or None if the date type definition
           is not available.
     """
-    data_type_definition = self._definitions_registry.GetDefinitionByName(
-        definition_name)
-    if not data_type_definition:
-      return None
+    data_type_map = None
 
-    return DataTypeMapFactory.CreateDataTypeMapByType(data_type_definition)
+    data_type_definition = self.GetDataTypeDefinition(definition_name)
+    if data_type_definition:
+      data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
+          data_type_definition)
+
+    return data_type_map
 
   @classmethod
   def CreateDataTypeMapByType(cls, data_type_definition):
@@ -2065,3 +2067,15 @@ class DataTypeMapFactory(object):
       return None
 
     return data_type_map_class(data_type_definition)
+
+  def GetDataTypeDefinition(self, definition_name):
+    """Retrieves a specific data type defintion by name.
+
+    Args:
+      definition_name (str): name of the data type definition.
+
+    Returns:
+      DataTypeDefinition: data type definition or None if the date type
+          definition is not available.
+    """
+    return self._definitions_registry.GetDefinitionByName(definition_name)

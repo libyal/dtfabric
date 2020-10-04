@@ -1701,6 +1701,26 @@ class DataTypeMapFactoryTest(test_lib.BaseTestCase):
         data_type_definition)
     self.assertIsNone(data_type_map)
 
+  def testGetDataTypeDefinition(self):
+    """Tests the GetDataTypeDefinition function."""
+    definitions_file = self._GetTestFilePath(['integer.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = EmptyDataTypeDefinition('empty')
+    definitions_registry.RegisterDefinition(data_type_definition)
+
+    factory = data_maps.DataTypeMapFactory(definitions_registry)
+
+    data_type_definition = factory.GetDataTypeDefinition('int32le')
+    self.assertIsNotNone(data_type_definition)
+
+    data_type_definition = factory.GetDataTypeDefinition('empty')
+    self.assertIsNotNone(data_type_definition)
+
+    data_type_definition = factory.GetDataTypeDefinition('bogus')
+    self.assertIsNone(data_type_definition)
+
 
 if __name__ == '__main__':
   unittest.main()

@@ -17,7 +17,7 @@ class DataTypeFabric(data_maps.DataTypeMapFactory):
     """Initializes a data type fabric.
 
     Args:
-      yaml_definition (str): YAML formatted data type definitions.
+      yaml_definition (bytes): UTF-8 and YAML formatted data type definitions.
     """
     definitions_registry = registry.DataTypeDefinitionsRegistry()
 
