@@ -2069,7 +2069,7 @@ class DataTypeMapFactory(object):
     return data_type_map_class(data_type_definition)
 
   def GetDataTypeDefinition(self, definition_name):
-    """Retrieves a specific data type defintion by name.
+    """Retrieves a specific data type definition by name.
 
     Args:
       definition_name (str): name of the data type definition.
