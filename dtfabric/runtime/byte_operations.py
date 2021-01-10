@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Byte stream operations."""
 
-from __future__ import unicode_literals
-
 import abc
 import struct
 

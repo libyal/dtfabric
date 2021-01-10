@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for the run-time object."""
 
-from __future__ import unicode_literals
-
 import unittest
 
 from dtfabric.runtime import runtime

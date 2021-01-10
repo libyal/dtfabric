@@ -3,8 +3,6 @@
 # pylint: disable=invalid-name
 """Script to validate dtFabric format definitions."""
 
-from __future__ import print_function
-from __future__ import unicode_literals
 import argparse
 import glob
 import logging

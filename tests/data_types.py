@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for the data type definitions."""
 
-from __future__ import unicode_literals
-
 import unittest
 
 from dtfabric import data_types

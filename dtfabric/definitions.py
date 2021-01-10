@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 """Definitions."""
 
-from __future__ import unicode_literals
-
-
 BYTE_ORDER_BIG_ENDIAN = 'big-endian'
 BYTE_ORDER_LITTLE_ENDIAN = 'little-endian'
 BYTE_ORDER_MIDDLE_ENDIAN = 'middle-endian'

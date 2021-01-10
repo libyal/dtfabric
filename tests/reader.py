@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for the data type definitions readers."""
 
-from __future__ import unicode_literals
-
 import io
 import unittest
 

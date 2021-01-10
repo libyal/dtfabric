@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for the byte stream operations."""
 
-from __future__ import unicode_literals
-
 import unittest
 
 from dtfabric import errors

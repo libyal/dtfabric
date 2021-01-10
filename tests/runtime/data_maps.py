@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for the data type maps."""
 
-from __future__ import unicode_literals
-
 import unittest
 import uuid
 

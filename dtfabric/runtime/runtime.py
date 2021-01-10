@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Run-time objects."""
 
-from __future__ import unicode_literals
-
 try:
   import __builtin__ as builtins
 except ImportError:

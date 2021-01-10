@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Data type definitions."""
 
-from __future__ import unicode_literals
-
 import abc
 import typing
 

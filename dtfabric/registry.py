@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """The data type definitions registry."""
 
-from __future__ import unicode_literals
-
 import typing
 
 from typing import Dict, List, Union  # pylint: disable=unused-import
