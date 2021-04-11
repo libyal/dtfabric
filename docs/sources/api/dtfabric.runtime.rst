@@ -36,7 +36,6 @@ dtfabric.runtime.runtime module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 
