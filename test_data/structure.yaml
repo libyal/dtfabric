@@ -43,6 +43,8 @@ members:
 ---
 name: sphere3d
 type: structure
+attributes:
+  byte_order: little-endian
 description: Sphere in 3 dimensional space.
 members:
 - name: number_of_triangles

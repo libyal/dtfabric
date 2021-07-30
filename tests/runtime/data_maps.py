@@ -744,12 +744,10 @@ class SequenceMapTest(test_lib.BaseTestCase):
         'triangle4')
     data_type_map = data_maps.SequenceMap(data_type_definition)
 
-    byte_values = []
-    for value in range(1, 13):
-      byte_value_upper, byte_value_lower = divmod(value, 256)
-      byte_values.extend([byte_value_lower, byte_value_upper, 0, 0])
+    byte_values = [
+        value.to_bytes(4, byteorder='little') for value in range(1, 13)]
 
-    byte_stream = bytes(bytearray(byte_values))
+    byte_stream = b''.join(byte_values)
 
     sequence_value = data_type_map._CompositeMapByteStream(byte_stream)
     self.assertEqual(
@@ -1132,14 +1130,13 @@ class StructureMapTest(test_lib.BaseTestCase):
     data_type_definition = definitions_registry.GetDefinitionByName('point3d')
     data_type_map = data_maps.StructureMap(data_type_definition)
 
-    byte_values = []
-    for value in range(1, 4):
-      byte_value_upper, byte_value_lower = divmod(value, 256)
-      byte_values.extend([byte_value_lower, byte_value_upper, 0, 0])
+    expected_byte_values = [
+        value.to_bytes(4, byteorder='little') for value in range(1, 4)]
+
+    expected_byte_stream = b''.join(expected_byte_values)
 
     point3d = data_type_map.CreateStructureValues(x=1, y=2, z=3)
 
-    expected_byte_stream = bytes(bytearray(byte_values))
     byte_stream = data_type_map._LinearFoldByteStream(point3d)
     self.assertEqual(byte_stream, expected_byte_stream)
 
@@ -1152,12 +1149,10 @@ class StructureMapTest(test_lib.BaseTestCase):
     data_type_definition = definitions_registry.GetDefinitionByName('point3d')
     data_type_map = data_maps.StructureMap(data_type_definition)
 
-    byte_values = []
-    for value in range(1, 4):
-      byte_value_upper, byte_value_lower = divmod(value, 256)
-      byte_values.extend([byte_value_lower, byte_value_upper, 0, 0])
+    byte_values = [
+        value.to_bytes(4, byteorder='little') for value in range(1, 4)]
 
-    byte_stream = bytes(bytearray(byte_values))
+    byte_stream = b''.join(byte_values)
 
     point3d = data_type_map._LinearMapByteStream(byte_stream)
     self.assertEqual(point3d.x, 1)
@@ -1213,12 +1208,10 @@ class StructureMapTest(test_lib.BaseTestCase):
     data_type_definition = definitions_registry.GetDefinitionByName('point3d')
     data_type_map = data_maps.StructureMap(data_type_definition)
 
-    byte_values = []
-    for value in range(1, 4):
-      byte_value_upper, byte_value_lower = divmod(value, 256)
-      byte_values.extend([byte_value_lower, byte_value_upper, 0, 0])
+    byte_values = [
+        value.to_bytes(4, byteorder='little') for value in range(1, 4)]
 
-    byte_stream = bytes(bytearray(byte_values))
+    byte_stream = b''.join(byte_values)
 
     point3d = data_type_map.MapByteStream(byte_stream)
     self.assertEqual(point3d.x, 1)
@@ -1243,12 +1236,10 @@ class StructureMapTest(test_lib.BaseTestCase):
     data_type_definition = definitions_registry.GetDefinitionByName('box3d')
     data_type_map = data_maps.StructureMap(data_type_definition)
 
-    byte_values = []
-    for value in range(1, 433):
-      byte_value_upper, byte_value_lower = divmod(value, 256)
-      byte_values.extend([byte_value_lower, byte_value_upper, 0, 0])
+    byte_values = [
+        value.to_bytes(4, byteorder='little') for value in range(1, 433)]
 
-    byte_stream = bytes(bytearray(byte_values))
+    byte_stream = b''.join(byte_values)
 
     box = data_type_map.MapByteStream(byte_stream)
     self.assertEqual(box.triangles[0].a.x, 1)
@@ -1265,12 +1256,11 @@ class StructureMapTest(test_lib.BaseTestCase):
         'structure_with_condition')
     data_type_map = data_maps.StructureMap(data_type_definition)
 
-    byte_values = [0x01, 0x80]
-    for value in range(1, 6):
-      byte_value_upper, byte_value_lower = divmod(value, 256)
-      byte_values.extend([byte_value_lower, byte_value_upper, 0, 0])
+    byte_values = [0x8001.to_bytes(2, byteorder='little')]
+    byte_values.extend([
+        value.to_bytes(4, byteorder='little') for value in range(1, 6)])
 
-    byte_stream = bytes(bytearray(byte_values))
+    byte_stream = b''.join(byte_values)
 
     structure_with_condition = data_type_map.MapByteStream(byte_stream)
     self.assertEqual(structure_with_condition.flags, 0x8001)
@@ -1281,12 +1271,11 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertEqual(structure_with_condition.conditional_data2, 4)
     self.assertEqual(structure_with_condition.data3, 5)
 
-    byte_values = [0x01, 0x00]
-    for value in range(1, 6):
-      byte_value_upper, byte_value_lower = divmod(value, 256)
-      byte_values.extend([byte_value_lower, byte_value_upper, 0, 0])
+    byte_values = [0x0001.to_bytes(2, byteorder='little')]
+    byte_values.extend([
+        value.to_bytes(4, byteorder='little') for value in range(1, 6)])
 
-    byte_stream = bytes(bytearray(byte_values))
+    byte_stream = b''.join(byte_values)
 
     structure_with_condition = data_type_map.MapByteStream(byte_stream)
     self.assertEqual(structure_with_condition.flags, 0x0001)
@@ -1347,12 +1336,12 @@ class StructureMapTest(test_lib.BaseTestCase):
     data_type_definition = definitions_registry.GetDefinitionByName('sphere3d')
     data_type_map = data_maps.StructureMap(data_type_definition)
 
-    byte_values = [3, 0, 0, 0]
-    for value in range(1, 113):
-      byte_value_upper, byte_value_lower = divmod(value, 256)
-      byte_values.extend([byte_value_lower, byte_value_upper, 0, 0])
+    # Note that 3.to_bytes() is not supported as syntax.
+    byte_values = [0x3.to_bytes(4, byteorder='little')]
+    byte_values.extend([
+        value.to_bytes(4, byteorder='little') for value in range(1, 113)])
 
-    byte_stream = bytes(bytearray(byte_values))
+    byte_stream = b''.join(byte_values)
 
     sphere = data_type_map.MapByteStream(byte_stream)
     self.assertEqual(sphere.number_of_triangles, 3)

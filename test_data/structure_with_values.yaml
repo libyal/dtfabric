@@ -29,6 +29,8 @@ members:
 ---
 name: structure_with_values
 type: structure
+attributes:
+  byte_order: little-endian
 members:
 - name: format_version
   data_type: uint32
