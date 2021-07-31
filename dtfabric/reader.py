@@ -29,6 +29,8 @@ class DataTypeDefinitionsReader(object):
       definitions.TYPE_INDICATOR_STRUCTURE: '_ReadStructureDataTypeDefinition',
       definitions.TYPE_INDICATOR_STRUCTURE_FAMILY: (
           '_ReadStructureFamilyDataTypeDefinition'),
+      definitions.TYPE_INDICATOR_STRUCTURE_GROUP: (
+          '_ReadStructureGroupDataTypeDefinition'),
       definitions.TYPE_INDICATOR_UNION: '_ReadUnionDataTypeDefinition',
       definitions.TYPE_INDICATOR_UUID: '_ReadUUIDDataTypeDefinition',
   }
@@ -79,7 +81,11 @@ class DataTypeDefinitionsReader(object):
       'encoding']).union(_SUPPORTED_DEFINITION_VALUES_ELEMENTS_MEMBER_DATA_TYPE)
 
   _SUPPORTED_DEFINITION_VALUES_STRUCTURE_FAMILY = set([
-      'members', 'runtime']).union(_SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
+      'base', 'members']).union(_SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
+
+  _SUPPORTED_DEFINITION_VALUES_STRUCTURE_GROUP = set([
+      'base', 'identifier', 'members']).union(
+          _SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
 
   _SUPPORTED_ATTRIBUTES_STORAGE_DATA_TYPE = set([
       'byte_order'])
@@ -200,16 +206,16 @@ class DataTypeDefinitionsReader(object):
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
-    aliases = definition_values.get('aliases', None)
-    description = definition_values.get('description', None)
-    urls = definition_values.get('urls', None)
-
     unsupported_definition_values = set(definition_values.keys()).difference(
         supported_definition_values)
     if unsupported_definition_values:
       error_message = 'unsupported definition values: {0:s}'.format(
           ', '.join(unsupported_definition_values))
       raise errors.DefinitionReaderError(definition_name, error_message)
+
+    aliases = definition_values.get('aliases', None)
+    description = definition_values.get('description', None)
+    urls = definition_values.get('urls', None)
 
     return data_type_definition_class(
         definition_name, aliases=aliases, description=description, urls=urls)
@@ -272,7 +278,12 @@ class DataTypeDefinitionsReader(object):
         member_data_type_definition = self._ReadMemberDataTypeDefinitionMember(
             definitions_registry, member, definition_object.name,
             supports_conditions=supports_conditions)
-        definition_object.AddMemberDefinition(member_data_type_definition)
+
+        try:
+          definition_object.AddMemberDefinition(member_data_type_definition)
+        except KeyError as exception:
+          error_message = '{0!s}'.format(exception)
+          raise errors.DefinitionReaderError(definition_name, error_message)
 
     return definition_object
 
@@ -1030,27 +1041,30 @@ class DataTypeDefinitionsReader(object):
       error_message = 'data type not supported as member'
       raise errors.DefinitionReaderError(definition_name, error_message)
 
-    definition_object = self._ReadLayoutDataTypeDefinition(
-        definitions_registry, definition_values,
-        data_types.StructureFamilyDefinition, definition_name,
+    unsupported_definition_values = set(definition_values.keys()).difference(
         self._SUPPORTED_DEFINITION_VALUES_STRUCTURE_FAMILY)
-
-    runtime = definition_values.get('runtime', None)
-    if not runtime:
-      error_message = 'missing runtime'
+    if unsupported_definition_values:
+      error_message = 'unsupported definition values: {0:s}'.format(
+          ', '.join(unsupported_definition_values))
       raise errors.DefinitionReaderError(definition_name, error_message)
 
-    runtime_data_type_definition = definitions_registry.GetDefinitionByName(
-        runtime)
-    if not runtime_data_type_definition:
-      error_message = 'undefined runtime: {0:s}.'.format(runtime)
+    base = definition_values.get('base', None)
+    if not base:
+      error_message = 'missing base'
       raise errors.DefinitionReaderError(definition_name, error_message)
 
-    if runtime_data_type_definition.family_definition:
-      error_message = 'runtime: {0:s} already part of a family.'.format(runtime)
+    base_data_type_definition = definitions_registry.GetDefinitionByName(base)
+    if not base_data_type_definition:
+      error_message = 'undefined base: {0:s}.'.format(base)
       raise errors.DefinitionReaderError(definition_name, error_message)
 
-    definition_object.AddRuntimeDefinition(runtime_data_type_definition)
+    aliases = definition_values.get('aliases', None)
+    description = definition_values.get('description', None)
+    urls = definition_values.get('urls', None)
+
+    definition_object = data_types.StructureFamilyDefinition(
+        definition_name, base_data_type_definition, aliases=aliases,
+        description=description, urls=urls)
 
     members = definition_values.get('members', None)
     if not members:
@@ -1064,11 +1078,94 @@ class DataTypeDefinitionsReader(object):
         error_message = 'undefined member: {0:s}.'.format(member)
         raise errors.DefinitionReaderError(definition_name, error_message)
 
-      if member_data_type_definition.family_definition:
-        error_message = 'member: {0:s} already part of a family.'.format(member)
+      try:
+        definition_object.AddMemberDefinition(member_data_type_definition)
+      except KeyError as exception:
+        error_message = '{0!s}'.format(exception)
         raise errors.DefinitionReaderError(definition_name, error_message)
 
-      definition_object.AddMemberDefinition(member_data_type_definition)
+    return definition_object
+
+  def _ReadStructureGroupDataTypeDefinition(
+      self, definitions_registry, definition_values, definition_name,
+      is_member=False):
+    """Reads a structure group data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
+
+    Returns:
+      StructureDefinition: structure data type definition.
+
+    Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
+    """
+    if is_member:
+      error_message = 'data type not supported as member'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    unsupported_definition_values = set(definition_values.keys()).difference(
+        self._SUPPORTED_DEFINITION_VALUES_STRUCTURE_GROUP)
+    if unsupported_definition_values:
+      error_message = 'unsupported definition values: {0:s}'.format(
+          ', '.join(unsupported_definition_values))
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    base = definition_values.get('base', None)
+    if not base:
+      error_message = 'missing base'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    base_data_type_definition = definitions_registry.GetDefinitionByName(base)
+    if not base_data_type_definition:
+      error_message = 'undefined base: {0:s}.'.format(base)
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    identifier = definition_values.get('identifier', None)
+    if not identifier:
+      error_message = 'missing identifier'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    aliases = definition_values.get('aliases', None)
+    description = definition_values.get('description', None)
+    urls = definition_values.get('urls', None)
+
+    definition_object = data_types.StructureGroupDefinition(
+        definition_name, base_data_type_definition, identifier,
+        aliases=aliases, description=description, urls=urls)
+
+    members = definition_values.get('members', None)
+    if not members:
+      error_message = 'missing members'
+      raise errors.DefinitionReaderError(definition_name, error_message)
+
+    for member in members:
+      member_data_type_definition = definitions_registry.GetDefinitionByName(
+          member)
+      if not member_data_type_definition:
+        error_message = 'undefined member: {0:s}.'.format(member)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      member_names = [
+          structure_member.name
+          for structure_member in member_data_type_definition.members]
+
+      if definition_object.identifier not in member_names:
+        error_message = 'member: {0:s} has no identifier: {1:s}.'.format(
+            member, definition_object.identifier)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      try:
+        definition_object.AddMemberDefinition(member_data_type_definition)
+      except KeyError as exception:
+        error_message = '{0!s}'.format(exception)
+        raise errors.DefinitionReaderError(definition_name, error_message)
 
     return definition_object
 

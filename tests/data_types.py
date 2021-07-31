@@ -193,7 +193,52 @@ class StringDefinitionTest(test_lib.BaseTestCase):
 class DataTypeDefinitionWithMembersTest(test_lib.BaseTestCase):
   """Data type definition with members tests."""
 
-  # TODO: add tests for AddMemberDefinition
+  def testAddMemberDefinition(self):
+    """Tests the AddMemberDefinition function."""
+    data_type_definition = data_types.DataTypeDefinitionWithMembers(
+        'my_type_with_member', aliases=['MY_TYPE_WITH_MEMBERS'],
+        description='my type with members')
+
+    definitions_file = self._GetTestFilePath(['structure.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    member_definition = definitions_registry.GetDefinitionByName('int32')
+
+    structure_member_definition = data_types.MemberDataTypeDefinition(
+        'my_struct_member', member_definition, aliases=['MY_STRUCT_MEMBER'],
+        data_type='int32', description='my structure member')
+
+    data_type_definition.AddMemberDefinition(structure_member_definition)
+
+    with self.assertRaises(KeyError):
+      data_type_definition.AddMemberDefinition(structure_member_definition)
+
+  # TODO: add tests for AddSectionDefinition
+
+  def testGetMemberDefinitionByName(self):
+    """Tests the GetMemberDefinitionByName function."""
+    data_type_definition = data_types.DataTypeDefinitionWithMembers(
+        'my_type_with_member', aliases=['MY_TYPE_WITH_MEMBERS'],
+        description='my type with members')
+
+    definitions_file = self._GetTestFilePath(['structure.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+    member_definition = definitions_registry.GetDefinitionByName('int32')
+
+    structure_member_definition = data_types.MemberDataTypeDefinition(
+        'my_struct_member', member_definition, aliases=['MY_STRUCT_MEMBER'],
+        data_type='int32', description='my structure member')
+
+    data_type_definition.AddMemberDefinition(structure_member_definition)
+
+    test_member_definition = data_type_definition.GetMemberDefinitionByName(
+        'my_struct_member')
+    self.assertIsNotNone(test_member_definition)
+
+    test_member_definition = data_type_definition.GetMemberDefinitionByName(
+        'bogus')
+    self.assertIsNone(test_member_definition)
 
 
 class MemberDataTypeDefinitionTest(test_lib.BaseTestCase):
@@ -456,12 +501,59 @@ class StructureFamilyDefinitionTest(test_lib.BaseTestCase):
 
   def testInitialize(self):
     """Tests the __init__ function."""
+    base_definition = data_types.StructureDefinition(
+        'base', description='my base structure type')
+
     data_type_definition = data_types.StructureFamilyDefinition(
-        'family', description='structure family')
+        'family', base_definition, description='structure family')
     self.assertIsNotNone(data_type_definition)
 
-  # TODO: add tests for AddMemberDefinition
-  # TODO: add tests for AddRuntimeDefinition
+  def testAddMemberDefinition(self):
+    """Tests the AddMemberDefinition function."""
+    base_definition = data_types.StructureDefinition(
+        'base', description='my base structure type')
+
+    data_type_definition = data_types.StructureFamilyDefinition(
+        'family', base_definition, description='structure family')
+    self.assertIsNotNone(data_type_definition)
+
+    group_member_definition = data_types.StructureDefinition(
+        'member', description='my member structure type')
+
+    data_type_definition.AddMemberDefinition(group_member_definition)
+
+    with self.assertRaises(KeyError):
+      data_type_definition.AddMemberDefinition(group_member_definition)
+
+
+class StructureGroupDefinitionTest(test_lib.BaseTestCase):
+  """Structure group definition tests."""
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    base_definition = data_types.StructureDefinition(
+        'base', description='my base structure type')
+
+    data_type_definition = data_types.StructureGroupDefinition(
+        'group', base_definition, 'identifier', description='structure group')
+    self.assertIsNotNone(data_type_definition)
+
+  def testAddMemberDefinition(self):
+    """Tests the AddMemberDefinition function."""
+    base_definition = data_types.StructureDefinition(
+        'base', description='my base structure type')
+
+    data_type_definition = data_types.StructureGroupDefinition(
+        'group', base_definition, 'identifier', description='structure group')
+    self.assertIsNotNone(data_type_definition)
+
+    group_member_definition = data_types.StructureDefinition(
+        'member', description='my member structure type')
+
+    data_type_definition.AddMemberDefinition(group_member_definition)
+
+    with self.assertRaises(KeyError):
+      data_type_definition.AddMemberDefinition(group_member_definition)
 
 
 if __name__ == '__main__':

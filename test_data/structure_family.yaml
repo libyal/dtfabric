@@ -100,7 +100,7 @@ members:
 - name: reserved1
   data_type: uint32
 ---
-name: group_descriptor_runtime
+name: group_descriptor_base
 type: structure
 description: Group descriptor
 members:
@@ -130,7 +130,7 @@ members:
 name: group_descriptor
 type: structure-family
 description: Group descriptor
-runtime: group_descriptor_runtime
+base: group_descriptor_base
 members:
 - group_descriptor_ext2
 - group_descriptor_ext4

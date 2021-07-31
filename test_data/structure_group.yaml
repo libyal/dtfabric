@@ -1,0 +1,91 @@
+name: char
+type: integer
+attributes:
+  format: signed
+  size: 1
+  units: bytes
+---
+name: uint8
+type: integer
+attributes:
+  format: unsigned
+  size: 1
+  units: bytes
+---
+name: uint16
+type: integer
+attributes:
+  format: unsigned
+  size: 2
+  units: bytes
+---
+name: uint32
+type: integer
+attributes:
+  format: unsigned
+  size: 4
+  units: bytes
+---
+name: uint64
+type: integer
+attributes:
+  format: unsigned
+  size: 8
+  units: bytes
+---
+name: bsm_token_arg32
+type: structure
+attributes:
+  byte_order: big-endian
+members:
+- name: token_type
+  data_type: uint8
+  value: 0x2d
+- name: argument_index
+  data_type: uint8
+- name: argument_name
+  data_type: uint32
+- name: argument_value_size
+  data_type: uint16
+- name: argument_value
+  type: string
+  encoding: ascii
+  element_data_type: char
+  elements_data_size: bsm_token_data_arg32.argument_value_size
+---
+name: bsm_token_arg64
+type: structure
+attributes:
+  byte_order: big-endian
+members:
+- name: token_type
+  data_type: uint8
+  value: 0x71
+- name: argument_index
+  data_type: uint8
+- name: argument_name
+  data_type: uint64
+- name: argument_value_size
+  data_type: uint16
+- name: argument_value
+  type: string
+  encoding: ascii
+  element_data_type: char
+  elements_data_size: bsm_token_data_arg64.argument_value_size
+---
+name: bsm_token_base
+type: structure
+attributes:
+  byte_order: big-endian
+members:
+- name: token_type
+  data_type: uint8
+---
+name: bsm_token
+type: structure-group
+description: BSM token
+base: bsm_token_base
+identifier: token_type
+members:
+- bsm_token_arg32
+- bsm_token_arg64

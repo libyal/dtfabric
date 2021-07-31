@@ -2,6 +2,7 @@
 """Data type definitions."""
 
 import abc
+import collections
 import typing
 
 from typing import Dict, List, Optional, Union  # pylint: disable=unused-import
@@ -426,8 +427,14 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
     super(DataTypeDefinitionWithMembers, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
     self._byte_size: 'Union[int, None]' = None
-    self.members: 'List[DataTypeDefinition]' = []
+    self._members_by_name: 'OrderedDict[str, DataTypeDefinition]' = (
+        collections.OrderedDict())
     self.sections: 'List[MemberSectionDefinition]' = []
+
+  @property
+  def members(self) -> 'List[DataTypeDefinition]':
+    """members (list[DataTypeDefinition]): member data type definitions."""
+    return list(self._members_by_name.values())
 
   def AddMemberDefinition(
       self, member_definition: 'DataTypeDefinition') -> 'None':
@@ -435,9 +442,16 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
 
     Args:
       member_definition (DataTypeDefinition): member data type definition.
+
+    Raises:
+      KeyError: if a member with the name already exists.
     """
+    if member_definition.name in self._members_by_name:
+      raise KeyError('Member: {0:s} already set.'.format(
+          member_definition.name))
+
     self._byte_size = None
-    self.members.append(member_definition)
+    self._members_by_name[member_definition.name] = member_definition
 
     if self.sections:
       section_definition = self.sections[-1]
@@ -459,6 +473,18 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
+
+  def GetMemberDefinitionByName(
+      self, name: 'str') -> 'Union[int, DataTypeDefinition]':
+    """Retrieve a specific member definition.
+
+    Args:
+      name (str): name of the member definition.
+
+    Returns:
+      DataTypeDefinition: member data type definition or None if not available.
+    """
+    return self._members_by_name.get(name, None)
 
 
 class MemberDataTypeDefinition(StorageDataTypeDefinition):
@@ -546,30 +572,9 @@ class MemberSectionDefinition(object):
 
 
 class StructureDefinition(DataTypeDefinitionWithMembers):
-  """Structure data type definition.
-
-  Attributes:
-    family_definition (DataTypeDefinition): structure family data type
-        definition.
-  """
+  """Structure data type definition."""
 
   TYPE_INDICATOR: 'Union[str, None]' = definitions.TYPE_INDICATOR_STRUCTURE
-
-  def __init__(
-      self, name: 'str', aliases: 'Optional[List[str]]' = None,
-      description: 'Optional[str]' = None,
-      urls: 'Optional[List[str]]' = None) -> 'None':
-    """Initializes a data type definition.
-
-    Args:
-      name (str): name.
-      aliases (Optional[list[str]]): aliases.
-      description (Optional[str]): description.
-      urls (Optional[list[str]]): URLs.
-    """
-    super(StructureDefinition, self).__init__(
-        name, aliases=aliases, description=description, urls=urls)
-    self.family_definition: 'Union[DataTypeDefinition, None]' = None
 
   def GetByteSize(self) -> 'Union[int, None]':
     """Retrieves the byte size of the data type definition.
@@ -577,9 +582,9 @@ class StructureDefinition(DataTypeDefinitionWithMembers):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if self._byte_size is None and self.members:
+    if self._byte_size is None and self._members_by_name:
       self._byte_size = 0
-      for member_definition in self.members:
+      for member_definition in self._members_by_name.values():
         if (not isinstance(member_definition, PaddingDefinition) or
             not member_definition.alignment_size):
           byte_size = member_definition.GetByteSize()
@@ -609,9 +614,9 @@ class UnionDefinition(DataTypeDefinitionWithMembers):
     Returns:
       int: data type size in bytes or None if size cannot be determined.
     """
-    if self._byte_size is None and self.members:
+    if self._byte_size is None and self._members_by_name:
       self._byte_size = 0
-      for member_definition in self.members:
+      for member_definition in self._members_by_name.values():
         byte_size = member_definition.GetByteSize()
         if byte_size is None:
           self._byte_size = None
@@ -814,29 +819,37 @@ class StructureFamilyDefinition(LayoutDataTypeDefinition):
   """Structure family definition.
 
   Attributes:
+    base (DataTypeDefinition): base data type definition.
     members (list[DataTypeDefinition]): member data type definitions.
-    runtime (DataTypeDefinition): runtime data type definition.
   """
 
   TYPE_INDICATOR: 'Union[str, None]' = (
       definitions.TYPE_INDICATOR_STRUCTURE_FAMILY)
 
   def __init__(
-      self, name: 'str', aliases: 'Optional[List[str]]' = None,
+      self, name: 'str', base_definition: 'StructureDefinition',
+      aliases: 'Optional[List[str]]' = None,
       description: 'Optional[str]' = None,
       urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes a structure family data type definition.
 
     Args:
       name (str): name.
+      base_definition (StructureDefinition): base data type definition.
       aliases (Optional[list[str]]): aliases.
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
     super(StructureFamilyDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
-    self.members: 'List[DataTypeDefinition]' = []
-    self.runtime: 'Union[DataTypeDefinition, None]' = None
+    self._members_by_name: 'OrderedDict[str, DataTypeDefinition]' = (
+        collections.OrderedDict())
+    self.base: 'Union[DataTypeDefinition, None]' = base_definition
+
+  @property
+  def members(self) -> 'List[DataTypeDefinition]':
+    """members (list[DataTypeDefinition]): member data type definitions."""
+    return list(self._members_by_name.values())
 
   def AddMemberDefinition(
       self, member_definition: 'StructureDefinition') -> 'None':
@@ -844,16 +857,79 @@ class StructureFamilyDefinition(LayoutDataTypeDefinition):
 
     Args:
       member_definition (StructureDefinition): member data type definition.
-    """
-    self.members.append(member_definition)
-    member_definition.family_definition = self
 
-  def AddRuntimeDefinition(
-      self, runtime_definition: 'StructureDefinition') -> 'None':
-    """Adds a runtime definition.
+    Raises:
+      KeyError: if a member with the name already exists.
+    """
+    if member_definition.name in self._members_by_name:
+      raise KeyError('Member: {0:s} already set.'.format(
+          member_definition.name))
+
+    self._members_by_name[member_definition.name] = member_definition
+
+  def SetBaseDefinition(
+      self, base_definition: 'StructureDefinition') -> 'None':
+    """Sets a base definition.
 
     Args:
-      runtime_definition (StructureDefinition): runtime data type definition.
+      base_definition (StructureDefinition): base data type definition.
     """
-    self.runtime = runtime_definition
-    runtime_definition.family_definition = self
+    self.base = base_definition
+
+
+class StructureGroupDefinition(LayoutDataTypeDefinition):
+  """Structure group definition.
+
+  Attributes:
+    base (DataTypeDefinition): base data type definition.
+    identifier (str): name of the base structure member to identify the group
+        members.
+    members (list[DataTypeDefinition]): member data type definitions.
+  """
+
+  TYPE_INDICATOR: 'Union[str, None]' = (
+      definitions.TYPE_INDICATOR_STRUCTURE_GROUP)
+
+  def __init__(
+      self, name: 'str', base_definition: 'StructureDefinition',
+      identifier: 'str', aliases: 'Optional[List[str]]' = None,
+      description: 'Optional[str]' = None,
+      urls: 'Optional[List[str]]' = None) -> 'None':
+    """Initializes a structure group data type definition.
+
+    Args:
+      name (str): name.
+      base_definition (StructureDefinition): base data type definition.
+      identifier (str): name of the base structure member to identify the group
+          members.
+      aliases (Optional[list[str]]): aliases.
+      description (Optional[str]): description.
+      urls (Optional[list[str]]): URLs.
+    """
+    super(StructureGroupDefinition, self).__init__(
+        name, aliases=aliases, description=description, urls=urls)
+    self._members_by_name: 'OrderedDict[str, DataTypeDefinition]' = (
+        collections.OrderedDict())
+    self.base: 'Union[DataTypeDefinition, None]' = base_definition
+    self.identifier: 'Union[str, None]' = identifier
+
+  @property
+  def members(self) -> 'List[DataTypeDefinition]':
+    """members (list[DataTypeDefinition]): member data type definitions."""
+    return list(self._members_by_name.values())
+
+  def AddMemberDefinition(
+      self, member_definition: 'StructureDefinition') -> 'None':
+    """Adds a member definition.
+
+    Args:
+      member_definition (StructureDefinition): member data type definition.
+
+    Raises:
+      KeyError: if a member with the name already exists.
+    """
+    if member_definition.name in self._members_by_name:
+      raise KeyError('Member: {0:s} already set.'.format(
+          member_definition.name))
+
+    self._members_by_name[member_definition.name] = member_definition

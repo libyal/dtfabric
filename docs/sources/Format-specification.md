@@ -500,10 +500,34 @@ A structure family is a layout type to represent multiple generations
 
 ```yaml
 name: group_descriptor
-type: type-family
+type: structure-family
 description: Group descriptor of Extended File System version 2, 3 and 4
-runtime: group_descriptor_runtime
+base: group_descriptor_base
 members:
 - group_descriptor_ext2
 - group_descriptor_ext4
 ```
+
+The structure members defined in the base structure are exposed at runtime.
+
+**TODO:** define behavior if a structure family member does not define a
+structure member defined in the base structure.
+
+### Structure group
+
+A structure group is a layout type to represent a group structures that share
+a common trait.
+
+```yaml
+name: bsm_token
+type: structure-group
+description: BSM token group
+base: bsm_token_base
+identifier: token_type
+members:
+- bsm_token_arg32
+- bsm_token_arg64
+```
+
+The structure group members are required to define the identifier structure
+member with its values specific to the group member.

@@ -661,6 +661,7 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
           definitions_registry, definition_values, 'point3d')
 
   # TODO: add tests for _ReadStructureFamilyDataTypeDefinition
+  # TODO: add tests for _ReadStructureGroupDataTypeDefinition
 
   def testReadUnionDataTypeDefinition(self):
     """Tests the _ReadUnionDataTypeDefinition function."""
@@ -1391,7 +1392,36 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     # TODO: determine the size of the largest family member.
     self.assertIsNone(byte_size)
 
-    # TODO: add test for member already part of a family.
+  def testReadFileObjectStructureGroup(self):
+    """Tests the ReadFileObject function of a structure group data type."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath(['structure_group.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
+    with open(definitions_file, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    self.assertEqual(len(definitions_registry._definitions), 9)
+
+    data_type_definition = definitions_registry.GetDefinitionByName('bsm_token')
+    self.assertIsInstance(
+        data_type_definition, data_types.StructureGroupDefinition)
+    self.assertEqual(data_type_definition.name, 'bsm_token')
+    self.assertEqual(data_type_definition.description, 'BSM token')
+
+    base_definition = data_type_definition.base
+    self.assertIsInstance(base_definition, data_types.StructureDefinition)
+    self.assertEqual(base_definition.name, 'bsm_token_base')
+
+    self.assertEqual(data_type_definition.identifier, 'token_type')
+
+    self.assertEqual(len(data_type_definition.members), 2)
+
+    member_definition = data_type_definition.members[0]
+    self.assertIsInstance(member_definition, data_types.StructureDefinition)
+    self.assertEqual(member_definition.name, 'bsm_token_arg32')
 
   def testReadFileObjectUnion(self):
     """Tests the ReadFileObject function of an union data type."""

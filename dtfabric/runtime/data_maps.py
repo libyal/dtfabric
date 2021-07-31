@@ -60,10 +60,6 @@ class DataTypeMapSizeHint(object):
 class DataTypeMap(object):
   """Data type map."""
 
-  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
-  # methods.
-  # pylint: disable=redundant-returns-doc
-
   def __init__(self, data_type_definition):
     """Initializes a data type map.
 
@@ -134,10 +130,6 @@ class DataTypeMap(object):
 
 class StorageDataTypeMap(DataTypeMap):
   """Storage data type map."""
-
-  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
-  # methods.
-  # pylint: disable=redundant-returns-doc
 
   _BYTE_ORDER_STRINGS = {
       definitions.BYTE_ORDER_BIG_ENDIAN: '>',
@@ -613,10 +605,6 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
 
   # pylint: disable=arguments-differ
 
-  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
-  # methods.
-  # pylint: disable=redundant-returns-doc
-
   def __init__(self, data_type_definition):
     """Initializes a sequence data type map.
 
@@ -860,10 +848,6 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
 
 class SequenceMap(ElementSequenceDataTypeMap):
   """Sequence data type map."""
-
-  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
-  # methods.
-  # pylint: disable=redundant-returns-doc
 
   def __init__(self, data_type_definition):
     """Initializes a sequence data type map.
@@ -1148,10 +1132,6 @@ class StreamMap(ElementSequenceDataTypeMap):
   """Stream data type map."""
 
   # pylint: disable=arguments-differ
-
-  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
-  # methods.
-  # pylint: disable=redundant-returns-doc
 
   def __init__(self, data_type_definition):
     """Initializes a stream data type map.
@@ -1462,10 +1442,6 @@ class StructureMap(StorageDataTypeMap):
 
   # pylint: disable=arguments-differ
 
-  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
-  # methods.
-  # pylint: disable=redundant-returns-doc
-
   def __init__(self, data_type_definition):
     """Initializes a structure data type map.
 
@@ -1473,18 +1449,18 @@ class StructureMap(StorageDataTypeMap):
       data_type_definition (DataTypeDefinition): data type definition.
     """
     super(StructureMap, self).__init__(data_type_definition)
-    self._attribute_names = self._GetAttributeNames(data_type_definition)
-    self._data_type_map_cache = {}
-    self._data_type_maps = self._GetMemberDataTypeMaps(
-        data_type_definition, self._data_type_map_cache)
+    self._attribute_names = None
+    self._data_type_maps = None
     self._fold_byte_stream = None
     self._format_string = None
     self._map_byte_stream = None
-    self._number_of_attributes = len(self._attribute_names)
+    self._number_of_attributes = None
     self._operation = None
     self._structure_values_class = (
         runtime.StructureValuesClassFactory.CreateClass(
             data_type_definition))
+
+    self._GetMemberDataTypeMaps(data_type_definition)
 
     if self._CheckCompositeMap(data_type_definition):
       self._fold_byte_stream = self._CompositeFoldByteStream
@@ -1685,37 +1661,11 @@ class StructureMap(StorageDataTypeMap):
 
     return mapped_values
 
-  def _GetAttributeNames(self, data_type_definition):
-    """Determines the attribute (or field) names of the members.
-
-    Args:
-      data_type_definition (DataTypeDefinition): data type definition.
-
-    Returns:
-      list[str]: attribute names.
-
-    Raises:
-      FormatError: if the attribute names cannot be determined from the data
-          type definition.
-    """
-    if not data_type_definition:
-      raise errors.FormatError('Missing data type definition')
-
-    attribute_names = []
-    for member_definition in data_type_definition.members:
-      attribute_names.append(member_definition.name)
-
-    return attribute_names
-
-  def _GetMemberDataTypeMaps(self, data_type_definition, data_type_map_cache):
+  def _GetMemberDataTypeMaps(self, data_type_definition):
     """Retrieves the member data type maps.
 
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
-      data_type_map_cache (dict[str, DataTypeMap]): cached data type maps.
-
-    Returns:
-      list[DataTypeMap]: member data type maps.
 
     Raises:
       FormatError: if the data type maps cannot be determined from the data
@@ -1728,10 +1678,15 @@ class StructureMap(StorageDataTypeMap):
     if not members:
       raise errors.FormatError('Invalid data type definition missing members')
 
-    data_type_maps = []
+    self._attribute_names = []
+    self._data_type_maps = []
+    self._number_of_attributes = 0
 
+    data_type_map_cache = {}
     members_data_size = 0
     for member_definition in members:
+      member_name = member_definition.name
+
       if isinstance(member_definition, data_types.MemberDataTypeDefinition):
         member_definition = member_definition.member_data_type_definition
 
@@ -1766,9 +1721,9 @@ class StructureMap(StorageDataTypeMap):
         else:
           members_data_size += byte_size
 
-      data_type_maps.append(data_type_map)
-
-    return data_type_maps
+      self._attribute_names.append(member_name)
+      self._data_type_maps.append(data_type_map)
+      self._number_of_attributes += 1
 
   def _LinearFoldByteStream(self, mapped_value, **unused_kwargs):
     """Folds the data type into a byte stream.
@@ -2000,10 +1955,178 @@ class EnumerationMap(SemanticDataTypeMap):
     return value.name
 
 
+class LayoutDataTypeMap(DataTypeMap):
+  """Layout data type map."""
+
+  def FoldByteStream(self, mapped_value, **unused_kwargs):  # pylint: disable=redundant-returns-doc
+    """Folds the data type into a byte stream.
+
+    Args:
+      mapped_value (object): mapped value.
+
+    Returns:
+      bytes: byte stream.
+
+    Raises:
+      FoldingError: if the data type definition cannot be folded into
+          the byte stream.
+    """
+    raise errors.FoldingError(
+        'Unable to fold {0:s} data type into byte stream'.format(
+            self._data_type_definition.TYPE_INDICATOR))
+
+  @abc.abstractmethod
+  def MapByteStream(self, byte_stream, **unused_kwargs):
+    """Maps the data type on a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+
+    Returns:
+      object: mapped value.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+
+
+class StructureGroupMap(LayoutDataTypeMap):
+  """Structure group data type map."""
+
+  def __init__(self, data_type_definition):
+    """Initializes a data type map.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Raises:
+      FormatError: if the data type map cannot be determined from the data
+          type definition.
+    """
+    super(StructureGroupMap, self).__init__(data_type_definition)
+    self._base_data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
+        data_type_definition.base)
+    self._data_type_maps = None
+
+    self._GetMemberDataTypeMaps(data_type_definition)
+
+  def _GetMemberDataTypeMaps(self, data_type_definition):
+    """Retrieves the member data type maps.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Raises:
+      FormatError: if the data type maps cannot be determined from the data
+          type definition.
+    """
+    if not data_type_definition:
+      raise errors.FormatError('Missing data type definition')
+
+    members = getattr(data_type_definition, 'members', None)
+    if not members:
+      raise errors.FormatError('Invalid data type definition missing members')
+
+    self._data_type_maps = {}
+
+    for group_member_definition in members:
+      struct_member_definition = (
+          group_member_definition.GetMemberDefinitionByName(
+              data_type_definition.identifier))
+
+      if not struct_member_definition:
+        raise errors.FormatError('No such member: {0:s} of: {1:s}'.format(
+            data_type_definition.identifier, group_member_definition.name))
+
+      if not struct_member_definition.values:
+        raise errors.FormatError(
+            'No values defined for member: {0:s} of: {1:s}'.format(
+                data_type_definition.identifier, group_member_definition.name))
+
+      for value in struct_member_definition.values:
+        if value in self._data_type_maps:
+          raise errors.FormatError(
+              'Duplicate value: {0!s} for member: {1:s} of: {2:s}'.format(
+                  value, data_type_definition.identifier,
+                  group_member_definition.name))
+
+        data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
+            group_member_definition)
+        self._data_type_maps[value] = data_type_map
+
+  def GetByteSize(self):  # pylint: disable=redundant-returns-doc
+    """Retrieves the byte size of the data type map.
+
+    Returns:
+      int: data type size in bytes or None if size cannot be determined.
+    """
+    return None
+
+  def GetSizeHint(self, context=None, **kwargs):  # pylint: disable=arguments-differ
+    """Retrieves a hint about the size.
+
+    Args:
+      context (Optional[DataTypeMapContext]): data type map context, used to
+          determine the size hint.
+
+    Returns:
+      int: hint of the number of bytes needed from the byte stream or None.
+    """
+    context_state = getattr(context, 'state', {})
+
+    member_identifier = context_state.get('member_identifier', None)
+
+    member_data_type_map = self._data_type_maps.get(member_identifier, None)
+    if not member_data_type_map:
+      return self._base_data_type_map.GetSizeHint(context=context, **kwargs)
+
+    return member_data_type_map.GetSizeHint(context=context, **kwargs)
+
+  def MapByteStream(self, byte_stream, context=None, **kwargs):  # pylint: disable=arguments-differ
+    """Maps the data type on a byte stream.
+
+    Args:
+      byte_stream (bytes): byte stream.
+      context (Optional[DataTypeMapContext]): data type map context.
+
+    Returns:
+      object: mapped value.
+
+    Raises:
+      MappingError: if the data type definition cannot be mapped on
+          the byte stream.
+    """
+    context_state = getattr(context, 'state', {})
+
+    member_identifier = context_state.get('member_identifier', None)
+    if member_identifier is None:
+      mapped_base_value = self._base_data_type_map.MapByteStream(
+          byte_stream, context=context, **kwargs)
+
+      member_identifier = getattr(
+          mapped_base_value, self._data_type_definition.identifier, None)
+      if member_identifier is None:
+        raise errors.MappingError('Unable to determine value of {0:s}'.format(
+            self._data_type_definition.identifier))
+
+      context_state['member_identifier'] = member_identifier
+
+    member_data_type_map = self._data_type_maps.get(member_identifier, None)
+    if member_data_type_map is None:
+      raise errors.MappingError(
+          'Missing member data type map for {0:s}: {1!s}'.format(
+              self._data_type_definition.identifier, member_identifier))
+
+    return member_data_type_map.MapByteStream(
+        byte_stream, context=context, **kwargs)
+
+
 class DataTypeMapFactory(object):
   """Factory for data type maps."""
 
   # TODO: add support for definitions.TYPE_INDICATOR_FORMAT
+  # TODO: add support for definitions.TYPE_INDICATOR_STRUCTURE_FAMILY
 
   _MAP_PER_DEFINITION = {
       definitions.TYPE_INDICATOR_BOOLEAN: BooleanMap,
@@ -2017,6 +2140,7 @@ class DataTypeMapFactory(object):
       definitions.TYPE_INDICATOR_STREAM: StreamMap,
       definitions.TYPE_INDICATOR_STRING: StringMap,
       definitions.TYPE_INDICATOR_STRUCTURE: StructureMap,
+      definitions.TYPE_INDICATOR_STRUCTURE_GROUP: StructureGroupMap,
       definitions.TYPE_INDICATOR_UUID: UUIDMap}
 
   def __init__(self, definitions_registry):

@@ -1087,20 +1087,6 @@ class StructureMapTest(test_lib.BaseTestCase):
   # TODO: add tests for _CompositeFoldByteStream.
   # TODO: add tests for _CompositeMapByteStream.
 
-  def testGetAttributeNames(self):
-    """Tests the _GetAttributeNames function."""
-    definitions_file = self._GetTestFilePath(['structure.yaml'])
-    definitions_registry = self._CreateDefinitionRegistryFromFile(
-        definitions_file)
-
-    data_type_definition = definitions_registry.GetDefinitionByName('point3d')
-    data_type_map = data_maps.StructureMap(data_type_definition)
-    attribute_names = data_type_map._GetAttributeNames(data_type_definition)
-    self.assertEqual(attribute_names, ['x', 'y', 'z'])
-
-    with self.assertRaises(errors.FormatError):
-      data_type_map._GetAttributeNames(None)
-
   def testGetMemberDataTypeMaps(self):
     """Tests the _GetMemberDataTypeMaps function."""
     definitions_file = self._GetTestFilePath(['structure.yaml'])
@@ -1110,16 +1096,21 @@ class StructureMapTest(test_lib.BaseTestCase):
     data_type_definition = definitions_registry.GetDefinitionByName('point3d')
     data_type_map = data_maps.StructureMap(data_type_definition)
 
-    members_data_type_maps = data_type_map._GetMemberDataTypeMaps(
-        data_type_definition, {})
-    self.assertIsNotNone(members_data_type_maps)
+    data_type_map._attribute_names = None
+    data_type_map._data_type_maps = None
+    data_type_map._number_of_attributes = None
+
+    data_type_map._GetMemberDataTypeMaps(data_type_definition)
+    self.assertIsNotNone(data_type_map._data_type_maps)
+    self.assertEqual(data_type_map._number_of_attributes, 3)
+    self.assertEqual(data_type_map._attribute_names, ['x', 'y', 'z'])
 
     with self.assertRaises(errors.FormatError):
-      data_type_map._GetMemberDataTypeMaps(None, {})
+      data_type_map._GetMemberDataTypeMaps(None)
 
     with self.assertRaises(errors.FormatError):
       data_type_definition = EmptyDataTypeDefinition('empty')
-      data_type_map._GetMemberDataTypeMaps(data_type_definition, {})
+      data_type_map._GetMemberDataTypeMaps(data_type_definition)
 
   def testLinearFoldByteStream(self):
     """Tests the _LinearFoldByteStream function."""
@@ -1647,6 +1638,104 @@ class EnumerationMapTest(test_lib.BaseTestCase):
 
     name = data_type_map.GetName(-1)
     self.assertIsNone(name)
+
+
+class LayoutDataTypeMapTest(test_lib.BaseTestCase):
+  """Layout data type map tests."""
+
+  def testFoldByteStream(self):
+    """Tests the FoldByteStream function."""
+    definitions_file = self._GetTestFilePath(['structure_group.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'bsm_token')
+    data_type_map = data_maps.LayoutDataTypeMap(data_type_definition)
+
+    with self.assertRaises(errors.FoldingError):
+      data_type_map.FoldByteStream(None)
+
+
+# TODO: add tests for StructureFamilyMap
+
+
+class StructureGroupMapTest(test_lib.BaseTestCase):
+  """Structure group data type map tests."""
+
+  # pylint: disable=protected-access
+
+  def testGetMemberDataTypeMaps(self):
+    """Tests the _GetMemberDataTypeMaps function."""
+    definitions_file = self._GetTestFilePath(['structure_group.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'bsm_token')
+    data_type_map = data_maps.StructureGroupMap(data_type_definition)
+
+    data_type_map._data_type_maps = None
+
+    data_type_map._GetMemberDataTypeMaps(data_type_definition)
+    self.assertIsNotNone(data_type_map._data_type_maps)
+
+    with self.assertRaises(errors.FormatError):
+      data_type_map._GetMemberDataTypeMaps(None)
+
+    with self.assertRaises(errors.FormatError):
+      data_type_definition = EmptyDataTypeDefinition('empty')
+      data_type_map._GetMemberDataTypeMaps(data_type_definition)
+
+    # TODO: Test group member without identifier member.
+
+    # Test group member without identifier value.
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'bsm_token')
+
+    test_definition1 = definitions_registry.GetDefinitionByName(
+        'bsm_token_arg32')
+    self.assertIsNotNone(test_definition1)
+
+    test_definition2 = test_definition1.GetMemberDefinitionByName(
+        data_type_definition.identifier)
+    self.assertIsNotNone(test_definition2)
+
+    test_definition2.values = None
+
+    data_type_map._data_type_maps = None
+
+    with self.assertRaises(errors.FormatError):
+      data_type_map._GetMemberDataTypeMaps(data_type_definition)
+
+  def testGetByteSize(self):
+    """Tests the GetByteSize function."""
+    definitions_file = self._GetTestFilePath(['structure_group.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'bsm_token')
+    data_type_map = data_maps.StructureGroupMap(data_type_definition)
+
+    byte_size = data_type_map.GetByteSize()
+    self.assertIsNone(byte_size)
+
+  # TODO: add tests for GetSizeHint.
+
+  def testMapByteStream(self):
+    """Tests the MapByteStream function."""
+    definitions_file = self._GetTestFilePath(['structure_group.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'bsm_token')
+    data_type_map = data_maps.StructureGroupMap(data_type_definition)
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\x01\x00\x00\x00')
+
 
 
 class DataTypeMapFactoryTest(test_lib.BaseTestCase):
