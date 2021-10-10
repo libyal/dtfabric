@@ -2,6 +2,7 @@
 """Data type maps."""
 
 import abc
+import ast
 import copy
 import uuid
 
@@ -618,6 +619,20 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
     self._element_data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
         element_data_type_definition)
     self._element_data_type_definition = element_data_type_definition
+    self._elements_data_size_expression = None
+    self._number_of_elements_expression = None
+
+    if data_type_definition.elements_data_size_expression:
+      expression_ast = ast.parse(
+          data_type_definition.elements_data_size_expression, mode='eval')
+      self._elements_data_size_expression = compile(
+          expression_ast, '<string>', mode='eval')
+
+    if data_type_definition.number_of_elements_expression:
+      expression_ast = ast.parse(
+          data_type_definition.number_of_elements_expression, mode='eval')
+      self._number_of_elements_expression = compile(
+          expression_ast, '<string>', mode='eval')
 
   def _CalculateElementsDataSize(self, context):
     """Calculates the elements data size.
@@ -658,8 +673,8 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
     if self._data_type_definition.elements_data_size:
       elements_data_size = self._data_type_definition.elements_data_size
 
-    elif self._data_type_definition.elements_data_size_expression:
-      expression = self._data_type_definition.elements_data_size_expression
+    elif self._elements_data_size_expression:
+      expression = self._elements_data_size_expression
       namespace = {}
       if context and context.values:
         namespace.update(context.values)
@@ -695,8 +710,8 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
     if self._data_type_definition.number_of_elements:
       number_of_elements = self._data_type_definition.number_of_elements
 
-    elif self._data_type_definition.number_of_elements_expression:
-      expression = self._data_type_definition.number_of_elements_expression
+    elif self._number_of_elements_expression:
+      expression = self._number_of_elements_expression
       namespace = {}
       if context and context.values:
         namespace.update(context.values)
@@ -1592,6 +1607,7 @@ class StructureMap(StorageDataTypeMap):
       data_type_map = self._data_type_maps[attribute_index]
       member_definition = self._data_type_definition.members[attribute_index]
 
+      # TODO: pre-compile condition
       condition = getattr(member_definition, 'condition', None)
       if condition:
         namespace = dict(subcontext.values)
