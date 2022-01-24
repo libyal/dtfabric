@@ -675,9 +675,120 @@ class ElementSequenceDataTypeMapTest(test_lib.BaseTestCase):
     data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
-  # TODO: add tests for _CalculateElementsDataSize.
-  # TODO: add tests for _EvaluateElementsDataSize.
-  # TODO: add tests for _EvaluateNumberOfElements.
+  def testCalculateElementsDataSize(self):
+    """Tests the _CalculateElementsDataSize function."""
+    definitions_file = self._GetTestFilePath(['sequence.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName('triangle4')
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
+
+    context = data_maps.DataTypeMapContext()
+
+    elements_data_size = data_type_map._CalculateElementsDataSize(context)
+    self.assertEqual(elements_data_size, 48)
+
+    definitions_file = self._GetTestFilePath(['sequence_with_context.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName('nvector')
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
+
+    context = data_maps.DataTypeMapContext(values={'n': 99})
+
+    elements_data_size = data_type_map._CalculateElementsDataSize(context)
+    self.assertEqual(elements_data_size, 396)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'variable_size_vector')
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
+
+    context = data_maps.DataTypeMapContext(values={'vector_size': 404})
+
+    elements_data_size = data_type_map._CalculateElementsDataSize(context)
+    self.assertEqual(elements_data_size, 404)
+
+  def testEvaluateElementsDataSize(self):
+    """Tests the _EvaluateElementsDataSize function."""
+    definitions_file = self._GetTestFilePath(['sequence_with_context.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'fixed_size_vector')
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
+
+    context = data_maps.DataTypeMapContext()
+
+    elements_data_size = data_type_map._EvaluateElementsDataSize(context)
+    self.assertEqual(elements_data_size, 32)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'variable_size_vector')
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
+
+    context = data_maps.DataTypeMapContext(values={'vector_size': 404})
+
+    elements_data_size = data_type_map._EvaluateElementsDataSize(context)
+    self.assertEqual(elements_data_size, 404)
+
+    with self.assertRaises(errors.MappingError):
+      context = data_maps.DataTypeMapContext()
+
+      data_type_map._EvaluateElementsDataSize(context)
+
+    with self.assertRaises(errors.MappingError):
+      context = data_maps.DataTypeMapContext(values={'vector_size': -404})
+
+      data_type_map._EvaluateElementsDataSize(context)
+
+    with self.assertRaises(errors.MappingError):
+      context = data_maps.DataTypeMapContext(values={'vector_size': 'bogus'})
+
+      data_type_map._EvaluateElementsDataSize(context)
+
+  def testEvaluateNumberOfElements(self):
+    """Tests the _EvaluateNumberOfElements function."""
+    definitions_file = self._GetTestFilePath(['sequence.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName('triangle4')
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
+
+    context = data_maps.DataTypeMapContext()
+
+    number_of_elements = data_type_map._EvaluateNumberOfElements(context)
+    self.assertEqual(number_of_elements, 3)
+
+    definitions_file = self._GetTestFilePath(['sequence_with_context.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName('nvector')
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
+
+    context = data_maps.DataTypeMapContext(values={'n': 99})
+
+    number_of_elements = data_type_map._EvaluateNumberOfElements(context)
+    self.assertEqual(number_of_elements, 99)
+
+    with self.assertRaises(errors.MappingError):
+      context = data_maps.DataTypeMapContext()
+
+      data_type_map._EvaluateNumberOfElements(context)
+
+    with self.assertRaises(errors.MappingError):
+      context = data_maps.DataTypeMapContext(values={'n': -99})
+
+      data_type_map._EvaluateNumberOfElements(context)
+
+    with self.assertRaises(errors.MappingError):
+      context = data_maps.DataTypeMapContext(values={'n': 'bogus'})
+
+      data_type_map._EvaluateNumberOfElements(context)
 
   def testGetElementDataTypeDefinition(self):
     """Tests the _GetElementDataTypeDefinition function."""
@@ -699,11 +810,53 @@ class ElementSequenceDataTypeMapTest(test_lib.BaseTestCase):
       data_type_definition = EmptyDataTypeDefinition('empty')
       data_type_map._GetElementDataTypeDefinition(data_type_definition)
 
-  # TODO: add tests for _HasElementsDataSize.
-  # TODO: add tests for _HasElementsTerminator.
-  # TODO: add tests for _HasNumberOfElements.
+  def testHasElementsDataSize(self):
+    """Tests the _HasElementsDataSize function."""
+    definitions_file = self._GetTestFilePath(['sequence.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
 
-  # TODO: add tests for GetSizeHint.
+    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
+
+    result = data_type_map._HasElementsDataSize()
+    self.assertFalse(result)
+
+  def testHasElementsTerminator(self):
+    """Tests the _HasElementsTerminator function."""
+    definitions_file = self._GetTestFilePath(['sequence.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
+
+    result = data_type_map._HasElementsTerminator()
+    self.assertFalse(result)
+
+  def testHasNumberOfElements(self):
+    """Tests the _HasNumberOfElements function."""
+    definitions_file = self._GetTestFilePath(['sequence.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
+
+    result = data_type_map._HasNumberOfElements()
+    self.assertTrue(result)
+
+  def testGetSizeHint(self):
+    """Tests the GetSizeHint function."""
+    definitions_file = self._GetTestFilePath(['sequence.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName('vector4')
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
+
+    size_hint = data_type_map.GetSizeHint()
+    self.assertEqual(size_hint, 16)
 
   def testGetStructByteOrderString(self):
     """Tests the GetStructByteOrderString function."""
@@ -1085,7 +1238,48 @@ class StructureMapTest(test_lib.BaseTestCase):
     self.assertTrue(result)
 
   # TODO: add tests for _CompositeFoldByteStream.
-  # TODO: add tests for _CompositeMapByteStream.
+
+  def testCompositeMapByteStream(self):
+    """Tests the _CompositeMapByteStream function."""
+    definitions_file = self._GetTestFilePath(['structure_with_string.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'utf16_string')
+    data_type_map = data_maps.StructureMap(data_type_definition)
+
+    text_stream = 'dtFabric'.encode('utf-16-le')
+    byte_stream = b''.join([
+        bytes(bytearray([len(text_stream), 0])), text_stream])
+
+    utf16_string = data_type_map._CompositeMapByteStream(byte_stream)
+    self.assertEqual(utf16_string.size, len(text_stream))
+    self.assertEqual(utf16_string.text, 'dtFabric')
+
+    byte_stream = b''.join([bytes(bytearray([3, 0])), text_stream])
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map._CompositeMapByteStream(byte_stream)
+
+    definitions_file = self._GetTestFilePath(['structure_with_context.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'instance_block_header')
+    data_type_map = data_maps.StructureMap(data_type_definition)
+
+    context = data_maps.DataTypeMapContext(values={'number_of_properties': 3})
+
+    byte_stream = bytes(bytearray([
+        10, 0, 0, 0, 128, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0]))
+
+    instance_block_header = data_type_map._CompositeMapByteStream(
+        byte_stream, context=context)
+    self.assertEqual(instance_block_header.name_offset, 10)
+    self.assertEqual(instance_block_header.unknown1, 0x80)
+    self.assertEqual(instance_block_header.property_value_offsets, (1, 2, 3))
 
   def testGetMemberDataTypeMaps(self):
     """Tests the _GetMemberDataTypeMaps function."""
@@ -1537,7 +1731,7 @@ class StructureMapTest(test_lib.BaseTestCase):
       data_type_map.MapByteStream(byte_stream)
 
   def testGetSizeHint(self):
-    """Tests the GetSizeHint function with a string."""
+    """Tests the GetSizeHint function."""
     definitions_file = self._GetTestFilePath(['structure_with_string.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)

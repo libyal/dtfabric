@@ -1,0 +1,26 @@
+name: int32
+type: integer
+description: 32-bit signed integer type
+attributes:
+  byte_order: little-endian
+  format: signed
+  size: 4
+  units: bytes
+---
+name: nvector
+type: sequence
+description: n-dimensional vector
+element_data_type: int32
+number_of_elements: n
+---
+name: fixed_size_vector
+type: sequence
+description: vector with a fixed size
+element_data_type: int32
+elements_data_size: 32
+---
+name: variable_size_vector
+type: sequence
+description: vector with a variable size
+element_data_type: int32
+elements_data_size: vector_size

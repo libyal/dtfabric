@@ -687,8 +687,12 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
         raise errors.MappingError(
             'Unable to determine elements data size with error: {0!s}'.format(
                 exception))
+    try:
+      invalid_value = elements_data_size is None or elements_data_size < 0
+    except TypeError:
+      invalid_value = True
 
-    if elements_data_size is None or elements_data_size < 0:
+    if invalid_value:
       raise errors.MappingError(
           'Invalid elements data size: {0!s}'.format(elements_data_size))
 
@@ -725,7 +729,12 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
             'Unable to determine number of elements with error: {0!s}'.format(
                 exception))
 
-    if number_of_elements is None or number_of_elements < 0:
+    try:
+      invalid_value = number_of_elements is None or number_of_elements < 0
+    except TypeError:
+      invalid_value = True
+
+    if invalid_value:
       raise errors.MappingError(
           'Invalid number of elements: {0!s}'.format(number_of_elements))
 
@@ -1589,6 +1598,7 @@ class StructureMap(StorageDataTypeMap):
           the byte stream.
     """
     context_state = getattr(context, 'state', {})
+    context_values = getattr(context, 'values', {})
 
     attribute_index = context_state.get('attribute_index', 0)
     mapped_values = context_state.get('mapped_values', None)
@@ -1597,8 +1607,8 @@ class StructureMap(StorageDataTypeMap):
     if not mapped_values:
       mapped_values = self._structure_values_class()
     if not subcontext:
-      subcontext = DataTypeMapContext(values={
-          type(mapped_values).__name__: mapped_values})
+      context_values.update({type(mapped_values).__name__: mapped_values})
+      subcontext = DataTypeMapContext(values=context_values)
 
     members_data_size = 0
 
