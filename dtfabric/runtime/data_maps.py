@@ -21,6 +21,7 @@ class DataTypeMapContext(object):
 
   Attributes:
     byte_size (int): byte size.
+    requested_byte_size (int): requested byte size.
     state (dict[str, object]): state values per name.
     values (dict[str, object]): values per name.
   """
@@ -33,6 +34,7 @@ class DataTypeMapContext(object):
     """
     super(DataTypeMapContext, self).__init__()
     self.byte_size = None
+    self.requested_byte_size = None
     self.state = {}
     self.values = values or {}
 
@@ -296,6 +298,9 @@ class PrimitiveDataTypeMap(StorageDataTypeMap):
     """
     data_type_size = self._data_type_definition.GetByteSize()
     self._CheckByteStreamSize(byte_stream, byte_offset, data_type_size)
+
+    if context:
+      context.requested_byte_size = data_type_size
 
     try:
       struct_tuple = self._operation.ReadFrom(byte_stream[byte_offset:])
@@ -579,6 +584,9 @@ class UUIDMap(StorageDataTypeMap):
     """
     data_type_size = self._data_type_definition.GetByteSize()
     self._CheckByteStreamSize(byte_stream, byte_offset, data_type_size)
+
+    if context:
+      context.requested_byte_size = data_type_size
 
     try:
       if self._byte_order == definitions.BYTE_ORDER_BIG_ENDIAN:
@@ -992,7 +1000,11 @@ class SequenceMap(ElementSequenceDataTypeMap):
       context_state['elements_data_offset'] = elements_data_offset
       context_state['element_index'] = element_index
       context_state['mapped_values'] = mapped_values
-      raise errors.ByteStreamTooSmallError(exception)
+
+      requested_byte_size = byte_offset + (subcontext.requested_byte_size or 0)
+      raise errors.ByteStreamTooSmallError(
+          'Byte stream too small requested: {0:d} available: {1:d}'.format(
+              requested_byte_size, len(byte_stream)))
 
     except Exception as exception:
       raise errors.MappingError(exception)
@@ -1076,6 +1088,9 @@ class SequenceMap(ElementSequenceDataTypeMap):
     """
     elements_data_size = self._data_type_definition.GetByteSize()
     self._CheckByteStreamSize(byte_stream, byte_offset, elements_data_size)
+
+    if context:
+      context.requested_byte_size = elements_data_size
 
     try:
       struct_tuple = self._operation.ReadFrom(byte_stream[byte_offset:])
@@ -1240,6 +1255,10 @@ class StreamMap(ElementSequenceDataTypeMap):
     size_hints = context_state.get('size_hints', {})
 
     elements_data_size = self._CalculateElementsDataSize(context)
+
+    if context:
+      context.requested_byte_size = elements_data_size
+
     if elements_data_size is not None:
       self._CheckByteStreamSize(byte_stream, byte_offset, elements_data_size)
 
@@ -1355,12 +1374,14 @@ class PaddingMap(DataTypeMap):
 
     return '{0:d}s'.format(self.byte_size)
 
-  def MapByteStream(self, byte_stream, byte_offset=0, **unused_kwargs):
+  def MapByteStream(
+      self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
     """Maps the data type on a byte stream.
 
     Args:
       byte_stream (bytes): byte stream.
       byte_offset (Optional[int]): offset into the byte stream where to start.
+      context (Optional[DataTypeMapContext]): data type map context.
 
     Returns:
       object: mapped value.
@@ -1369,7 +1390,15 @@ class PaddingMap(DataTypeMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
-    return byte_stream[byte_offset:byte_offset + self.byte_size]
+    if context:
+      context.requested_byte_size = self.byte_size
+
+    mapped_value = byte_stream[byte_offset:byte_offset + self.byte_size]
+
+    if context:
+      context.byte_size = self.byte_size
+
+    return mapped_value
 
   def MapValue(self, value):
     """Maps the data type on a value.
@@ -1643,7 +1672,6 @@ class StructureMap(StorageDataTypeMap):
             members_data_size, member_definition.alignment_size)
         if byte_size > 0:
           byte_size = member_definition.alignment_size - byte_size
-
         data_type_map.byte_size = byte_size
 
       try:
@@ -1655,7 +1683,12 @@ class StructureMap(StorageDataTypeMap):
         context_state['attribute_index'] = attribute_index
         context_state['context'] = subcontext
         context_state['mapped_values'] = mapped_values
-        raise errors.ByteStreamTooSmallError(exception)
+
+        requested_byte_size = byte_offset + (
+            subcontext.requested_byte_size or 0)
+        raise errors.ByteStreamTooSmallError(
+            'Byte stream too small requested: {0:d} available: {1:d}'.format(
+                requested_byte_size, len(byte_stream)))
 
       except Exception as exception:
         raise errors.MappingError(exception)

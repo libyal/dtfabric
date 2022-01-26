@@ -377,7 +377,7 @@ stream.
 ```yaml
 name: padding1
 type: padding
-alignment_size: 32
+alignment_size: 8
 ```
 
 Padding data type specfic attributes:
