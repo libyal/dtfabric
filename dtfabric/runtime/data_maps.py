@@ -21,7 +21,8 @@ class DataTypeMapContext(object):
 
   Attributes:
     byte_size (int): byte size.
-    requested_byte_size (int): requested byte size.
+    members_data_size (int): members data size.
+    requested_size (int): requested size.
     state (dict[str, object]): state values per name.
     values (dict[str, object]): values per name.
   """
@@ -34,7 +35,8 @@ class DataTypeMapContext(object):
     """
     super(DataTypeMapContext, self).__init__()
     self.byte_size = None
-    self.requested_byte_size = None
+    self.members_data_size = None
+    self.requested_size = None
     self.state = {}
     self.values = values or {}
 
@@ -300,7 +302,7 @@ class PrimitiveDataTypeMap(StorageDataTypeMap):
     self._CheckByteStreamSize(byte_stream, byte_offset, data_type_size)
 
     if context:
-      context.requested_byte_size = data_type_size
+      context.requested_size = data_type_size
 
     try:
       struct_tuple = self._operation.ReadFrom(byte_stream[byte_offset:])
@@ -586,7 +588,7 @@ class UUIDMap(StorageDataTypeMap):
     self._CheckByteStreamSize(byte_stream, byte_offset, data_type_size)
 
     if context:
-      context.requested_byte_size = data_type_size
+      context.requested_size = data_type_size
 
     try:
       if self._byte_order == definitions.BYTE_ORDER_BIG_ENDIAN:
@@ -724,9 +726,7 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
 
     elif self._number_of_elements_expression:
       expression = self._number_of_elements_expression
-      namespace = {}
-      if context and context.values:
-        namespace.update(context.values)
+      namespace = getattr(context, 'values', {})
       # Make sure __builtins__ contains an empty dictionary.
       namespace['__builtins__'] = {}
 
@@ -1001,10 +1001,10 @@ class SequenceMap(ElementSequenceDataTypeMap):
       context_state['element_index'] = element_index
       context_state['mapped_values'] = mapped_values
 
-      requested_byte_size = byte_offset + (subcontext.requested_byte_size or 0)
+      requested_size = byte_offset + (subcontext.requested_size or 0)
       raise errors.ByteStreamTooSmallError(
           'Byte stream too small requested: {0:d} available: {1:d}'.format(
-              requested_byte_size, len(byte_stream)))
+              requested_size, len(byte_stream)))
 
     except Exception as exception:
       raise errors.MappingError(exception)
@@ -1090,7 +1090,7 @@ class SequenceMap(ElementSequenceDataTypeMap):
     self._CheckByteStreamSize(byte_stream, byte_offset, elements_data_size)
 
     if context:
-      context.requested_byte_size = elements_data_size
+      context.requested_size = elements_data_size
 
     try:
       struct_tuple = self._operation.ReadFrom(byte_stream[byte_offset:])
@@ -1257,7 +1257,7 @@ class StreamMap(ElementSequenceDataTypeMap):
     elements_data_size = self._CalculateElementsDataSize(context)
 
     if context:
-      context.requested_byte_size = elements_data_size
+      context.requested_size = elements_data_size
 
     if elements_data_size is not None:
       self._CheckByteStreamSize(byte_stream, byte_offset, elements_data_size)
@@ -1391,7 +1391,7 @@ class PaddingMap(DataTypeMap):
           the byte stream.
     """
     if context:
-      context.requested_byte_size = self.byte_size
+      context.requested_size = self.byte_size
 
     mapped_value = byte_stream[byte_offset:byte_offset + self.byte_size]
 
@@ -1636,8 +1636,10 @@ class StructureMap(StorageDataTypeMap):
     if not mapped_values:
       mapped_values = self._structure_values_class()
     if not subcontext:
-      context_values.update({type(mapped_values).__name__: mapped_values})
-      subcontext = DataTypeMapContext(values=context_values)
+      subcontext_values = {type(mapped_values).__name__: mapped_values}
+      # Pass externally defined values.
+      subcontext_values.update(context_values)
+      subcontext = DataTypeMapContext(values=subcontext_values)
 
     members_data_size = 0
 
@@ -1684,11 +1686,13 @@ class StructureMap(StorageDataTypeMap):
         context_state['context'] = subcontext
         context_state['mapped_values'] = mapped_values
 
-        requested_byte_size = byte_offset + (
-            subcontext.requested_byte_size or 0)
+        if context:
+          context.members_data_size = members_data_size
+
+        requested_size = byte_offset + (subcontext.requested_size or 0)
         raise errors.ByteStreamTooSmallError(
             'Byte stream too small requested: {0:d} available: {1:d}'.format(
-                requested_byte_size, len(byte_stream)))
+                requested_size, len(byte_stream)))
 
       except Exception as exception:
         raise errors.MappingError(exception)
@@ -1707,6 +1711,9 @@ class StructureMap(StorageDataTypeMap):
       context_state['attribute_index'] = attribute_index
       context_state['context'] = subcontext
       context_state['mapped_values'] = mapped_values
+
+      if context:
+        context.members_data_size = members_data_size
 
       error_string = (
           'Unable to read: {0:s} from byte stream at offset: {1:d} '
@@ -1897,15 +1904,21 @@ class StructureMap(StorageDataTypeMap):
     """
     context_state = getattr(context, 'state', {})
 
+    attribute_index = context_state.get('attribute_index', 0)
+    mapped_values = context_state.get('mapped_values', None)
     subcontext = context_state.get('context', None)
-    if not subcontext:
-      mapped_values = context_state.get('mapped_values', None)
-      subcontext = DataTypeMapContext(values={
-          type(mapped_values).__name__: mapped_values})
 
-    size_hint = 0
-    for data_type_map in self._data_type_maps:
+    if not mapped_values:
+      mapped_values = self._structure_values_class()
+    if not subcontext:
+      subcontext_values = {type(mapped_values).__name__: mapped_values}
+      subcontext = DataTypeMapContext(values=subcontext_values)
+
+    size_hint = getattr(context, 'members_data_size', None) or 0
+    for attribute_index in range(attribute_index, self._number_of_attributes):
+      data_type_map = self._data_type_maps[attribute_index]
       data_type_size = data_type_map.GetSizeHint(context=subcontext)
+
       if data_type_size is None:
         break
 
