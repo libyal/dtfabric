@@ -26,3 +26,15 @@ class DataTypeFabric(data_maps.DataTypeMapFactory):
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
     super(DataTypeFabric, self).__init__(definitions_registry)
+
+  def GetDefinitionByName(
+      self, name: 'str') -> 'Union[data_types.DataTypeDefinition, None]':
+    """Retrieves a specific data type definition by name.
+
+    Args:
+      name (str): name of the data type definition.
+
+    Returns:
+      DataTypeDefinition: data type definition or None if not available.
+    """
+    return self._definitions_registry.GetDefinitionByName(name)
