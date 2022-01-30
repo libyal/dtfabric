@@ -477,9 +477,15 @@ Example:
 name: mdmp
 type: format
 description: Minidump file format
-urls: ['https://msdn.microsoft.com/en-us/library/windows/desktop/ms680369(v=vs.85).aspx']
+urls: ['https://docs.microsoft.com/en-us/windows/win32/debug/minidump-files']
+metadata:
+  authors: ['John Doe <john.doe@example.com>']
+  year: 2022
+attributes:
+  byte_order: big-endian
 layout:
-- file_header
+- data_type: file_header
+  offset: 0
 ```
 
 #### Data format attributes

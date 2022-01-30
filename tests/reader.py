@@ -374,7 +374,7 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
         'description': 'Windows Shortcut (LNK) file format',
         'type': 'format',
         'layout': [
-            'file_header',
+            {'data_type': 'file_header', 'offset': 0},
         ],
     }
 
@@ -385,6 +385,13 @@ class DataTypeDefinitionsReaderTest(test_lib.BaseTestCase):
         definitions_registry, definition_values, 'lnk')
     self.assertIsNotNone(data_type_definition)
     self.assertIsInstance(data_type_definition, data_types.FormatDefinition)
+    self.assertEqual(len(data_type_definition.layout), 1)
+
+    layout_element = data_type_definition.layout[0]
+    self.assertIsNotNone(layout_element)
+    self.assertIsInstance(layout_element, data_types.LayoutElementDefinition)
+    self.assertEqual(layout_element.data_type, 'file_header')
+    self.assertEqual(layout_element.offset, 0)
 
   def testReadIntegerDataTypeDefinition(self):
     """Tests the _ReadIntegerDataTypeDefinition function."""
@@ -888,6 +895,36 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
 
     byte_size = data_type_definition.GetByteSize()
     self.assertEqual(byte_size, 4)
+
+  def testReadFileObjectFormat(self):
+    """Tests the ReadFileObject function of a format data type."""
+    definitions_registry = registry.DataTypeDefinitionsRegistry()
+    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
+
+    definitions_file = self._GetTestFilePath(['format.yaml'])
+    self._SkipIfPathNotExists(definitions_file)
+
+    with open(definitions_file, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    self.assertEqual(len(definitions_registry._definitions), 4)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'format_with_layout')
+    self.assertIsInstance(data_type_definition, data_types.FormatDefinition)
+    self.assertEqual(data_type_definition.name, 'format_with_layout')
+    self.assertEqual(
+        data_type_definition.byte_order, definitions.BYTE_ORDER_BIG_ENDIAN)
+    self.assertEqual(len(data_type_definition.layout), 1)
+
+    layout_element = data_type_definition.layout[0]
+    self.assertIsNotNone(layout_element)
+    self.assertIsInstance(layout_element, data_types.LayoutElementDefinition)
+    self.assertEqual(layout_element.data_type, 'file_header')
+    self.assertEqual(layout_element.offset, 0)
+
+    byte_size = data_type_definition.GetByteSize()
+    self.assertIsNone(byte_size)
 
   def testReadFileObjectInteger(self):
     """Tests the ReadFileObject function of an integer data type."""

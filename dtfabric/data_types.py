@@ -556,6 +556,7 @@ class MemberSectionDefinition(object):
   """Member section definition.
 
   Attributes:
+    name (str): name of the section.
     members (list[DataTypeDefinition]): member data type definitions of
         the section.
   """
@@ -789,11 +790,33 @@ class LayoutDataTypeDefinition(DataTypeDefinition):
     return None
 
 
+class LayoutElementDefinition(object):
+  """Layout element definition.
+
+  Attributes:
+    data_type (str): name of the data type definition of the layout element.
+    offset (int): offset of the layout element.
+  """
+
+  def __init__(
+      self, data_type: 'str', offset: 'Optional[int]' = None) -> 'None':
+    """Initializes a layout element definition.
+
+    Args:
+      data_type (str): name of the data type of the layout element.
+      offset (Optional[int]): offset of the layout element.
+    """
+    super(LayoutElementDefinition, self).__init__()
+    self.data_type: 'str' = data_type
+    self.offset: 'Union[int, None]' = offset
+
+
 class FormatDefinition(LayoutDataTypeDefinition):
   """Data format definition.
 
   Attributes:
     metadata (dict[str, object]): metadata.
+    layout (list[LayoutElementDefinition]): layout element definitions.
   """
 
   TYPE_INDICATOR: 'Union[str, None]' = definitions.TYPE_INDICATOR_FORMAT
@@ -812,6 +835,7 @@ class FormatDefinition(LayoutDataTypeDefinition):
     """
     super(FormatDefinition, self).__init__(
         name, aliases=aliases, description=description, urls=urls)
+    self.layout: 'List[LayoutElementDefinition]' = []
     self.metadata: 'Dict[str, object]' = {}
 
 

@@ -42,6 +42,9 @@ class DataTypeDefinitionsReader(object):
   _SUPPORTED_DEFINITION_VALUES_DATA_TYPE = set([
       'aliases', 'description', 'name', 'type', 'urls'])
 
+  _SUPPORTED_DEFINITION_VALUES_LAYOUT_ELEMENT = set([
+      'data_type', 'offset'])
+
   _SUPPORTED_DEFINITION_VALUES_MEMBER_DATA_TYPE = set([
       'aliases', 'condition', 'data_type', 'description', 'name', 'type',
       'value', 'values'])
@@ -545,11 +548,9 @@ class DataTypeDefinitionsReader(object):
         definitions_registry, definition_values, data_types.FormatDefinition,
         definition_name, self._SUPPORTED_DEFINITION_VALUES_FORMAT)
 
-    # TODO: disabled for now
-    # layout = definition_values.get('layout', None)
-    # if layout is None:
-    #   error_message = 'missing layout'
-    #   raise errors.DefinitionReaderError(definition_name, error_message)
+    layout = definition_values.get('layout', [])
+    definition_object.layout = self._ReadFormatLayout(
+        definitions_registry, layout, definition_name)
 
     definition_object.metadata = definition_values.get('metadata', {})
 
@@ -571,6 +572,48 @@ class DataTypeDefinitionsReader(object):
       definition_object.byte_order = byte_order
 
     return definition_object
+
+  def _ReadFormatLayout(
+      self, definitions_registry, definition_values, definition_name):
+    """Reads the layout of a format data type definition.
+
+    Args:
+      definitions_registry (DataTypeDefinitionsRegistry): data type definitions
+          registry.
+      definition_values (dict[str, object]): definition values.
+      definition_name (str): name of the definition.
+      is_member (Optional[bool]): True if the data type definition is a member
+          data type definition.
+
+    Returns:
+      FormatDefinition: format definition.
+
+    Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
+    """
+    layout_elements = []
+    for index, layout_element in enumerate(definition_values):
+      data_type = layout_element.get('data_type', None)
+      offset = layout_element.get('offset', None)
+
+      if not data_type:
+        error_message = (
+            'invalid layout element: {0:d} missing data type').format(index)
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      unsupported_definition_values = set(layout_element.keys()).difference(
+          self._SUPPORTED_DEFINITION_VALUES_LAYOUT_ELEMENT)
+      if unsupported_definition_values:
+        error_message = 'unsupported definition values: {0:s}'.format(
+            ', '.join(unsupported_definition_values))
+        raise errors.DefinitionReaderError(definition_name, error_message)
+
+      definition_object = data_types.LayoutElementDefinition(
+          data_type=data_type, offset=offset)
+      layout_elements.append(definition_object)
+
+    return layout_elements
 
   def _ReadIntegerDataTypeDefinition(
       self, definitions_registry, definition_values, definition_name,
@@ -1327,6 +1370,8 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
       file_object (file): file-like object to read from.
 
     Raises:
+      DefinitionReaderError: if the definitions values are missing or if
+          the format is incorrect.
       FormatError: if the definitions values are missing or if the format is
           incorrect.
     """

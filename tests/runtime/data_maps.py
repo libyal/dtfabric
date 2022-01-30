@@ -1812,9 +1812,48 @@ class SemanticDataTypeMapTest(test_lib.BaseTestCase):
 class ConstantMapTest(test_lib.BaseTestCase):
   """Constant map tests."""
 
+  def testFoldByteStream(self):
+    """Tests the FoldByteStream function."""
+    definitions_file = self._GetTestFilePath(['constant.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'maximum_number_of_back_traces')
+    data_type_map = data_maps.ConstantMap(data_type_definition)
+
+    with self.assertRaises(errors.FoldingError):
+      data_type_map.FoldByteStream(1)
+
+  def testMapByteStream(self):
+    """Tests the MapByteStream function."""
+    definitions_file = self._GetTestFilePath(['constant.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'maximum_number_of_back_traces')
+    data_type_map = data_maps.ConstantMap(data_type_definition)
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\x01\x00\x00\x00')
+
 
 class EnumerationMapTest(test_lib.BaseTestCase):
   """Enumeration map tests."""
+
+  def testFoldByteStream(self):
+    """Tests the FoldByteStream function."""
+    definitions_file = self._GetTestFilePath(['enumeration.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'object_information_type')
+    data_type_map = data_maps.EnumerationMap(data_type_definition)
+
+    with self.assertRaises(errors.FoldingError):
+      data_type_map.FoldByteStream(1)
 
   def testGetName(self):
     """Tests the GetName function."""
@@ -1832,6 +1871,19 @@ class EnumerationMapTest(test_lib.BaseTestCase):
 
     name = data_type_map.GetName(-1)
     self.assertIsNone(name)
+
+  def testMapByteStream(self):
+    """Tests the MapByteStream function."""
+    definitions_file = self._GetTestFilePath(['enumeration.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'object_information_type')
+    data_type_map = data_maps.EnumerationMap(data_type_definition)
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\x01\x00\x00\x00')
 
 
 class LayoutDataTypeMapTest(test_lib.BaseTestCase):
@@ -1851,6 +1903,36 @@ class LayoutDataTypeMapTest(test_lib.BaseTestCase):
       data_type_map.FoldByteStream(None)
 
 
+class FormatMapTest(test_lib.BaseTestCase):
+  """Format map tests."""
+
+  def testFoldByteStream(self):
+    """Tests the FoldByteStream function."""
+    definitions_file = self._GetTestFilePath(['format.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'format_with_layout')
+    data_type_map = data_maps.FormatMap(data_type_definition)
+
+    with self.assertRaises(errors.FoldingError):
+      data_type_map.FoldByteStream(None)
+
+  def testMapByteStream(self):
+    """Tests the MapByteStream function."""
+    definitions_file = self._GetTestFilePath(['format.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'format_with_layout')
+    data_type_map = data_maps.EnumerationMap(data_type_definition)
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map.MapByteStream(b'\x01\x00\x00\x00')
+
+
 # TODO: add tests for StructureFamilyMap
 
 
@@ -1858,6 +1940,19 @@ class StructureGroupMapTest(test_lib.BaseTestCase):
   """Structure group data type map tests."""
 
   # pylint: disable=protected-access
+
+  def testFoldByteStream(self):
+    """Tests the FoldByteStream function."""
+    definitions_file = self._GetTestFilePath(['structure_group.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'bsm_token')
+    data_type_map = data_maps.StructureGroupMap(data_type_definition)
+
+    with self.assertRaises(errors.FoldingError):
+      data_type_map.FoldByteStream(None)
 
   def testGetMemberDataTypeMaps(self):
     """Tests the _GetMemberDataTypeMaps function."""
@@ -1929,7 +2024,6 @@ class StructureGroupMapTest(test_lib.BaseTestCase):
 
     with self.assertRaises(errors.MappingError):
       data_type_map.MapByteStream(b'\x01\x00\x00\x00')
-
 
 
 class DataTypeMapFactoryTest(test_lib.BaseTestCase):
