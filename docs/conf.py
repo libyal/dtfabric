@@ -58,7 +58,7 @@ napoleon_include_special_with_doc = True
 # General information about the project.
 # pylint: disable=redefined-builtin
 project = 'dtFabric'
-copyright = 'The dtFabric Project Authors'
+copyright = 'The dtFabric authors'
 version = dtfabric.__version__
 release = dtfabric.__version__
 
