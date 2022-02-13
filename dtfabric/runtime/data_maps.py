@@ -7,6 +7,7 @@ import copy
 import uuid
 
 from dtfabric import data_types
+from dtfabric import decorators
 from dtfabric import definitions
 from dtfabric import errors
 from dtfabric.runtime import byte_operations
@@ -80,8 +81,11 @@ class DataTypeMap(object):
     """str: name of the data type definition or None if not available."""
     return getattr(self._data_type_definition, 'name', None)
 
+  @decorators.deprecated
   def GetByteSize(self):
     """Retrieves the byte size of the data type map.
+
+    This method is deprecated use GetSizeHint instead.
 
     Returns:
       int: data type size in bytes or None if size cannot be determined.
@@ -97,7 +101,10 @@ class DataTypeMap(object):
     Returns:
       int: hint of the number of bytes needed from the byte stream or None.
     """
-    return self.GetByteSize()
+    if not self._data_type_definition:
+      return None
+
+    return self._data_type_definition.GetByteSize()
 
   @abc.abstractmethod
   def FoldByteStream(self, mapped_value, **unused_kwargs):
@@ -824,7 +831,7 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
     """
     context_state = getattr(context, 'state', {})
 
-    elements_data_size = self.GetByteSize()
+    elements_data_size = self._data_type_definition.GetByteSize()
     if elements_data_size:
       return elements_data_size
 
@@ -1224,7 +1231,7 @@ class StreamMap(ElementSequenceDataTypeMap):
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    byte_size = self.GetByteSize()
+    byte_size = self._data_type_definition.GetByteSize()
     if not byte_size:
       return None
 
@@ -1309,26 +1316,26 @@ class StreamMap(ElementSequenceDataTypeMap):
 
 
 class PaddingMap(DataTypeMap):
-  """Padding data type map.
-
-  Attributes:
-    byte_size (int): padding byte size.
-  """
+  """Padding data type map."""
 
   # pylint: disable=arguments-differ
 
-  def __init__(self, data_type_definition):
-    """Initializes a padding data type map.
+  def _CalculatePaddingSize(self, byte_offset):
+    """Calculates the padding size.
 
     Args:
-      data_type_definition (DataTypeDefinition): data type definition.
+      byte_offset (int): offset into the byte stream where to start.
 
-    Raises:
-      FormatError: if the data type map cannot be determined from the data
-          type definition.
+    Returns:
+      int: size of the padding in number of bytes.
     """
-    super(PaddingMap, self).__init__(data_type_definition)
-    self.byte_size = None
+    alignment_size = self._data_type_definition.alignment_size
+
+    _, byte_size = divmod(byte_offset, alignment_size)
+    if byte_size > 0:
+      byte_size = alignment_size - byte_size
+
+    return byte_size
 
   def FoldByteStream(self, mapped_value, **unused_kwargs):
     """Folds the data type into a byte stream.
@@ -1368,25 +1375,16 @@ class PaddingMap(DataTypeMap):
     Returns:
       int: hint of the number of bytes needed from the byte stream or None.
     """
-    alignment_size = self._data_type_definition.alignment_size
+    return self._CalculatePaddingSize(byte_offset)
 
-    _, byte_size = divmod(byte_offset, alignment_size)
-    if byte_size > 0:
-      byte_size = alignment_size - byte_size
-
-    return byte_size
-
-  def GetStructFormatString(self):
+  def GetStructFormatString(self):  # pylint: disable=redundant-returns-doc
     """Retrieves the Python struct format string.
 
     Returns:
       str: format string as used by Python struct or None if format string
           cannot be determined.
     """
-    if self.byte_size is None:
-      return None
-
-    return '{0:d}s'.format(self.byte_size)
+    return None
 
   def MapByteStream(
       self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
@@ -1401,22 +1399,23 @@ class PaddingMap(DataTypeMap):
       object: mapped value.
 
     Raises:
-      MappingError: if the data type definition cannot be mapped on
-          the byte stream.
+      ByteStreamTooSmallError: if the byte stream is too small.
     """
-    alignment_size = self._data_type_definition.alignment_size
-
-    _, byte_size = divmod(byte_offset, alignment_size)
-    if byte_size > 0:
-      byte_size = alignment_size - byte_size
+    padding_size = self._CalculatePaddingSize(byte_offset)
 
     if context:
-      context.requested_size = byte_size
+      context.requested_size = padding_size
 
-    mapped_value = byte_stream[byte_offset:byte_offset + byte_size]
+    byte_stream_size = len(byte_stream)
+    if byte_stream_size - byte_offset < padding_size:
+      raise errors.ByteStreamTooSmallError(
+          'Byte stream too small requested: {0:d} available: {1:d}'.format(
+              padding_size, byte_stream_size))
+
+    mapped_value = byte_stream[byte_offset:byte_offset + padding_size]
 
     if context:
-      context.byte_size = byte_size
+      context.byte_size = padding_size
 
     return mapped_value
 
@@ -1535,16 +1534,16 @@ class StructureMap(StorageDataTypeMap):
 
     self._GetMemberDataTypeMaps(data_type_definition)
 
-    if self._CheckCompositeMap(data_type_definition):
-      self._fold_byte_stream = self._CompositeFoldByteStream
-      self._map_byte_stream = self._CompositeMapByteStream
-    else:
+    if self._CheckLinearMap(data_type_definition):
       self._fold_byte_stream = self._LinearFoldByteStream
       self._map_byte_stream = self._LinearMapByteStream
       self._operation = self._GetByteStreamOperation()
+    else:
+      self._fold_byte_stream = self._CompositeFoldByteStream
+      self._map_byte_stream = self._CompositeMapByteStream
 
-  def _CheckCompositeMap(self, data_type_definition):
-    """Determines if the data type definition needs a composite map.
+  def _CheckLinearMap(self, data_type_definition):
+    """Determines if the data type definition supports using a linear map.
 
     Args:
       data_type_definition (DataTypeDefinition): structure data type definition.
@@ -1563,25 +1562,24 @@ class StructureMap(StorageDataTypeMap):
     if not members:
       raise errors.FormatError('Invalid data type definition missing members')
 
-    is_composite_map = False
+    supports_linear_map = True
     last_member_byte_order = data_type_definition.byte_order
 
     for member_definition in members:
-      if member_definition.IsComposite():
-        is_composite_map = True
+      if (member_definition.IsComposite() or
+          isinstance(member_definition, data_types.PaddingDefinition)):
+        supports_linear_map = False
         break
 
-      # TODO: check for padding type
-      # TODO: determine if padding type can be defined as linear
       if (last_member_byte_order != definitions.BYTE_ORDER_NATIVE and
           member_definition.byte_order != definitions.BYTE_ORDER_NATIVE and
           last_member_byte_order != member_definition.byte_order):
-        is_composite_map = True
+        supports_linear_map = False
         break
 
       last_member_byte_order = member_definition.byte_order
 
-    return is_composite_map
+    return supports_linear_map
 
   def _CompositeFoldByteStream(
       self, mapped_value, context=None, **unused_kwargs):
@@ -1785,17 +1783,7 @@ class StructureMap(StorageDataTypeMap):
 
       data_type_map = data_type_map_cache[member_definition.name]
       if members_data_size is not None:
-        # TODO: use GetSizeHint
-        if not isinstance(member_definition, data_types.PaddingDefinition):
-          byte_size = member_definition.GetByteSize()
-        else:
-          _, byte_size = divmod(
-              members_data_size, member_definition.alignment_size)
-          if byte_size > 0:
-            byte_size = member_definition.alignment_size - byte_size
-
-          data_type_map.byte_size = byte_size
-
+        byte_size = member_definition.GetByteSize()
         if byte_size is None:
           members_data_size = None
         else:
@@ -1862,10 +1850,11 @@ class StructureMap(StorageDataTypeMap):
 
         supported_values = getattr(member_definition, 'values', None)
         if supported_values and value not in supported_values:
+          supported_values_string = ', '.join([
+              '{0!s}'.format(value) for value in supported_values])
           raise errors.MappingError(
               'Value: {0!s} not in supported values: {1:s}'.format(
-                  value, ', '.join([
-                      '{0!s}'.format(value) for value in supported_values])))
+                  value, supported_values_string))
 
         struct_values.append(value)
 
@@ -2168,8 +2157,11 @@ class StructureGroupMap(LayoutDataTypeMap):
             group_member_definition)
         self._data_type_maps[value] = data_type_map
 
+  @decorators.deprecated
   def GetByteSize(self):  # pylint: disable=redundant-returns-doc
     """Retrieves the byte size of the data type map.
+
+    This method is deprecated use GetSizeHint instead.
 
     Returns:
       int: data type size in bytes or None if size cannot be determined.

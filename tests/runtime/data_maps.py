@@ -1198,8 +1198,8 @@ class StructureMapTest(test_lib.BaseTestCase):
     data_type_map = data_maps.StructureMap(data_type_definition)
     self.assertIsNotNone(data_type_map)
 
-  def testCheckCompositeMap(self):
-    """Tests the _CheckCompositeMap function."""
+  def testCheckLinearMap(self):
+    """Tests the _CheckLinearMap function."""
     definitions_file = self._GetTestFilePath(['structure.yaml'])
     definitions_registry = self._CreateDefinitionRegistryFromFile(
         definitions_file)
@@ -1207,35 +1207,37 @@ class StructureMapTest(test_lib.BaseTestCase):
     data_type_definition = definitions_registry.GetDefinitionByName('point3d')
     data_type_map = data_maps.StructureMap(data_type_definition)
 
-    result = data_type_map._CheckCompositeMap(data_type_definition)
-    self.assertFalse(result)
+    result = data_type_map._CheckLinearMap(data_type_definition)
+    self.assertTrue(result)
 
     with self.assertRaises(errors.FormatError):
-      data_type_map._CheckCompositeMap(None)
+      data_type_map._CheckLinearMap(None)
 
     with self.assertRaises(errors.FormatError):
       data_type_definition = EmptyDataTypeDefinition('empty')
-      data_type_map._CheckCompositeMap(data_type_definition)
+      data_type_map._CheckLinearMap(data_type_definition)
 
     data_type_definition = definitions_registry.GetDefinitionByName(
         'triangle3d')
     data_type_map = data_maps.StructureMap(data_type_definition)
 
-    result = data_type_map._CheckCompositeMap(data_type_definition)
-    self.assertTrue(result)
+    result = data_type_map._CheckLinearMap(data_type_definition)
+    self.assertFalse(result)
 
     data_type_definition = definitions_registry.GetDefinitionByName('box3d')
     data_type_map = data_maps.StructureMap(data_type_definition)
 
-    result = data_type_map._CheckCompositeMap(data_type_definition)
-    self.assertTrue(result)
+    result = data_type_map._CheckLinearMap(data_type_definition)
+    self.assertFalse(result)
 
     data_type_definition = definitions_registry.GetDefinitionByName(
         'sphere3d')
     data_type_map = data_maps.StructureMap(data_type_definition)
 
-    result = data_type_map._CheckCompositeMap(data_type_definition)
-    self.assertTrue(result)
+    result = data_type_map._CheckLinearMap(data_type_definition)
+    self.assertFalse(result)
+
+    # TODO: add test with padding
 
   # TODO: add tests for _CompositeFoldByteStream.
 
