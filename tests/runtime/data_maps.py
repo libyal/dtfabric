@@ -1762,7 +1762,7 @@ class PaddingMapTest(test_lib.BaseTestCase):
   def testFoldByteStream(self):
     """Tests the FoldByteStream function."""
     data_type_definition = data_types.PaddingDefinition(
-        'padding', alignment_size=32, description='alignment_padding')
+        'padding', alignment_size=4, description='alignment_padding')
     data_type_map = data_maps.PaddingMap(data_type_definition)
 
     byte_stream = data_type_map.FoldByteStream(b'\x11\x22\x33')
@@ -1771,11 +1771,15 @@ class PaddingMapTest(test_lib.BaseTestCase):
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
     data_type_definition = data_types.PaddingDefinition(
-        'padding', alignment_size=32, description='alignment_padding')
+        'padding', alignment_size=4, description='alignment_padding')
     data_type_map = data_maps.PaddingMap(data_type_definition)
     data_type_map.byte_size = 3
 
-    padding_value = data_type_map.MapByteStream(b'\x11\x22\x33')
+    padding_value = data_type_map.MapByteStream(b'\x00\x11\x22\x33')
+    self.assertEqual(padding_value, b'')
+
+    padding_value = data_type_map.MapByteStream(
+        b'\x00\x11\x22\x33', byte_offset=1)
     self.assertEqual(padding_value, b'\x11\x22\x33')
 
 

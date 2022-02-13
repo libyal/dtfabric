@@ -355,13 +355,13 @@ class PaddingDefinitionTest(test_lib.BaseTestCase):
   def testInitialize(self):
     """Tests the __init__ function."""
     data_type_definition = data_types.PaddingDefinition(
-        'padding', alignment_size=32, description='alignment_padding')
+        'padding', alignment_size=4, description='alignment_padding')
     self.assertIsNotNone(data_type_definition)
 
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
     data_type_definition = data_types.PaddingDefinition(
-        'padding', alignment_size=32, description='alignment_padding')
+        'padding', alignment_size=4, description='alignment_padding')
 
     byte_size = data_type_definition.GetByteSize()
     self.assertIsNone(byte_size)

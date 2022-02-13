@@ -1359,6 +1359,23 @@ class PaddingMap(DataTypeMap):
     """
     return value
 
+  def GetSizeHint(self, byte_offset=0, **unused_kwargs):
+    """Retrieves a hint about the size.
+
+    Args:
+      byte_offset (Optional[int]): offset into the byte stream where to start.
+
+    Returns:
+      int: hint of the number of bytes needed from the byte stream or None.
+    """
+    alignment_size = self._data_type_definition.alignment_size
+
+    _, byte_size = divmod(byte_offset, alignment_size)
+    if byte_size > 0:
+      byte_size = alignment_size - byte_size
+
+    return byte_size
+
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
 
@@ -1387,13 +1404,19 @@ class PaddingMap(DataTypeMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
-    if context:
-      context.requested_size = self.byte_size
+    alignment_size = self._data_type_definition.alignment_size
 
-    mapped_value = byte_stream[byte_offset:byte_offset + self.byte_size]
+    _, byte_size = divmod(byte_offset, alignment_size)
+    if byte_size > 0:
+      byte_size = alignment_size - byte_size
 
     if context:
-      context.byte_size = self.byte_size
+      context.requested_size = byte_size
+
+    mapped_value = byte_stream[byte_offset:byte_offset + byte_size]
+
+    if context:
+      context.byte_size = byte_size
 
     return mapped_value
 
@@ -1666,13 +1689,6 @@ class StructureMap(StorageDataTypeMap):
         if not condition_result:
           continue
 
-      if isinstance(member_definition, data_types.PaddingDefinition):
-        _, byte_size = divmod(
-            members_data_size, member_definition.alignment_size)
-        if byte_size > 0:
-          byte_size = member_definition.alignment_size - byte_size
-        data_type_map.byte_size = byte_size
-
       try:
         value = data_type_map.MapByteStream(
             byte_stream, byte_offset=byte_offset, context=subcontext)
@@ -1769,6 +1785,7 @@ class StructureMap(StorageDataTypeMap):
 
       data_type_map = data_type_map_cache[member_definition.name]
       if members_data_size is not None:
+        # TODO: use GetSizeHint
         if not isinstance(member_definition, data_types.PaddingDefinition):
           byte_size = member_definition.GetByteSize()
         else:
@@ -1914,7 +1931,8 @@ class StructureMap(StorageDataTypeMap):
     size_hint = getattr(context, 'members_data_size', None) or 0
     for attribute_index in range(attribute_index, self._number_of_attributes):
       data_type_map = self._data_type_maps[attribute_index]
-      data_type_size = data_type_map.GetSizeHint(context=subcontext)
+      data_type_size = data_type_map.GetSizeHint(
+          byte_offset=size_hint, context=subcontext)
 
       if data_type_size is None:
         break
