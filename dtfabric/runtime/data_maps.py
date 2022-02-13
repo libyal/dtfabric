@@ -2152,7 +2152,7 @@ class StructureGroupMap(LayoutDataTypeMap):
         raise errors.FormatError('No such member: {0:s} of: {1:s}'.format(
             data_type_definition.identifier, group_member_definition.name))
 
-      if not struct_member_definition.values:
+      if struct_member_definition.values is None:
         raise errors.FormatError(
             'No values defined for member: {0:s} of: {1:s}'.format(
                 data_type_definition.identifier, group_member_definition.name))

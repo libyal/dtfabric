@@ -744,7 +744,7 @@ class DataTypeDefinitionsReader(object):
           'be set at the same time').format(name or '<NAMELESS>')
       raise errors.DefinitionReaderError(definition_name, error_message)
 
-    if value:
+    if value is not None and values is None:
       values = [value]
 
     supported_values = None
