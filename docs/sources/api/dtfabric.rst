@@ -20,6 +20,14 @@ dtfabric.data\_types module
    :undoc-members:
    :show-inheritance:
 
+dtfabric.decorators module
+--------------------------
+
+.. automodule:: dtfabric.decorators
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 dtfabric.definitions module
 ---------------------------
 
