@@ -1313,7 +1313,7 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
           registry.
       path (str): path of the file to read from.
     """
-    with open(path, 'r') as file_object:
+    with open(path, 'r', encoding='utf-8') as file_object:
       self.ReadFileObject(definitions_registry, file_object)
 
   @abc.abstractmethod

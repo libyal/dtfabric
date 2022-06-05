@@ -999,7 +999,7 @@ class SequenceMap(ElementSequenceDataTypeMap):
             element_value == elements_terminator):
           break
 
-    except errors.ByteStreamTooSmallError as exception:
+    except errors.ByteStreamTooSmallError:
       context_state['context'] = subcontext
       context_state['elements_data_offset'] = elements_data_offset
       context_state['element_index'] = element_index
@@ -1692,7 +1692,7 @@ class StructureMap(StorageDataTypeMap):
             byte_stream, byte_offset=byte_offset, context=subcontext)
         setattr(mapped_values, attribute_name, value)
 
-      except errors.ByteStreamTooSmallError as exception:
+      except errors.ByteStreamTooSmallError:
         context_state['attribute_index'] = attribute_index
         context_state['context'] = subcontext
         context_state['mapped_values'] = mapped_values
