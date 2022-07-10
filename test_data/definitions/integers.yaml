@@ -1,3 +1,5 @@
+# dtFabric format specification.
+---
 name: int8
 type: integer
 description: 8-bit signed integer type

@@ -1,3 +1,5 @@
+# dtFabric format specification.
+---
 name: format_with_layout
 type: format
 description: Test format with layout

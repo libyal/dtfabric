@@ -1,3 +1,5 @@
+# dtFabric format specification.
+---
 name: int32
 type: integer
 description: 32-bit signed integer type

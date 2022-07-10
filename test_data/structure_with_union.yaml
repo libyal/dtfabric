@@ -1,3 +1,5 @@
+# dtFabric format specification.
+---
 name: uint32
 type: integer
 attributes:

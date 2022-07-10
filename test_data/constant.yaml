@@ -1,3 +1,5 @@
+# dtFabric format specification.
+---
 name: maximum_number_of_back_traces
 aliases: [AVRF_MAX_TRACES]
 type: constant

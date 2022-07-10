@@ -1,3 +1,5 @@
+# dtFabric format specification.
+---
 name: object_information_type
 aliases: [MINIDUMP_HANDLE_OBJECT_INFORMATION_TYPE]
 type: enumeration

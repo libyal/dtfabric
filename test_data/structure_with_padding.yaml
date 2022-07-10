@@ -1,3 +1,5 @@
+# dtFabric format specification.
+---
 name: byte
 type: integer
 attributes:
@@ -27,7 +29,6 @@ name: structure_with_padding_and_stream
 type: structure
 attributes:
   byte_order: little-endian
-members:
 members:
 - name: data_size
   data_type: uint16

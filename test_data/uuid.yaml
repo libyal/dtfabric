@@ -1,3 +1,5 @@
+# dtFabric format specification.
+---
 name: uuid
 aliases: [guid, GUID, UUID]
 type: uuid
