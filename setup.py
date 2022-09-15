@@ -23,9 +23,9 @@ except ImportError:
   bdist_rpm = None
 
 version_tuple = (sys.version_info[0], sys.version_info[1])
-if version_tuple < (3, 6):
+if version_tuple < (3, 7):
   print((
-      'Unsupported Python version: {0:s}, version 3.6 or higher '
+      'Unsupported Python version: {0:s}, version 3.7 or higher '
       'required.').format(sys.version))
   sys.exit(1)
 
@@ -200,6 +200,12 @@ dtfabric_long_description = (
     'dtFabric, or data type fabric, is a project to manage data types and '
     'structures, as used in the libyal projects.')
 
+command_classes = {}
+if BdistMSICommand:
+  command_classes['bdist_msi'] = BdistMSICommand
+if BdistRPMCommand:
+  command_classes['bdist_rpm'] = BdistRPMCommand
+
 setup(
     name='dtfabric',
     version=dtfabric.__version__,
@@ -210,9 +216,7 @@ setup(
     url='https://github.com/libyal/dtfabric',
     maintainer='Joachim Metz',
     maintainer_email='joachim.metz@gmail.com',
-    cmdclass={
-        'bdist_msi': BdistMSICommand,
-        'bdist_rpm': BdistRPMCommand},
+    cmdclass=command_classes,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
