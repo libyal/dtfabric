@@ -53,9 +53,9 @@ class StructOperation(ByteStreamOperation):
     try:
       struct_object = struct.Struct(format_string)
     except (TypeError, struct.error) as exception:
-      raise errors.FormatError((
-          'Unable to create struct object from data type definition '
-          'with error: {0!s}').format(exception))
+      raise errors.FormatError(
+          f'Unable to create struct object from data type definition '
+          f'with error: {exception!s}')
 
     super(StructOperation, self).__init__()
     self._struct = struct_object
@@ -77,8 +77,7 @@ class StructOperation(ByteStreamOperation):
     try:
       return self._struct.unpack_from(byte_stream)
     except (TypeError, struct.error) as exception:
-      raise IOError('Unable to read byte stream with error: {0!s}'.format(
-          exception))
+      raise IOError(f'Unable to read byte stream with error: {exception!s}')
 
   def WriteTo(self, values):
     """Writes values to a byte stream.
@@ -96,5 +95,4 @@ class StructOperation(ByteStreamOperation):
     try:
       return self._struct.pack(*values)
     except (TypeError, struct.error) as exception:
-      raise IOError('Unable to write stream with error: {0!s}'.format(
-          exception))
+      raise IOError(f'Unable to write stream with error: {exception!s}')

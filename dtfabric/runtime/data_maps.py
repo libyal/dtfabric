@@ -165,8 +165,8 @@ class StorageDataTypeMap(DataTypeMap):
 
     if byte_stream_size - byte_offset < data_type_size:
       raise errors.ByteStreamTooSmallError(
-          'Byte stream too small requested: {0:d} available: {1:d}'.format(
-              data_type_size, byte_stream_size))
+          f'Byte stream too small requested: {data_type_size:d} available: '
+          f'{byte_stream_size:d}')
 
   def _GetByteStreamOperation(self):
     """Retrieves the byte stream operation.
@@ -267,10 +267,9 @@ class PrimitiveDataTypeMap(StorageDataTypeMap):
       return self._operation.WriteTo(tuple([value]))
 
     except Exception as exception:
-      error_string = (
-          'Unable to write: {0:s} to byte stream with error: {1!s}').format(
-              self._data_type_definition.name, exception)
-      raise errors.FoldingError(error_string)
+      raise errors.FoldingError(
+          f'Unable to write: {self._data_type_definition.name:s} to byte '
+          f'stream with error: {exception!s}')
 
   def FoldValue(self, value):
     """Folds the data type into a value.
@@ -313,11 +312,9 @@ class PrimitiveDataTypeMap(StorageDataTypeMap):
       mapped_value = self.MapValue(*struct_tuple)
 
     except Exception as exception:
-      error_string = (
-          'Unable to read: {0:s} from byte stream at offset: {1:d} '
-          'with error: {2!s}').format(
-              self._data_type_definition.name, byte_offset, exception)
-      raise errors.MappingError(error_string)
+      raise errors.MappingError(
+          f'Unable to read: {self._data_type_definition.name:s} from byte '
+          f'stream at offset: {byte_offset:d} with error: {exception!s}')
 
     if context:
       context.byte_size = data_type_size
@@ -565,10 +562,9 @@ class UUIDMap(StorageDataTypeMap):
         value = mapped_value.bytes_le
 
     except Exception as exception:
-      error_string = (
-          'Unable to write: {0:s} to byte stream with error: {1!s}').format(
-              self._data_type_definition.name, exception)
-      raise errors.FoldingError(error_string)
+      raise errors.FoldingError(
+          f'Unable to write: {self._data_type_definition.name:s} to byte '
+          f'stream with error: {exception!s}')
 
     return value
 
@@ -603,11 +599,9 @@ class UUIDMap(StorageDataTypeMap):
             bytes_le=byte_stream[byte_offset:byte_offset + 16])
 
     except Exception as exception:
-      error_string = (
-          'Unable to read: {0:s} from byte stream at offset: {1:d} '
-          'with error: {2!s}').format(
-              self._data_type_definition.name, byte_offset, exception)
-      raise errors.MappingError(error_string)
+      raise errors.MappingError(
+          f'Unable to read: {self._data_type_definition.name:s} from byte '
+          f'stream at offset: {byte_offset:d} with error: {exception!s}')
 
     if context:
       context.byte_size = data_type_size
@@ -699,8 +693,8 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
         elements_data_size = eval(expression, namespace)  # pylint: disable=eval-used
       except Exception as exception:
         raise errors.MappingError(
-            'Unable to determine elements data size with error: {0!s}'.format(
-                exception))
+            f'Unable to determine elements data size with error: {exception!s}')
+
     try:
       invalid_value = elements_data_size is None or elements_data_size < 0
     except TypeError:
@@ -708,7 +702,7 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
 
     if invalid_value:
       raise errors.MappingError(
-          'Invalid elements data size: {0!s}'.format(elements_data_size))
+          f'Invalid elements data size: {elements_data_size!s}')
 
     return elements_data_size
 
@@ -738,8 +732,7 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
         number_of_elements = eval(expression, namespace)  # pylint: disable=eval-used
       except Exception as exception:
         raise errors.MappingError(
-            'Unable to determine number of elements with error: {0!s}'.format(
-                exception))
+            f'Unable to determine number of elements with error: {exception!s}')
 
     try:
       invalid_value = number_of_elements is None or number_of_elements < 0
@@ -748,7 +741,7 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
 
     if invalid_value:
       raise errors.MappingError(
-          'Invalid number of elements: {0!s}'.format(number_of_elements))
+          f'Invalid number of elements: {number_of_elements!s}')
 
     return number_of_elements
 
@@ -1006,9 +999,10 @@ class SequenceMap(ElementSequenceDataTypeMap):
       context_state['mapped_values'] = mapped_values
 
       requested_size = byte_offset + (subcontext.requested_size or 0)
+      byte_stream_size = len(byte_stream)
       raise errors.ByteStreamTooSmallError(
-          'Byte stream too small requested: {0:d} available: {1:d}'.format(
-              requested_size, len(byte_stream)))
+          f'Byte stream too small requested: {requested_size:d} available: '
+          f'{byte_stream_size:d}')
 
     except Exception as exception:
       raise errors.MappingError(exception)
@@ -1019,11 +1013,12 @@ class SequenceMap(ElementSequenceDataTypeMap):
       context_state['element_index'] = element_index
       context_state['mapped_values'] = mapped_values
 
-      error_string = (
-          'Unable to read: {0:s} from byte stream at offset: {1:d} '
-          'with error: missing element: {2:d}').format(
-              self._data_type_definition.name, byte_offset, element_index - 1)
-      raise errors.ByteStreamTooSmallError(error_string)
+      error_element_index = element_index - 1
+
+      raise errors.ByteStreamTooSmallError(
+          f'Unable to read: {self._data_type_definition.name:s} from byte '
+          f'stream at offset: {byte_offset:d} with error: missing element: '
+          f'{error_element_index:d}')
 
     if (elements_terminator is not None and
         element_value != elements_terminator and (
@@ -1040,11 +1035,10 @@ class SequenceMap(ElementSequenceDataTypeMap):
       context_state['mapped_values'] = mapped_values
       context_state['size_hints'] = size_hints
 
-      error_string = (
-          'Unable to read: {0:s} from byte stream at offset: {1:d} '
-          'with error: unable to find elements terminator').format(
-              self._data_type_definition.name, byte_offset)
-      raise errors.ByteStreamTooSmallError(error_string)
+      raise errors.ByteStreamTooSmallError(
+          f'Unable to read: {self._data_type_definition.name:s} from byte '
+          f'stream at offset: {byte_offset:d} with error: unable to find '
+          f'elements terminator')
 
     if context:
       context.byte_size = elements_data_offset
@@ -1069,10 +1063,9 @@ class SequenceMap(ElementSequenceDataTypeMap):
       return self._operation.WriteTo(mapped_value)
 
     except Exception as exception:
-      error_string = (
-          'Unable to write: {0:s} to byte stream with error: {1!s}').format(
-              self._data_type_definition.name, exception)
-      raise errors.FoldingError(error_string)
+      raise errors.FoldingError(
+          f'Unable to write: {self._data_type_definition.name:s} to byte '
+          f'stream with error: {exception!s}')
 
   def _LinearMapByteStream(
       self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
@@ -1101,11 +1094,9 @@ class SequenceMap(ElementSequenceDataTypeMap):
       mapped_values = map(self._element_data_type_map.MapValue, struct_tuple)
 
     except Exception as exception:
-      error_string = (
-          'Unable to read: {0:s} from byte stream at offset: {1:d} '
-          'with error: {2!s}').format(
-              self._data_type_definition.name, byte_offset, exception)
-      raise errors.MappingError(error_string)
+      raise errors.MappingError(
+          f'Unable to read: {self._data_type_definition.name:s} from byte '
+          f'stream at offset: {byte_offset:d} with error: {exception!s}')
 
     if context:
       context.byte_size = elements_data_size
@@ -1153,7 +1144,7 @@ class SequenceMap(ElementSequenceDataTypeMap):
     if not number_of_elements or not format_string:
       return None
 
-    return '{0:d}{1:s}'.format(number_of_elements, format_string)
+    return f'{number_of_elements:d}{format_string:s}'
 
   def MapByteStream(self, byte_stream, **kwargs):
     """Maps the data type on a byte stream.
@@ -1235,7 +1226,7 @@ class StreamMap(ElementSequenceDataTypeMap):
     if not byte_size:
       return None
 
-    return '{0:d}B'.format(byte_size)
+    return f'{byte_size:d}B'
 
   def MapByteStream(
       self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
@@ -1298,11 +1289,10 @@ class StreamMap(ElementSequenceDataTypeMap):
 
         context_state['size_hints'] = size_hints
 
-        error_string = (
-            'Unable to read: {0:s} from byte stream at offset: {1:d} '
-            'with error: unable to find elements terminator').format(
-                self._data_type_definition.name, byte_offset)
-        raise errors.ByteStreamTooSmallError(error_string)
+        raise errors.ByteStreamTooSmallError(
+            f'Unable to read: {self._data_type_definition.name:s} from byte '
+            f'stream at offset: {byte_offset:d} with error: unable to find '
+            f'elements terminator')
 
     if context:
       context.byte_size = elements_data_size
@@ -1409,8 +1399,8 @@ class PaddingMap(DataTypeMap):
     byte_stream_size = len(byte_stream)
     if byte_stream_size - byte_offset < padding_size:
       raise errors.ByteStreamTooSmallError(
-          'Byte stream too small requested: {0:d} available: {1:d}'.format(
-              padding_size, byte_stream_size))
+          f'Byte stream too small requested: {padding_size:d} available: '
+          f'{byte_stream_size:d}')
 
     mapped_value = byte_stream[byte_offset:byte_offset + padding_size]
 
@@ -1456,10 +1446,9 @@ class StringMap(StreamMap):
       byte_stream = mapped_value.encode(self._data_type_definition.encoding)
 
     except Exception as exception:
-      error_string = (
-          'Unable to write: {0:s} to byte stream with error: {1!s}').format(
-              self._data_type_definition.name, exception)
-      raise errors.FoldingError(error_string)
+      raise errors.FoldingError(
+          f'Unable to write: {self._data_type_definition.name:s} to byte '
+          f'stream with error: {exception!s}')
 
     return super(StringMap, self).FoldByteStream(byte_stream, **kwargs)
 
@@ -1502,11 +1491,9 @@ class StringMap(StreamMap):
       return byte_stream.decode(self._data_type_definition.encoding)
 
     except Exception as exception:
-      error_string = (
-          'Unable to read: {0:s} from byte stream at offset: {1:d} '
-          'with error: {2!s}').format(
-              self._data_type_definition.name, byte_offset, exception)
-      raise errors.MappingError(error_string)
+      raise errors.MappingError(
+          f'Unable to read: {self._data_type_definition.name:s} from byte '
+          f'stream at offset: {byte_offset:d} with error: {exception!s}')
 
 
 class StructureMap(StorageDataTypeMap):
@@ -1677,8 +1664,7 @@ class StructureMap(StorageDataTypeMap):
           condition_result = eval(condition, namespace)  # pylint: disable=eval-used
         except Exception as exception:
           raise errors.MappingError(
-              'Unable to evaluate condition with error: {0!s}'.format(
-                  exception))
+              f'Unable to evaluate condition with error: {exception!s}')
 
         if not isinstance(condition_result, bool):
           raise errors.MappingError(
@@ -1701,19 +1687,22 @@ class StructureMap(StorageDataTypeMap):
           context.members_data_size = members_data_size
 
         requested_size = byte_offset + (subcontext.requested_size or 0)
+        byte_stream_size = len(byte_stream)
+
         raise errors.ByteStreamTooSmallError(
-            'Byte stream too small requested: {0:d} available: {1:d}'.format(
-                requested_size, len(byte_stream)))
+            f'Byte stream too small requested: {requested_size:d} available: '
+            f'{byte_stream_size:d}')
 
       except Exception as exception:
         raise errors.MappingError(exception)
 
       supported_values = getattr(member_definition, 'values', None)
       if supported_values and value not in supported_values:
+        supported_values_string = ', '.join([
+            f'{value!s}' for value in supported_values])
         raise errors.MappingError(
-            'Value: {0!s} not in supported values: {1:s}'.format(
-                value, ', '.join([
-                    '{0!s}'.format(value) for value in supported_values])))
+            f'Value: {value!s} not in supported values: '
+            f'{supported_values_string:s}')
 
       byte_offset += subcontext.byte_size
       members_data_size += subcontext.byte_size
@@ -1726,11 +1715,10 @@ class StructureMap(StorageDataTypeMap):
       if context:
         context.members_data_size = members_data_size
 
-      error_string = (
-          'Unable to read: {0:s} from byte stream at offset: {1:d} '
-          'with error: missing attribute: {2:d}').format(
-              self._data_type_definition.name, byte_offset, attribute_index)
-      raise errors.ByteStreamTooSmallError(error_string)
+      raise errors.ByteStreamTooSmallError(
+          f'Unable to read: {self._data_type_definition.name:s} from byte '
+          f'stream at offset: {byte_offset:d} with error: missing attribute: '
+          f'{attribute_index:d}')
 
     if context:
       context.byte_size = members_data_size
@@ -1772,8 +1760,8 @@ class StructureMap(StorageDataTypeMap):
         # Make a copy of the data type definition where byte-order can be
         # safely changed.
         member_definition = copy.copy(member_definition)
-        member_definition.name = '_{0:s}_{1:s}'.format(
-            data_type_definition.name, member_definition.name)
+        member_definition.name = (
+            f'_{data_type_definition.name:s}_{member_definition.name:s}')
         member_definition.byte_order = data_type_definition.byte_order
 
       if member_definition.name not in data_type_map_cache:
@@ -1815,10 +1803,9 @@ class StructureMap(StorageDataTypeMap):
       return self._operation.WriteTo(tuple(attribute_values))
 
     except Exception as exception:
-      error_string = (
-          'Unable to write: {0:s} to byte stream with error: {1!s}').format(
-              self._data_type_definition.name, exception)
-      raise errors.FoldingError(error_string)
+      raise errors.FoldingError(
+          f'Unable to write: {self._data_type_definition.name:s} to byte '
+          f'stream with error: {exception!s}')
 
   def _LinearMapByteStream(
       self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
@@ -1851,21 +1838,19 @@ class StructureMap(StorageDataTypeMap):
         supported_values = getattr(member_definition, 'values', None)
         if supported_values and value not in supported_values:
           supported_values_string = ', '.join([
-              '{0!s}'.format(value) for value in supported_values])
+              f'{value!s}' for value in supported_values])
           raise errors.MappingError(
-              'Value: {0!s} not in supported values: {1:s}'.format(
-                  value, supported_values_string))
+              f'Value: {value!s} not in supported values: '
+              f'{supported_values_string:s}')
 
         struct_values.append(value)
 
       mapped_value = self._structure_values_class(*struct_values)
 
     except Exception as exception:
-      error_string = (
-          'Unable to read: {0:s} from byte stream at offset: {1:d} '
-          'with error: {2!s}').format(
-              self._data_type_definition.name, byte_offset, exception)
-      raise errors.MappingError(error_string)
+      raise errors.MappingError(
+          f'Unable to read: {self._data_type_definition.name:s} from byte '
+          f'stream at offset: {byte_offset:d} with error: {exception!s}')
 
     if context:
       context.byte_size = members_data_size
@@ -1986,8 +1971,8 @@ class SemanticDataTypeMap(DataTypeMap):
           the byte stream.
     """
     raise errors.FoldingError(
-        'Unable to fold {0:s} data type into byte stream'.format(
-            self._data_type_definition.TYPE_INDICATOR))
+        f'Unable to fold {self._data_type_definition.TYPE_INDICATOR:s} data '
+        f'type into byte stream')
 
   def MapByteStream(self, byte_stream, **unused_kwargs):  # pylint: disable=redundant-returns-doc
     """Maps the data type on a byte stream.
@@ -2003,8 +1988,8 @@ class SemanticDataTypeMap(DataTypeMap):
           the byte stream.
     """
     raise errors.MappingError(
-        'Unable to map {0:s} data type to byte stream'.format(
-            self._data_type_definition.TYPE_INDICATOR))
+        f'Unable to map {self._data_type_definition.TYPE_INDICATOR:s} data '
+        f'type to byte stream')
 
 
 class ConstantMap(SemanticDataTypeMap):
@@ -2048,8 +2033,8 @@ class LayoutDataTypeMap(DataTypeMap):
           the byte stream.
     """
     raise errors.FoldingError(
-        'Unable to fold {0:s} data type into byte stream'.format(
-            self._data_type_definition.TYPE_INDICATOR))
+        f'Unable to fold {self._data_type_definition.TYPE_INDICATOR:s} data '
+        f'type into byte stream')
 
   @abc.abstractmethod
   def MapByteStream(self, byte_stream, **unused_kwargs):
@@ -2089,8 +2074,8 @@ class FormatMap(LayoutDataTypeMap):
           the byte stream.
     """
     raise errors.MappingError(
-        'Unable to map {0:s} data type to byte stream'.format(
-            self._data_type_definition.TYPE_INDICATOR))
+        f'Unable to map {self._data_type_definition.TYPE_INDICATOR:s} data '
+        f'type to byte stream')
 
 
 class StructureGroupMap(LayoutDataTypeMap):
@@ -2138,20 +2123,22 @@ class StructureGroupMap(LayoutDataTypeMap):
               data_type_definition.identifier))
 
       if not struct_member_definition:
-        raise errors.FormatError('No such member: {0:s} of: {1:s}'.format(
-            data_type_definition.identifier, group_member_definition.name))
+        raise errors.FormatError(
+            f'No such member: {data_type_definition.identifier:s} of: '
+            f'{group_member_definition.name:s}')
 
       if struct_member_definition.values is None:
         raise errors.FormatError(
-            'No values defined for member: {0:s} of: {1:s}'.format(
-                data_type_definition.identifier, group_member_definition.name))
+            f'No values defined for member: '
+            f'{data_type_definition.identifier:s} of: '
+            f'{group_member_definition.name:s}')
 
       for value in struct_member_definition.values:
         if value in self._data_type_maps:
           raise errors.FormatError(
-              'Duplicate value: {0!s} for member: {1:s} of: {2:s}'.format(
-                  value, data_type_definition.identifier,
-                  group_member_definition.name))
+              f'Duplicate value: {value!s} for member: '
+              f'{data_type_definition.identifier:s} of: '
+              f'{group_member_definition.name:s}')
 
         data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
             group_member_definition)
@@ -2212,16 +2199,18 @@ class StructureGroupMap(LayoutDataTypeMap):
       member_identifier = getattr(
           mapped_base_value, self._data_type_definition.identifier, None)
       if member_identifier is None:
-        raise errors.MappingError('Unable to determine value of {0:s}'.format(
-            self._data_type_definition.identifier))
+        raise errors.MappingError(
+            f'Unable to determine value of '
+            f'{self._data_type_definition.identifier:s}')
 
       context_state['member_identifier'] = member_identifier
 
     member_data_type_map = self._data_type_maps.get(member_identifier, None)
     if member_data_type_map is None:
       raise errors.MappingError(
-          'Missing member data type map for {0:s}: {1!s}'.format(
-              self._data_type_definition.identifier, member_identifier))
+          f'Missing member data type map for '
+          f'{self._data_type_definition.identifier:s}: '
+          f'{member_identifier!s}')
 
     return member_data_type_map.MapByteStream(
         byte_stream, context=context, **kwargs)

@@ -73,17 +73,16 @@ class StructureValuesClassFactory(object):
       member_type_indicator = member_definition.TYPE_INDICATOR
       if member_type_indicator == definitions.TYPE_INDICATOR_SEQUENCE:
         element_type_indicator = member_definition.element_data_type
-        member_type_indicator = 'tuple[{0:s}]'.format(element_type_indicator)
+        member_type_indicator = f'tuple[{element_type_indicator:s}]'
       else:
         member_type_indicator = cls._PYTHON_NATIVE_TYPES.get(
             member_type_indicator, member_data_type)
 
-      argument = '{0:s}=None'.format(attribute_name)
-
-      definition = '    self.{0:s} = {0:s}'.format(attribute_name)
-
-      description = '    {0:s} ({1:s}): {2:s}.'.format(
-          attribute_name, member_type_indicator, description)
+      argument = f'{attribute_name:s}=None'
+      definition = f'    self.{attribute_name:s} = {attribute_name:s}'
+      description = (
+          f'    {attribute_name:s} ({member_type_indicator:s}): '
+          f'{description:s}.')
 
       class_attributes_description.append(description)
       init_arguments.append(argument)
@@ -129,19 +128,19 @@ class StructureValuesClassFactory(object):
     """
     if not cls._IsIdentifier(data_type_definition.name):
       raise ValueError(
-          'Data type definition name: {0!s} not a valid identifier'.format(
-              data_type_definition.name))
+          f'Data type definition name: {data_type_definition.name!s} not '
+          f'a valid identifier')
 
     if keyword.iskeyword(data_type_definition.name):
       raise ValueError(
-          'Data type definition name: {0!s} matches keyword'.format(
-              data_type_definition.name))
+          f'Data type definition name: {data_type_definition.name!s} matches '
+          f'keyword')
 
     members = getattr(data_type_definition, 'members', None)
     if not members:
       raise ValueError(
-          'Data type definition name: {0!s} missing members'.format(
-              data_type_definition.name))
+          f'Data type definition name: {data_type_definition.name!s} missing '
+          f'members')
 
     defined_attribute_names = set()
 
@@ -149,20 +148,20 @@ class StructureValuesClassFactory(object):
       attribute_name = member_definition.name
 
       if not cls._IsIdentifier(attribute_name):
-        raise ValueError('Attribute name: {0!s} not a valid identifier'.format(
-            attribute_name))
+        raise ValueError(
+            f'Attribute name: {attribute_name!s} not a valid identifier')
 
       if attribute_name.startswith('_'):
-        raise ValueError('Attribute name: {0!s} starts with underscore'.format(
-            attribute_name))
+        raise ValueError(
+            f'Attribute name: {attribute_name!s} starts with underscore')
 
       if keyword.iskeyword(attribute_name):
-        raise ValueError('Attribute name: {0!s} matches keyword'.format(
-            attribute_name))
+        raise ValueError(
+            f'Attribute name: {attribute_name!s} matches keyword')
 
       if attribute_name in defined_attribute_names:
-        raise ValueError('Attribute name: {0!s} already defined'.format(
-            attribute_name))
+        raise ValueError(
+            f'Attribute name: {attribute_name!s} already defined')
 
       defined_attribute_names.add(attribute_name)
 
@@ -184,7 +183,7 @@ class StructureValuesClassFactory(object):
         '__builtins__' : {
             'object': builtins.object,
             'super': builtins.super},
-        '__name__': '{0:s}'.format(data_type_definition.name)}
+        '__name__': f'{data_type_definition.name:s}'}
 
     if sys.version_info[0] >= 3:
       # pylint: disable=no-member

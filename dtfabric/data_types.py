@@ -447,8 +447,7 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
       KeyError: if a member with the name already exists.
     """
     if member_definition.name in self._members_by_name:
-      raise KeyError('Member: {0:s} already set.'.format(
-          member_definition.name))
+      raise KeyError(f'Member: {member_definition.name:s} already set.')
 
     self._byte_size = None
     self._members_by_name[member_definition.name] = member_definition
@@ -752,14 +751,14 @@ class EnumerationDefinition(SemanticDataTypeDefinition):
       KeyError: if the enumeration value already exists.
     """
     if name in self.values_per_name:
-      raise KeyError('Value with name: {0:s} already exists.'.format(name))
+      raise KeyError(f'Value with name: {name:s} already exists.')
 
     if number in self.values_per_number:
-      raise KeyError('Value with number: {0!s} already exists.'.format(number))
+      raise KeyError(f'Value with number: {number!s} already exists.')
 
     for alias in aliases or []:
       if alias in self.values_per_alias:
-        raise KeyError('Value with alias: {0:s} already exists.'.format(alias))
+        raise KeyError(f'Value with alias: {alias:s} already exists.')
 
     enumeration_value = EnumerationValue(
         name, number, aliases=aliases, description=description)
@@ -886,8 +885,7 @@ class StructureFamilyDefinition(LayoutDataTypeDefinition):
       KeyError: if a member with the name already exists.
     """
     if member_definition.name in self._members_by_name:
-      raise KeyError('Member: {0:s} already set.'.format(
-          member_definition.name))
+      raise KeyError(f'Member: {member_definition.name:s} already set.')
 
     self._members_by_name[member_definition.name] = member_definition
 
@@ -953,7 +951,6 @@ class StructureGroupDefinition(LayoutDataTypeDefinition):
       KeyError: if a member with the name already exists.
     """
     if member_definition.name in self._members_by_name:
-      raise KeyError('Member: {0:s} already set.'.format(
-          member_definition.name))
+      raise KeyError(f'Member: {member_definition.name:s} already set.')
 
     self._members_by_name[member_definition.name] = member_definition

@@ -36,8 +36,8 @@ class DataTypeDefinitionsRegistry(object):
     """
     name = data_type_definition.name.lower()
     if name not in self._definitions:
-      raise KeyError('Definition not set for name: {0:s}.'.format(
-          data_type_definition.name))
+      raise KeyError(
+          f'Definition not set for name: {data_type_definition.name:s}.')
 
     del self._definitions[name]
 
@@ -80,16 +80,16 @@ class DataTypeDefinitionsRegistry(object):
     """
     name_lower = data_type_definition.name.lower()
     if name_lower in self._definitions:
-      raise KeyError('Definition already set for name: {0:s}.'.format(
-          data_type_definition.name))
+      raise KeyError(
+          f'Definition already set for name: {data_type_definition.name:s}.')
 
     if data_type_definition.name in self._aliases:
-      raise KeyError('Alias already set for name: {0:s}.'.format(
-          data_type_definition.name))
+      raise KeyError(
+          f'Alias already set for name: {data_type_definition.name:s}.')
 
     for alias in data_type_definition.aliases:
       if alias in self._aliases:
-        raise KeyError('Alias already set for name: {0:s}.'.format(alias))
+        raise KeyError(f'Alias already set for name: {alias:s}.')
 
     self._definitions[name_lower] = data_type_definition
 

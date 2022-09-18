@@ -30,7 +30,7 @@ class DefinitionsValidator(object):
     result = True
 
     if extension:
-      glob_spec = os.path.join(path, '*.{0:s}'.format(extension))
+      glob_spec = os.path.join(path, f'*.{extension:s}')
     else:
       glob_spec = os.path.join(path, '*')
 
@@ -49,7 +49,7 @@ class DefinitionsValidator(object):
     Returns:
       bool: True if the file contains valid definitions.
     """
-    print('Checking: {0:s}'.format(path))
+    print(f'Checking: {path:s}')
 
     definitions_registry = registry.DataTypeDefinitionsRegistry()
     definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
@@ -60,14 +60,13 @@ class DefinitionsValidator(object):
       result = True
 
     except KeyError as exception:
-      logging.warning((
-          'Unable to register data type definition in file: {0:s} with '
-          'error: {1:s}').format(path, exception))
+      logging.warning(
+          f'Unable to register data type definition in file: {path:s} with '
+          f'error: {exception!s}')
 
     except errors.FormatError as exception:
       logging.warning(
-          'Unable to validate file: {0:s} with error: {1:s}'.format(
-              path, exception))
+          f'Unable to validate file: {path:s} with error: {exception!s}')
 
     return result
 
@@ -83,9 +82,8 @@ def Main():
 
   argument_parser.add_argument(
       'source', nargs='?', action='store', metavar='PATH', default=None,
-      help=(
-          'path of the file or directory containing the dtFabric format '
-          'definitions.'))
+      help=('path of the file or directory containing the dtFabric format '
+            'definitions.'))
 
   options = argument_parser.parse_args()
 
@@ -97,7 +95,7 @@ def Main():
     return False
 
   if not os.path.exists(options.source):
-    print('No such file: {0:s}'.format(options.source))
+    print(f'No such file: {options.source:s}')
     print('')
     return False
 
@@ -114,7 +112,7 @@ def Main():
   else:
     source_description = options.source
 
-  print('Validating dtFabric definitions in: {0:s}'.format(source_description))
+  print(f'Validating dtFabric definitions in: {source_description:s}')
   if source_is_directory:
     result = validator.CheckDirectory(options.source)
   else:
