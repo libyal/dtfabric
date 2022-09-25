@@ -15,7 +15,6 @@ class DataTypeDefinition(object):
 
   Attributes:
     aliases (list[str]): aliases.
-    byte_order (str): byte-order the data type.
     description (str): description.
     name (str): name.
     urls (list[str]): URLs.
@@ -287,6 +286,7 @@ class ElementSequenceDataTypeDefinition(StorageDataTypeDefinition):
   """Element sequence data type definition.
 
   Attributes:
+    byte_order (str): byte-order the data type.
     elements_data_size (int): data size of the sequence elements.
     elements_data_size_expression (str): expression to determine the data
         size of the sequence elements.
@@ -490,6 +490,7 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
   """Member data type definition.
 
   Attributes:
+    byte_order (str): byte-order the data type.
     condition (str): condition under which the data type applies.
     member_data_type (str): member data type.
     member_data_type_definition (DataTypeDefinition): member data type
@@ -628,11 +629,7 @@ class UnionDefinition(DataTypeDefinitionWithMembers):
 
 
 class SemanticDataTypeDefinition(DataTypeDefinition):
-  """Semantic data type definition interface.
-
-  Attributes:
-    byte_order (str): byte-order the data type.
-  """
+  """Semantic data type definition interface."""
 
   # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
   # methods.

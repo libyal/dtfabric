@@ -620,15 +620,13 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
     """
-    element_data_type_definition = self._GetElementDataTypeDefinition(
-        data_type_definition)
-
     super(ElementSequenceDataTypeMap, self).__init__(data_type_definition)
-    self._element_data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
-        element_data_type_definition)
-    self._element_data_type_definition = element_data_type_definition
+    self._element_data_type_map = None
+    self._element_data_type_definition = None
     self._elements_data_size_expression = None
     self._number_of_elements_expression = None
+
+    self._GetElementDataTypeMap(data_type_definition)
 
     if data_type_definition.elements_data_size_expression:
       expression_ast = ast.parse(
@@ -768,6 +766,35 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
           'Invalid data type definition missing element')
 
     return element_data_type_definition
+
+  def _GetElementDataTypeMap(self, data_type_definition):
+    """Retrieves the element data type map.
+
+    Args:
+      data_type_definition (DataTypeDefinition): data type definition.
+
+    Raises:
+      FormatError: if the data type map cannot be determined from the data
+          type definition.
+    """
+    element_data_type_definition = self._GetElementDataTypeDefinition(
+        data_type_definition)
+
+    element_byte_order = element_data_type_definition.byte_order
+    if (data_type_definition.byte_order != definitions.BYTE_ORDER_NATIVE and
+        element_byte_order == definitions.BYTE_ORDER_NATIVE and
+        not element_data_type_definition.IsComposite()):
+      # Make a copy of the data type definition where byte-order can be
+      # safely changed.
+      element_data_type_definition = copy.copy(element_data_type_definition)
+      element_data_type_definition.name = (
+          f'_{data_type_definition.name:s}'
+          f'_{element_data_type_definition.name:s}')
+      element_data_type_definition.byte_order = data_type_definition.byte_order
+
+    self._element_data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
+        element_data_type_definition)
+    self._element_data_type_definition = element_data_type_definition
 
   def _HasElementsDataSize(self):
     """Checks if the data type defines an elements data size.
