@@ -738,7 +738,9 @@ class DataTypeDefinitionsReader(object):
       supported_values = []
       for value in values:
         if isinstance(value, str):
-          value = value.encode('ascii')
+          # Note that latin1 is used here since the ascii encoding is limited
+          # to 127 characters.
+          value = value.encode('latin1')
 
         supported_values.append(value)
 
