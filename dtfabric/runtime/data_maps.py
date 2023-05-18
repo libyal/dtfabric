@@ -63,6 +63,8 @@ class DataTypeMapSizeHint(object):
 class DataTypeMap(object):
   """Data type map."""
 
+  _MAXIMUM_RECURSION_DEPTH = 10
+
   def __init__(self, data_type_definition):
     """Initializes a data type map.
 
@@ -237,8 +239,6 @@ class StorageDataTypeMap(DataTypeMap):
 
 class PrimitiveDataTypeMap(StorageDataTypeMap):
   """Primitive data type map."""
-
-  # pylint: disable=arguments-differ
 
   def __init__(self, data_type_definition):
     """Initializes a primitive data type map.
@@ -529,8 +529,6 @@ class IntegerMap(PrimitiveDataTypeMap):
 class UUIDMap(StorageDataTypeMap):
   """UUID (or GUID) data type map."""
 
-  # pylint: disable=arguments-differ
-
   def __init__(self, data_type_definition):
     """Initializes an UUID (or GUID) data type map.
 
@@ -611,8 +609,6 @@ class UUIDMap(StorageDataTypeMap):
 
 class ElementSequenceDataTypeMap(StorageDataTypeMap):
   """Element sequence data type map."""
-
-  # pylint: disable=arguments-differ
 
   def __init__(self, data_type_definition):
     """Initializes a sequence data type map.
@@ -945,13 +941,15 @@ class SequenceMap(ElementSequenceDataTypeMap):
     # TODO: implement.
 
   def _CompositeMapByteStream(
-      self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
+      self, byte_stream, byte_offset=0, context=None, recursion_depth=0,
+      **unused_kwargs):
     """Maps a sequence of composite data types on a byte stream.
 
     Args:
       byte_stream (bytes): byte stream.
       byte_offset (Optional[int]): offset into the byte stream where to start.
       context (Optional[DataTypeMapContext]): data type map context.
+      recursion_depth (Optional[int]): recursion depth.
 
     Returns:
       tuple[object, ...]: mapped values.
@@ -961,6 +959,9 @@ class SequenceMap(ElementSequenceDataTypeMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
+    if recursion_depth > self._MAXIMUM_RECURSION_DEPTH:
+      raise errors.MappingError('At maximum recursion depth')
+
     elements_data_size = None
     elements_terminator = None
     number_of_elements = None
@@ -1008,7 +1009,8 @@ class SequenceMap(ElementSequenceDataTypeMap):
           break
 
         element_value = self._element_data_type_map.MapByteStream(
-            byte_stream, byte_offset=byte_offset, context=subcontext)
+            byte_stream, byte_offset=byte_offset, context=subcontext,
+            recursion_depth=recursion_depth + 1)
 
         byte_offset += subcontext.byte_size
         elements_data_offset += subcontext.byte_size
@@ -1173,11 +1175,12 @@ class SequenceMap(ElementSequenceDataTypeMap):
 
     return f'{number_of_elements:d}{format_string:s}'
 
-  def MapByteStream(self, byte_stream, **kwargs):
+  def MapByteStream(self, byte_stream, recursion_depth=0, **kwargs):
     """Maps the data type on a byte stream.
 
     Args:
       byte_stream (bytes): byte stream.
+      recursion_depth (Optional[int]): recursion depth.
 
     Returns:
       tuple[object, ...]: mapped values.
@@ -1186,13 +1189,12 @@ class SequenceMap(ElementSequenceDataTypeMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
-    return self._map_byte_stream(byte_stream, **kwargs)
+    return self._map_byte_stream(
+        byte_stream, recursion_depth=recursion_depth, **kwargs)
 
 
 class StreamMap(ElementSequenceDataTypeMap):
   """Stream data type map."""
-
-  # pylint: disable=arguments-differ
 
   def __init__(self, data_type_definition):
     """Initializes a stream data type map.
@@ -1335,8 +1337,6 @@ class StreamMap(ElementSequenceDataTypeMap):
 class PaddingMap(DataTypeMap):
   """Padding data type map."""
 
-  # pylint: disable=arguments-differ
-
   def _CalculatePaddingSize(self, byte_offset):
     """Calculates the padding size.
 
@@ -1454,9 +1454,7 @@ class PaddingMap(DataTypeMap):
 class StringMap(StreamMap):
   """String data type map."""
 
-  # pylint: disable=arguments-differ
-
-  def FoldByteStream(self, mapped_value, **kwargs):
+  def FoldByteStream(self, mapped_value, **kwargs):  # pylint: disable=arguments-differ
     """Folds the data type into a byte stream.
 
     Args:
@@ -1479,7 +1477,7 @@ class StringMap(StreamMap):
 
     return super(StringMap, self).FoldByteStream(byte_stream, **kwargs)
 
-  def MapByteStream(self, byte_stream, byte_offset=0, **kwargs):
+  def MapByteStream(self, byte_stream, byte_offset=0, **kwargs):  # pylint: disable=arguments-differ
     """Maps the data type on a byte stream.
 
     Args:
@@ -1525,8 +1523,6 @@ class StringMap(StreamMap):
 
 class StructureMap(StorageDataTypeMap):
   """Structure data type map."""
-
-  # pylint: disable=arguments-differ
 
   def __init__(self, data_type_definition):
     """Initializes a structure data type map.
@@ -1642,13 +1638,15 @@ class StructureMap(StorageDataTypeMap):
     return b''.join(data_attributes)
 
   def _CompositeMapByteStream(
-      self, byte_stream, byte_offset=0, context=None, **unused_kwargs):
+      self, byte_stream, byte_offset=0, context=None, recursion_depth=0,
+      **unused_kwargs):
     """Maps a sequence of composite data types on a byte stream.
 
     Args:
       byte_stream (bytes): byte stream.
       byte_offset (Optional[int]): offset into the byte stream where to start.
       context (Optional[DataTypeMapContext]): data type map context.
+      recursion_depth (Optional[int]): recursion depth.
 
     Returns:
       object: mapped value.
@@ -1658,6 +1656,9 @@ class StructureMap(StorageDataTypeMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
+    if recursion_depth > self._MAXIMUM_RECURSION_DEPTH:
+      raise errors.MappingError('At maximum recursion depth')
+
     context_state = getattr(context, 'state', {})
     context_values = getattr(context, 'values', {})
 
@@ -1702,7 +1703,8 @@ class StructureMap(StorageDataTypeMap):
 
       try:
         value = data_type_map.MapByteStream(
-            byte_stream, byte_offset=byte_offset, context=subcontext)
+            byte_stream, byte_offset=byte_offset, context=subcontext,
+            recursion_depth=recursion_depth + 1)
         setattr(mapped_values, attribute_name, value)
 
       except errors.ByteStreamTooSmallError:
@@ -1965,11 +1967,12 @@ class StructureMap(StorageDataTypeMap):
 
     return self._format_string
 
-  def MapByteStream(self, byte_stream, **kwargs):
+  def MapByteStream(self, byte_stream, recursion_depth=0, **kwargs):
     """Maps the data type on a byte stream.
 
     Args:
       byte_stream (bytes): byte stream.
+      recursion_depth (Optional[int]): recursion depth.
 
     Returns:
       object: mapped value.
@@ -1978,7 +1981,8 @@ class StructureMap(StorageDataTypeMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
-    return self._map_byte_stream(byte_stream, **kwargs)
+    return self._map_byte_stream(
+        byte_stream, recursion_depth=recursion_depth, **kwargs)
 
 
 class SemanticDataTypeMap(DataTypeMap):
@@ -2182,7 +2186,7 @@ class StructureGroupMap(LayoutDataTypeMap):
     """
     return None
 
-  def GetSizeHint(self, context=None, **kwargs):  # pylint: disable=arguments-differ
+  def GetSizeHint(self, context=None, **kwargs):
     """Retrieves a hint about the size.
 
     Args:
@@ -2202,7 +2206,7 @@ class StructureGroupMap(LayoutDataTypeMap):
 
     return member_data_type_map.GetSizeHint(context=context, **kwargs)
 
-  def MapByteStream(self, byte_stream, context=None, **kwargs):  # pylint: disable=arguments-differ
+  def MapByteStream(self, byte_stream, context=None, **kwargs):
     """Maps the data type on a byte stream.
 
     Args:

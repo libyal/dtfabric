@@ -401,14 +401,6 @@ class DataTypeDefinitionsReader(object):
       raise errors.DefinitionReaderError(definition_name, (
           f'undefined element data type: {element_data_type:s}'))
 
-    element_byte_size = element_data_type_definition.GetByteSize()
-    element_type_indicator = element_data_type_definition.TYPE_INDICATOR
-    if not element_byte_size and element_type_indicator != (
-        definitions.TYPE_INDICATOR_STRING):
-      raise errors.DefinitionReaderError(definition_name, (
-          f'unsupported variable size element data type: '
-          f'{element_data_type:s}'))
-
     aliases = definition_values.get('aliases', None)
     description = definition_values.get('description', None)
     urls = definition_values.get('urls', None)

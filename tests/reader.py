@@ -1089,9 +1089,13 @@ class YAMLDataTypeDefinitionsFileReaderTest(test_lib.BaseTestCase):
     definitions_file = self._GetTestFilePath(['sequence_with_structure.yaml'])
     self._SkipIfPathNotExists(definitions_file)
 
-    with self.assertRaises(errors.FormatError):
-      with open(definitions_file, 'rb') as file_object:
-        definitions_reader.ReadFileObject(definitions_registry, file_object)
+    with open(definitions_file, 'rb') as file_object:
+      definitions_reader.ReadFileObject(definitions_registry, file_object)
+
+    self.assertEqual(len(definitions_registry._definitions), 3)
+
+    data_type_definition = definitions_registry.GetDefinitionByName('vectors')
+    self.assertIsInstance(data_type_definition, data_types.SequenceDefinition)
 
   def testReadFileObjectStream(self):
     """Tests the ReadFileObject function of a stream data type."""

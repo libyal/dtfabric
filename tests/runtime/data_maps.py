@@ -909,6 +909,9 @@ class SequenceMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.MappingError):
       data_type_map._CompositeMapByteStream(None)
 
+    with self.assertRaises(errors.MappingError):
+      data_type_map._CompositeMapByteStream(byte_stream, recursion_depth=999)
+
     with self.assertRaises(errors.ByteStreamTooSmallError):
       data_type_map._CompositeMapByteStream(b'\x12\x34\x56')
 
@@ -1258,6 +1261,9 @@ class StructureMapTest(test_lib.BaseTestCase):
     utf16_string = data_type_map._CompositeMapByteStream(byte_stream)
     self.assertEqual(utf16_string.size, len(text_stream))
     self.assertEqual(utf16_string.text, 'dtFabric')
+
+    with self.assertRaises(errors.MappingError):
+      data_type_map._CompositeMapByteStream(byte_stream, recursion_depth=999)
 
     byte_stream = b''.join([bytes(bytearray([3, 0])), text_stream])
 
