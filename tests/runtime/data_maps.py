@@ -70,6 +70,7 @@ class DataTypeMapTest(test_lib.BaseTestCase):
 
     self.assertEqual(data_type_map.name, 'int32le')
 
+  # TODO: remove GetByteSize is deprecated.
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
     definitions_file = self._GetTestFilePath(['integer.yaml'])
@@ -857,6 +858,16 @@ class ElementSequenceDataTypeMapTest(test_lib.BaseTestCase):
 
     size_hint = data_type_map.GetSizeHint()
     self.assertEqual(size_hint, 16)
+
+    definitions_file = self._GetTestFilePath(['sequence_with_structure.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName('vectors')
+    data_type_map = data_maps.ElementSequenceDataTypeMap(data_type_definition)
+
+    size_hint = data_type_map.GetSizeHint()
+    self.assertEqual(size_hint, 4)
 
   def testGetStructByteOrderString(self):
     """Tests the GetStructByteOrderString function."""
@@ -2009,6 +2020,7 @@ class StructureGroupMapTest(test_lib.BaseTestCase):
     with self.assertRaises(errors.FormatError):
       data_type_map._GetMemberDataTypeMaps(data_type_definition)
 
+  # TODO: remove GetByteSize is deprecated.
   def testGetByteSize(self):
     """Tests the GetByteSize function."""
     definitions_file = self._GetTestFilePath(['structure_group.yaml'])
@@ -2022,7 +2034,18 @@ class StructureGroupMapTest(test_lib.BaseTestCase):
     byte_size = data_type_map.GetByteSize()
     self.assertIsNone(byte_size)
 
-  # TODO: add tests for GetSizeHint.
+  def testGetSizeHint(self):
+    """Tests the GetSizeHint function."""
+    definitions_file = self._GetTestFilePath(['structure_group.yaml'])
+    definitions_registry = self._CreateDefinitionRegistryFromFile(
+        definitions_file)
+
+    data_type_definition = definitions_registry.GetDefinitionByName(
+        'bsm_token')
+    data_type_map = data_maps.StructureGroupMap(data_type_definition)
+
+    size_hint = data_type_map.GetSizeHint()
+    self.assertEqual(size_hint, 1)
 
   def testMapByteStream(self):
     """Tests the MapByteStream function."""
