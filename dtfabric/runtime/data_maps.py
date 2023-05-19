@@ -2320,9 +2320,20 @@ class StructureGroupMap(LayoutDataTypeMap):
 
     member_identifier = context_state.get('member_identifier', None)
     if member_identifier is None:
-      subcontext = DataTypeMapContext()
-      mapped_base_value = self._base_data_type_map.MapByteStream(
-          byte_stream, context=subcontext, **kwargs)
+      subcontext = context_state.get('context', None)
+      if not subcontext:
+        subcontext = DataTypeMapContext()
+
+      try:
+        mapped_base_value = self._base_data_type_map.MapByteStream(
+            byte_stream, context=subcontext, **kwargs)
+
+      except errors.ByteStreamTooSmallError as exception:
+        context_state['context'] = subcontext
+        raise exception
+
+      except Exception as exception:
+        raise errors.MappingError(exception)
 
       member_identifier = getattr(
           mapped_base_value, self._data_type_definition.identifier, None)
@@ -2341,7 +2352,6 @@ class StructureGroupMap(LayoutDataTypeMap):
           f'{member_identifier!s}')
 
     subcontext = context_state.get('context', None)
-
     if not subcontext:
       subcontext = DataTypeMapContext()
 
