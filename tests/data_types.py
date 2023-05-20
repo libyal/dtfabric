@@ -535,7 +535,8 @@ class StructureGroupDefinitionTest(test_lib.BaseTestCase):
         'base', description='my base structure type')
 
     data_type_definition = data_types.StructureGroupDefinition(
-        'group', base_definition, 'identifier', description='structure group')
+        'group', base_definition, 'identifier', None,
+        description='structure group')
     self.assertIsNotNone(data_type_definition)
 
   def testAddMemberDefinition(self):
@@ -544,7 +545,8 @@ class StructureGroupDefinitionTest(test_lib.BaseTestCase):
         'base', description='my base structure type')
 
     data_type_definition = data_types.StructureGroupDefinition(
-        'group', base_definition, 'identifier', description='structure group')
+        'group', base_definition, 'identifier', None,
+        description='structure group')
     self.assertIsNotNone(data_type_definition)
 
     group_member_definition = data_types.StructureDefinition(

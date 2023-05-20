@@ -2209,10 +2209,16 @@ class StructureGroupMap(LayoutDataTypeMap):
       FormatError: if the data type map cannot be determined from the data
           type definition.
     """
+    default_data_type_map = None
+    if data_type_definition.default:
+      default_data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
+          data_type_definition.default)
+
     super(StructureGroupMap, self).__init__(data_type_definition)
     self._base_data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
         data_type_definition.base)
     self._data_type_maps = None
+    self._default_data_type_map = default_data_type_map
 
     self._GetMemberDataTypeMaps(data_type_definition)
 
@@ -2344,7 +2350,8 @@ class StructureGroupMap(LayoutDataTypeMap):
 
       context_state['member_identifier'] = member_identifier
 
-    member_data_type_map = self._data_type_maps.get(member_identifier, None)
+    member_data_type_map = self._data_type_maps.get(
+        member_identifier, self._default_data_type_map)
     if member_data_type_map is None:
       raise errors.MappingError(
           f'Missing member data type map for '

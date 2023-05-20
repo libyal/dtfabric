@@ -901,6 +901,8 @@ class StructureGroupDefinition(LayoutDataTypeDefinition):
 
   Attributes:
     base (DataTypeDefinition): base data type definition.
+    byte_order (str): byte-order the data type.
+    default (DataTypeDefinition): default data type definition.
     identifier (str): name of the base structure member to identify the group
         members.
     members (list[DataTypeDefinition]): member data type definitions.
@@ -911,7 +913,8 @@ class StructureGroupDefinition(LayoutDataTypeDefinition):
 
   def __init__(
       self, name: 'str', base_definition: 'StructureDefinition',
-      identifier: 'str', aliases: 'Optional[List[str]]' = None,
+      identifier: 'str', default_definition: 'StructureDefinition',
+      aliases: 'Optional[List[str]]' = None,
       description: 'Optional[str]' = None,
       urls: 'Optional[List[str]]' = None) -> 'None':
     """Initializes a structure group data type definition.
@@ -921,6 +924,7 @@ class StructureGroupDefinition(LayoutDataTypeDefinition):
       base_definition (StructureDefinition): base data type definition.
       identifier (str): name of the base structure member to identify the group
           members.
+      default_definition (StructureDefinition): default data type definition.
       aliases (Optional[list[str]]): aliases.
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
@@ -930,6 +934,9 @@ class StructureGroupDefinition(LayoutDataTypeDefinition):
     self._members_by_name: 'OrderedDict[str, DataTypeDefinition]' = (
         collections.OrderedDict())
     self.base: 'Union[DataTypeDefinition, None]' = base_definition
+    self.byte_order: 'str' = getattr(
+        base_definition, 'byte_order', definitions.BYTE_ORDER_NATIVE)
+    self.default: 'Union[DataTypeDefinition, None]' = default_definition
     self.identifier: 'Union[str, None]' = identifier
 
   @property

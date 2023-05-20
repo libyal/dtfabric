@@ -537,3 +537,10 @@ members:
 
 The structure group members are required to define the identifier structure
 member with its values specific to the group member.
+
+Attribute name | Attribute type | Required | Description
+--- | --- | --- | ---
+base | string | Yes | Base data type. Note that this must be a structure data type.
+default | string | None | Default data type as fallback if no corresponding member data type is defined. Note that this must be a structure data type.
+identifier | string | Yes | Name of the member in the base (structure) data type that identified a (group) member.
+members | list | Yes | List of (group) member data types. Note that these must be a structure data types.

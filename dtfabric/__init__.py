@@ -1,4 +1,4 @@
 # -*- coding: utf-8 -*-
 """Data type fabric."""
 
-__version__ = '20230519'
+__version__ = '20230520'

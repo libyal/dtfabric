@@ -87,7 +87,7 @@ class DataTypeDefinitionsReader(object):
       'base', 'members']).union(_SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
 
   _SUPPORTED_DEFINITION_VALUES_STRUCTURE_GROUP = set([
-      'base', 'identifier', 'members']).union(
+      'base', 'default', 'identifier', 'members']).union(
           _SUPPORTED_DEFINITION_VALUES_DATA_TYPE)
 
   _SUPPORTED_ATTRIBUTES_STORAGE_DATA_TYPE = set([
@@ -1145,13 +1145,24 @@ class DataTypeDefinitionsReader(object):
     if not identifier:
       raise errors.DefinitionReaderError(definition_name, 'missing identifier')
 
+    default = definition_values.get('default', None)
+    if not default:
+      default_data_type_definition = None
+    else:
+      default_data_type_definition = definitions_registry.GetDefinitionByName(
+          default)
+      if not default_data_type_definition:
+        raise errors.DefinitionReaderError(definition_name, (
+            f'undefined default: {default:s}'))
+
     aliases = definition_values.get('aliases', None)
     description = definition_values.get('description', None)
     urls = definition_values.get('urls', None)
 
     definition_object = data_types.StructureGroupDefinition(
         definition_name, base_data_type_definition, identifier,
-        aliases=aliases, description=description, urls=urls)
+        default_data_type_definition, aliases=aliases, description=description,
+        urls=urls)
 
     members = definition_values.get('members', None)
     if not members:
