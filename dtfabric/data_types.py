@@ -433,7 +433,11 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
 
   @property
   def members(self) -> 'List[DataTypeDefinition]':
-    """members (list[DataTypeDefinition]): member data type definitions."""
+    """Retrieves the member data type definitions.
+
+    Returns:
+      list[DataTypeDefinition]: member data type definitions.
+    """
     return list(self._members_by_name.values())
 
   def AddMemberDefinition(
@@ -868,7 +872,11 @@ class StructureFamilyDefinition(LayoutDataTypeDefinition):
 
   @property
   def members(self) -> 'List[DataTypeDefinition]':
-    """members (list[DataTypeDefinition]): member data type definitions."""
+    """Retrieves the member data type definitions.
+
+    Returns:
+      list[DataTypeDefinition]: member data type definitions.
+    """
     return list(self._members_by_name.values())
 
   def AddMemberDefinition(
@@ -941,7 +949,11 @@ class StructureGroupDefinition(LayoutDataTypeDefinition):
 
   @property
   def members(self) -> 'List[DataTypeDefinition]':
-    """members (list[DataTypeDefinition]): member data type definitions."""
+    """Retrieves the member data type definitions.
+
+    Returns:
+      list[DataTypeDefinition]: member data type definitions.
+    """
     return list(self._members_by_name.values())
 
   def AddMemberDefinition(

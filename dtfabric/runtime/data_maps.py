@@ -2175,7 +2175,11 @@ class FormatMap(LayoutDataTypeMap):
 
   @property
   def layout(self):
-    """list[LayoutElementDefinition]: layout element definitions."""
+    """Retrieves the layout element definitions.
+
+    Returns:
+      list[LayoutElementDefinition]: layout element definitions.
+    """
     return getattr(self._data_type_definition, 'layout', [])
 
   def MapByteStream(self, byte_stream, **unused_kwargs):  # pylint: disable=redundant-returns-doc
