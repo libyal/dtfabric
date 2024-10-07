@@ -588,6 +588,8 @@ class UUIDMap(StorageDataTypeMap):
       context.byte_size = None
       context.requested_size = data_type_size
 
+    mapped_value = None
+
     try:
       if self._byte_order == definitions.BYTE_ORDER_BIG_ENDIAN:
         mapped_value = uuid.UUID(

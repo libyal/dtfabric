@@ -736,6 +736,8 @@ class DataTypeDefinitionsReader(object):
 
         supported_values.append(value)
 
+    definition_object = None
+
     if type_indicator is not None:
       data_type_callback = self._DATA_TYPE_CALLBACKS.get(type_indicator, None)
       if data_type_callback:
