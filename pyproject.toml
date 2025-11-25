@@ -1,3 +1,35 @@
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "dtfabric"
+version = "20251125"
+description = "Data type fabric (dtfabric)"
+maintainers = [
+    { name = "Joachim Metz", email = "joachim.metz@gmail.com" },
+]
+license = "Apache-2.0"
+license-files = ["ACKNOWLEDGEMENTS", "AUTHORS", "LICENSE"]
+readme = "README.md"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "PyYAML >= 3.10",
+]
+
+[project.scripts]
+validate_definitions = "dtfabric.scripts.validate_definitions:Main"
+
+[project.urls]
+Documentation = "https://dtfabric.readthedocs.io/en/latest"
+Homepage = "https://github.com/libyal/dtfabric"
+Repository = "https://github.com/libyal/dtfabric"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dtfabric"]
+exclude = ["docs", "tests", "tests.*", "utils"]
