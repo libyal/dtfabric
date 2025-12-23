@@ -72,7 +72,7 @@ class DefinitionsValidator(object):
 
 
 def Main():
-  """Entry point of console script to analyze sources.
+  """Entry point of console script to validate definitions.
 
   Returns:
     int: exit code that is provided to sys.exit().
