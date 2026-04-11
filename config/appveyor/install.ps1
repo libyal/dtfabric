@@ -1,6 +1,6 @@
 # Script to set up tests on AppVeyor Windows.
 
-$Dependencies = "PyYAML mock"
+$Dependencies = "PyYAML"
 
 If ($Dependencies.Length -gt 0)
 {

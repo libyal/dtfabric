@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    dtfabric.runtime
+   dtfabric.scripts
 
 Submodules
 ----------
