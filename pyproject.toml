@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dtfabric"
-version = "20260411"
+version = "20260413"
 description = "Data type fabric (dtfabric)"
 maintainers = [
     { name = "Joachim Metz", email = "joachim.metz@gmail.com" },
