@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Run-time objects."""
 
 try:
@@ -13,7 +12,7 @@ from dtfabric import data_types
 from dtfabric import definitions
 
 
-class StructureValuesClassFactory(object):
+class StructureValuesClassFactory:
   """Structure values class factory."""
 
   _CLASS_TEMPLATE = '\n'.join([
@@ -26,7 +25,7 @@ class StructureValuesClassFactory(object):
       '',
       '  def __init__(self, {init_arguments:s}):',
       '    """Initializes an instance of {type_name:s}."""',
-      '    super({type_name:s}, self).__init__()',
+      '    super().__init__()',
       '{instance_attributes:s}',
       ''])
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Byte stream operations."""
 
 import abc
@@ -7,7 +6,7 @@ import struct
 from dtfabric import errors
 
 
-class ByteStreamOperation(object):
+class ByteStreamOperation:
   """Byte stream operation."""
 
   # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
@@ -57,7 +56,7 @@ class StructOperation(ByteStreamOperation):
           f'Unable to create struct object from data type definition '
           f'with error: {exception!s}')
 
-    super(StructOperation, self).__init__()
+    super().__init__()
     self._struct = struct_object
     self._struct_format_string = format_string
 

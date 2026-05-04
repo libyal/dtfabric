@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Definitions."""
 
 BYTE_ORDER_BIG_ENDIAN = 'big-endian'

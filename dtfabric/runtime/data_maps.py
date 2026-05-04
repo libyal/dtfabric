@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Data type maps."""
 
 import abc
@@ -14,7 +13,7 @@ from dtfabric.runtime import byte_operations
 from dtfabric.runtime import runtime
 
 
-class DataTypeMapContext(object):
+class DataTypeMapContext:
   """Data type map context.
 
   Attributes:
@@ -30,14 +29,14 @@ class DataTypeMapContext(object):
     Args:
       values (dict[str, object]): values per name.
     """
-    super(DataTypeMapContext, self).__init__()
+    super().__init__()
     self.byte_size = None
     self.requested_size = None
     self.state = {}
     self.values = values or {}
 
 
-class DataTypeMapSizeHint(object):
+class DataTypeMapSizeHint:
   """Data type map size hint.
 
   Attributes:
@@ -53,12 +52,12 @@ class DataTypeMapSizeHint(object):
       is_complete (optional[bool]): True if the size is the complete size of
           the data type.
     """
-    super(DataTypeMapSizeHint, self).__init__()
+    super().__init__()
     self.byte_size = byte_size
     self.is_complete = is_complete
 
 
-class DataTypeMap(object):
+class DataTypeMap:
   """Data type map."""
 
   _MAXIMUM_RECURSION_DEPTH = 10
@@ -73,7 +72,7 @@ class DataTypeMap(object):
       FormatError: if the data type map cannot be determined from the data
           type definition.
     """
-    super(DataTypeMap, self).__init__()
+    super().__init__()
     self._data_type_definition = data_type_definition
 
   @property
@@ -244,7 +243,7 @@ class PrimitiveDataTypeMap(StorageDataTypeMap):
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
     """
-    super(PrimitiveDataTypeMap, self).__init__(data_type_definition)
+    super().__init__(data_type_definition)
     self._operation = self._GetByteStreamOperation()
 
   def FoldByteStream(self, mapped_value, **unused_kwargs):
@@ -361,7 +360,7 @@ class BooleanMap(PrimitiveDataTypeMap):
       raise errors.FormatError(
           'Boolean data type has no True or False values.')
 
-    super(BooleanMap, self).__init__(data_type_definition)
+    super().__init__(data_type_definition)
 
   def GetStructFormatString(self):
     """Retrieves the Python struct format string.
@@ -534,7 +533,7 @@ class UUIDMap(StorageDataTypeMap):
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
     """
-    super(UUIDMap, self).__init__(data_type_definition)
+    super().__init__(data_type_definition)
     self._byte_order = data_type_definition.byte_order
 
   def FoldByteStream(self, mapped_value, **unused_kwargs):
@@ -618,7 +617,7 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
     """
-    super(ElementSequenceDataTypeMap, self).__init__(data_type_definition)
+    super().__init__(data_type_definition)
     self._element_data_type_map = None
     self._element_data_type_definition = None
     self._elements_data_size_expression = None
@@ -943,7 +942,7 @@ class SequenceMap(ElementSequenceDataTypeMap):
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
     """
-    super(SequenceMap, self).__init__(data_type_definition)
+    super().__init__(data_type_definition)
     self._fold_byte_stream = None
     self._map_byte_stream = None
     self._operation = None
@@ -1259,7 +1258,7 @@ class StreamMap(ElementSequenceDataTypeMap):
       FormatError: if the data type map cannot be determined from the data
           type definition.
     """
-    super(StreamMap, self).__init__(data_type_definition)
+    super().__init__(data_type_definition)
     self._fold_byte_stream = None
     self._map_byte_stream = None
 
@@ -1537,7 +1536,7 @@ class StringMap(StreamMap):
           f'Unable to write: {self._data_type_definition.name:s} to byte '
           f'stream with error: {exception!s}')
 
-    return super(StringMap, self).FoldByteStream(byte_stream, **kwargs)
+    return super().FoldByteStream(byte_stream, **kwargs)
 
   def MapByteStream(self, byte_stream, byte_offset=0, **kwargs):  # pylint: disable=arguments-differ
     """Maps the data type on a byte stream.
@@ -1554,7 +1553,7 @@ class StringMap(StreamMap):
       MappingError: if the data type definition cannot be mapped on
           the byte stream.
     """
-    byte_stream = super(StringMap, self).MapByteStream(
+    byte_stream = super().MapByteStream(
         byte_stream, byte_offset=byte_offset, **kwargs)
 
     if self._HasElementsTerminator():
@@ -1593,7 +1592,7 @@ class StructureMap(StorageDataTypeMap):
     Args:
       data_type_definition (DataTypeDefinition): data type definition.
     """
-    super(StructureMap, self).__init__(data_type_definition)
+    super().__init__(data_type_definition)
     self._attribute_names = None
     self._data_type_maps = None
     self._fold_byte_stream = None
@@ -2220,7 +2219,7 @@ class StructureGroupMap(LayoutDataTypeMap):
       default_data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
           data_type_definition.default)
 
-    super(StructureGroupMap, self).__init__(data_type_definition)
+    super().__init__(data_type_definition)
     self._base_data_type_map = DataTypeMapFactory.CreateDataTypeMapByType(
         data_type_definition.base)
     self._data_type_maps = None
@@ -2389,7 +2388,7 @@ class StructureGroupMap(LayoutDataTypeMap):
     return value
 
 
-class DataTypeMapFactory(object):
+class DataTypeMapFactory:
   """Factory for data type maps."""
 
   # TODO: add support for definitions.TYPE_INDICATOR_FORMAT
@@ -2418,7 +2417,7 @@ class DataTypeMapFactory(object):
       definitions_registry (DataTypeDefinitionsRegistry): data type definitions
           registry.
     """
-    super(DataTypeMapFactory, self).__init__()
+    super().__init__()
     self._definitions_registry = definitions_registry
 
   def CreateDataTypeMap(self, definition_name):

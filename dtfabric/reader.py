@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """The data type definition reader objects."""
 
 import abc
@@ -9,7 +8,7 @@ from dtfabric import definitions
 from dtfabric import errors
 
 
-class DataTypeDefinitionsReader(object):
+class DataTypeDefinitionsReader:
   """Data type definitions reader."""
 
   _DATA_TYPE_CALLBACKS = {
@@ -1314,7 +1313,7 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
 
   def __init__(self):
     """Initializes a YAML data type definitions file reader."""
-    super(YAMLDataTypeDefinitionsFileReader, self).__init__()
+    super().__init__()
     self.metadata = {}
 
   def _GetFormatErrorLocation(

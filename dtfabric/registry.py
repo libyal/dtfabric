@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """The data type definitions registry."""
 
 import typing
@@ -11,12 +10,12 @@ if typing.TYPE_CHECKING:
   from dtfabric import data_types
 
 
-class DataTypeDefinitionsRegistry(object):
+class DataTypeDefinitionsRegistry:
   """Data type definitions registry."""
 
   def __init__(self) -> 'None':
     """Initializes a data type definitions registry."""
-    super(DataTypeDefinitionsRegistry, self).__init__()
+    super().__init__()
     self._aliases: 'Dict[str, str]' = {}
     self._definitions: 'Dict[str, data_types.DataTypeDefinition]' = {}
     self._format_definitions: 'List[str]' = []

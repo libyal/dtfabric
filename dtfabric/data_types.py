@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Data type definitions."""
 
 import abc
@@ -10,7 +9,7 @@ from typing import Dict, List, Optional, Union  # pylint: disable=unused-import
 from dtfabric import definitions
 
 
-class DataTypeDefinition(object):
+class DataTypeDefinition:
   """Data type definition interface.
 
   Attributes:
@@ -40,7 +39,7 @@ class DataTypeDefinition(object):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(DataTypeDefinition, self).__init__()
+    super().__init__()
     self.aliases: 'List[str]' = aliases or []
     self.description: 'Union[str, None]' = description
     self.name: 'str' = name
@@ -88,7 +87,7 @@ class StorageDataTypeDefinition(DataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(StorageDataTypeDefinition, self).__init__(
+    super().__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.byte_order: 'str' = definitions.BYTE_ORDER_NATIVE
 
@@ -121,7 +120,7 @@ class FixedSizeDataTypeDefinition(StorageDataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(FixedSizeDataTypeDefinition, self).__init__(
+    super().__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.size: 'Union[int, str]' = definitions.SIZE_NATIVE
     self.units: 'str' = 'bytes'
@@ -163,7 +162,7 @@ class BooleanDefinition(FixedSizeDataTypeDefinition):
       false_value (Optional[int]): value that represents false.
       urls (Optional[list[str]]): URLs.
     """
-    super(BooleanDefinition, self).__init__(
+    super().__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.false_value: 'Union[int, None]' = false_value
     self.true_value: 'Union[int, None]' = None
@@ -211,7 +210,7 @@ class IntegerDefinition(FixedSizeDataTypeDefinition):
           data type.
       urls (Optional[list[str]]): URLs.
     """
-    super(IntegerDefinition, self).__init__(
+    super().__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.format: 'str' = definitions.FORMAT_SIGNED
     self.maximum_value: 'Union[int, None]' = maximum_value
@@ -237,7 +236,7 @@ class UUIDDefinition(FixedSizeDataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(UUIDDefinition, self).__init__(
+    super().__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.size: 'Union[int, str]' = 16
 
@@ -269,7 +268,7 @@ class PaddingDefinition(StorageDataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(PaddingDefinition, self).__init__(
+    super().__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.alignment_size: 'Union[int, None]' = alignment_size
 
@@ -319,7 +318,7 @@ class ElementSequenceDataTypeDefinition(StorageDataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(ElementSequenceDataTypeDefinition, self).__init__(
+    super().__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.byte_order: 'str' = getattr(
         data_type_definition, 'byte_order', definitions.BYTE_ORDER_NATIVE)
@@ -392,7 +391,7 @@ class StringDefinition(ElementSequenceDataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(StringDefinition, self).__init__(
+    super().__init__(
         name, data_type_definition, aliases=aliases, data_type=data_type,
         description=description, urls=urls)
     self.encoding: 'str' = 'ascii'
@@ -424,7 +423,7 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(DataTypeDefinitionWithMembers, self).__init__(
+    super().__init__(
         name, aliases=aliases, description=description, urls=urls)
     self._byte_size: 'Union[int, None]' = None
     self._members_by_name: 'OrderedDict[str, DataTypeDefinition]' = (
@@ -522,7 +521,7 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
       values (Optional[list[int|str]]): supported values
           defined.
     """
-    super(MemberDataTypeDefinition, self).__init__(
+    super().__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.byte_order: 'str' = getattr(
         data_type_definition, 'byte_order', definitions.BYTE_ORDER_NATIVE)
@@ -556,7 +555,7 @@ class MemberDataTypeDefinition(StorageDataTypeDefinition):
         self.member_data_type_definition.IsComposite())
 
 
-class MemberSectionDefinition(object):
+class MemberSectionDefinition:
   """Member section definition.
 
   Attributes:
@@ -571,7 +570,7 @@ class MemberSectionDefinition(object):
     Args:
       name (str): name.
     """
-    super(MemberSectionDefinition, self).__init__()
+    super().__init__()
     self.name: 'str' = name
     self.members: 'List[DataTypeDefinition]' = []
 
@@ -669,12 +668,12 @@ class ConstantDefinition(SemanticDataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(ConstantDefinition, self).__init__(
+    super().__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.value: 'Union[int, None]' = None
 
 
-class EnumerationValue(object):
+class EnumerationValue:
   """Enumeration value.
 
   Attributes:
@@ -696,7 +695,7 @@ class EnumerationValue(object):
       aliases (Optional[list[str]]): aliases.
       description (Optional[str]): description.
     """
-    super(EnumerationValue, self).__init__()
+    super().__init__()
     self.aliases: 'List[str]' = aliases or []
     self.description: 'Union[str, None]' = description
     self.name: 'str' = name
@@ -730,7 +729,7 @@ class EnumerationDefinition(SemanticDataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(EnumerationDefinition, self).__init__(
+    super().__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.values: 'List[EnumerationValue]' = []
     self.values_per_alias: 'Dict[str, EnumerationValue]' = {}
@@ -790,7 +789,7 @@ class LayoutDataTypeDefinition(DataTypeDefinition):
     return None
 
 
-class LayoutElementDefinition(object):
+class LayoutElementDefinition:
   """Layout element definition.
 
   Attributes:
@@ -806,7 +805,7 @@ class LayoutElementDefinition(object):
       data_type (str): name of the data type of the layout element.
       offset (Optional[int]): offset of the layout element.
     """
-    super(LayoutElementDefinition, self).__init__()
+    super().__init__()
     self.data_type: 'str' = data_type
     self.offset: 'Union[int, None]' = offset
 
@@ -833,7 +832,7 @@ class FormatDefinition(LayoutDataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(FormatDefinition, self).__init__(
+    super().__init__(
         name, aliases=aliases, description=description, urls=urls)
     self.layout: 'List[LayoutElementDefinition]' = []
     self.metadata: 'Dict[str, object]' = {}
@@ -864,7 +863,7 @@ class StructureFamilyDefinition(LayoutDataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(StructureFamilyDefinition, self).__init__(
+    super().__init__(
         name, aliases=aliases, description=description, urls=urls)
     self._members_by_name: 'OrderedDict[str, DataTypeDefinition]' = (
         collections.OrderedDict())
@@ -937,7 +936,7 @@ class StructureGroupDefinition(LayoutDataTypeDefinition):
       description (Optional[str]): description.
       urls (Optional[list[str]]): URLs.
     """
-    super(StructureGroupDefinition, self).__init__(
+    super().__init__(
         name, aliases=aliases, description=description, urls=urls)
     self._members_by_name: 'OrderedDict[str, DataTypeDefinition]' = (
         collections.OrderedDict())

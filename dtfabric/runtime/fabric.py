@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """dtFabric helper objects."""
 
 import io
@@ -25,7 +24,7 @@ class DataTypeFabric(data_maps.DataTypeMapFactory):
       file_object = io.BytesIO(yaml_definition)
       definitions_reader.ReadFileObject(definitions_registry, file_object)
 
-    super(DataTypeFabric, self).__init__(definitions_registry)
+    super().__init__(definitions_registry)
 
   def GetDefinitionByName(
       self, name: 'str') -> 'Union[data_types.DataTypeDefinition, None]':

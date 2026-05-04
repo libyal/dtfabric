@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dtfabric"
-version = "20260413"
+version = "20260501"
 description = "Data type fabric (dtfabric)"
 maintainers = [
     { name = "Joachim Metz", email = "joachim.metz@gmail.com" },
@@ -29,7 +29,5 @@ Documentation = "https://dtfabric.readthedocs.io/en/latest"
 Homepage = "https://github.com/libyal/dtfabric"
 Repository = "https://github.com/libyal/dtfabric"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["dtfabric"]
-exclude = ["docs", "tests", "tests.*", "utils"]
+[tool.setuptools]
+package-dir = {"dtfabric" = "dtfabric"}

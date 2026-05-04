@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # pylint: disable=invalid-name
 """Script to validate dtFabric format definitions."""
 
@@ -14,7 +13,7 @@ from dtfabric import reader
 from dtfabric import registry
 
 
-class DefinitionsValidator(object):
+class DefinitionsValidator:
   """dtFabric definitions validator."""
 
   def CheckDirectory(self, path, extension='yaml'):

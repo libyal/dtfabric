@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for the data type definitions."""
 
 import unittest
