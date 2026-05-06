@@ -54,7 +54,7 @@ class DataTypeDefinitionsRegistry:
     if lookup_name not in self._definitions:
       lookup_name = self._aliases.get(name, lookup_name)
 
-    return self._definitions.get(lookup_name, None)
+    return self._definitions.get(lookup_name)
 
   def GetDefinitions(self) -> 'List[data_types.DataTypeDefinition]':
     """Retrieves the data type definitions.

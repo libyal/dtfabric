@@ -1,3 +1,3 @@
 """Data type fabric."""
 
-__version__ = '20260501'
+__version__ = '20260506'

@@ -649,7 +649,7 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
     """
     context_state = getattr(context, 'state', {})
 
-    elements_data_size = context_state.get('elements_data_size', None)
+    elements_data_size = context_state.get('elements_data_size')
     if elements_data_size:
       return elements_data_size
 
@@ -659,7 +659,7 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
     elif self._HasNumberOfElements():
       element_byte_size = self._element_data_type_definition.GetByteSize()
       if element_byte_size is not None:
-        number_of_elements = context_state.get('number_of_elements', None)
+        number_of_elements = context_state.get('number_of_elements')
         if number_of_elements is None:
           number_of_elements = self._EvaluateNumberOfElements(context)
 
@@ -860,7 +860,7 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
 
     context_state = getattr(context, 'state', {})
 
-    elements_data_size = context_state.get('elements_data_size', None)
+    elements_data_size = context_state.get('elements_data_size')
     if elements_data_size:
       return elements_data_size
 
@@ -875,7 +875,7 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
     elif self._HasElementsTerminator():
       element_size_hint = self._element_data_type_definition.GetByteSize()
       if element_size_hint is None:
-        subcontext = context_state.get('context', None)
+        subcontext = context_state.get('context')
         element_size_hint = self._element_data_type_map.GetSizeHint(
             context=subcontext)
 
@@ -884,7 +884,7 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
         elements_data_size += element_size_hint
 
     elif self._HasNumberOfElements():
-      number_of_elements = context_state.get('number_of_elements', None)
+      number_of_elements = context_state.get('number_of_elements')
       if number_of_elements is None:
         try:
           number_of_elements = self._EvaluateNumberOfElements(context)
@@ -896,7 +896,7 @@ class ElementSequenceDataTypeMap(StorageDataTypeMap):
         if element_byte_size:
           elements_data_size = number_of_elements * element_byte_size
         else:
-          subcontext = context_state.get('context', None)
+          subcontext = context_state.get('context')
           element_size_hint = self._element_data_type_map.GetSizeHint(
               context=subcontext)
           if element_size_hint is not None:
@@ -1027,7 +1027,7 @@ class SequenceMap(ElementSequenceDataTypeMap):
     element_index = context_state.get('element_index', 0)
     element_value = None
     mapped_values = context_state.get('mapped_values', [])
-    subcontext = context_state.get('context', None)
+    subcontext = context_state.get('context')
 
     if not subcontext:
       subcontext = DataTypeMapContext()
@@ -1671,7 +1671,7 @@ class StructureMap(StorageDataTypeMap):
     context_state = getattr(context, 'state', {})
 
     attribute_index = context_state.get('attribute_index', 0)
-    subcontext = context_state.get('context', None)
+    subcontext = context_state.get('context')
 
     if not subcontext:
       subcontext = DataTypeMapContext(values={
@@ -1725,8 +1725,8 @@ class StructureMap(StorageDataTypeMap):
     context_values = getattr(context, 'values', {})
 
     attribute_index = context_state.get('attribute_index', 0)
-    mapped_values = context_state.get('mapped_values', None)
-    subcontext = context_state.get('context', None)
+    mapped_values = context_state.get('mapped_values')
+    subcontext = context_state.get('context')
 
     if not mapped_values:
       mapped_values = self._structure_values_class()
@@ -2008,8 +2008,8 @@ class StructureMap(StorageDataTypeMap):
     context_state = getattr(context, 'state', {})
 
     attribute_index = context_state.get('attribute_index', 0)
-    mapped_values = context_state.get('mapped_values', None)
-    subcontext = context_state.get('context', None)
+    mapped_values = context_state.get('mapped_values')
+    subcontext = context_state.get('context')
 
     if not mapped_values:
       mapped_values = self._structure_values_class()
@@ -2128,7 +2128,7 @@ class EnumerationMap(SemanticDataTypeMap):
       str: name of the enumeration value or None if no corresponding
           enumeration value was found.
     """
-    value = self._data_type_definition.values_per_number.get(number, None)
+    value = self._data_type_definition.values_per_number.get(number)
     if not value:
       return None
 
@@ -2300,13 +2300,13 @@ class StructureGroupMap(LayoutDataTypeMap):
 
     context_state = getattr(context, 'state', {})
 
-    member_identifier = context_state.get('member_identifier', None)
-    subcontext = context_state.get('context', None)
+    member_identifier = context_state.get('member_identifier')
+    subcontext = context_state.get('context')
 
     if not subcontext:
       subcontext = DataTypeMapContext()
 
-    member_data_type_map = self._data_type_maps.get(member_identifier, None)
+    member_data_type_map = self._data_type_maps.get(member_identifier)
     if member_data_type_map:
       return member_data_type_map.GetSizeHint(context=subcontext, **kwargs)
 
@@ -2329,9 +2329,9 @@ class StructureGroupMap(LayoutDataTypeMap):
     """
     context_state = getattr(context, 'state', {})
 
-    member_identifier = context_state.get('member_identifier', None)
+    member_identifier = context_state.get('member_identifier')
     if member_identifier is None:
-      subcontext = context_state.get('context', None)
+      subcontext = context_state.get('context')
       if not subcontext:
         subcontext = DataTypeMapContext()
 
@@ -2363,7 +2363,7 @@ class StructureGroupMap(LayoutDataTypeMap):
           f'{self._data_type_definition.identifier:s}: '
           f'{member_identifier!s}')
 
-    subcontext = context_state.get('context', None)
+    subcontext = context_state.get('context')
     if not subcontext:
       subcontext = DataTypeMapContext()
 

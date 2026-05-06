@@ -486,7 +486,7 @@ class DataTypeDefinitionWithMembers(StorageDataTypeDefinition):
     Returns:
       DataTypeDefinition: member data type definition or None if not available.
     """
-    return self._members_by_name.get(name, None)
+    return self._members_by_name.get(name)
 
 
 class MemberDataTypeDefinition(StorageDataTypeDefinition):

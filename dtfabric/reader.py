@@ -173,7 +173,7 @@ class DataTypeDefinitionsReader:
       raise errors.DefinitionReaderError(definition_name, (
           'data type not supported as member'))
 
-    value = definition_values.get('value', None)
+    value = definition_values.get('value')
     if value is None:
       raise errors.DefinitionReaderError(definition_name, 'missing value')
 
@@ -214,9 +214,9 @@ class DataTypeDefinitionsReader:
       raise errors.DefinitionReaderError(definition_name, (
           f'unsupported definition values: {values_string:s}'))
 
-    aliases = definition_values.get('aliases', None)
-    description = definition_values.get('description', None)
-    urls = definition_values.get('urls', None)
+    aliases = definition_values.get('aliases')
+    description = definition_values.get('description')
+    urls = definition_values.get('urls')
 
     return data_type_definition_class(
         definition_name, aliases=aliases, description=description, urls=urls)
@@ -242,7 +242,7 @@ class DataTypeDefinitionsReader:
       DefinitionReaderError: if the definitions values are missing or if
           the format is incorrect.
     """
-    members = definition_values.get('members', None)
+    members = definition_values.get('members')
     if not members:
       raise errors.DefinitionReaderError(definition_name, 'missing members')
 
@@ -252,7 +252,7 @@ class DataTypeDefinitionsReader:
         definitions_registry, definition_values, data_type_definition_class,
         definition_name, supported_definition_values)
 
-    attributes = definition_values.get('attributes', None)
+    attributes = definition_values.get('attributes')
     if attributes:
       unsupported_attributes = set(attributes.keys()).difference(
           self._SUPPORTED_ATTRIBUTES_STORAGE_DATA_TYPE)
@@ -269,7 +269,7 @@ class DataTypeDefinitionsReader:
       definition_object.byte_order = byte_order
 
     for member in members:
-      section = member.get('section', None)
+      section = member.get('section')
       if section:
         member_section_definition = data_types.MemberSectionDefinition(section)
         definition_object.AddSectionDefinition(member_section_definition)
@@ -320,10 +320,10 @@ class DataTypeDefinitionsReader:
 
     last_name = None
     for enumeration_value in values:
-      aliases = enumeration_value.get('aliases', None)
-      description = enumeration_value.get('description', None)
-      name = enumeration_value.get('name', None)
-      number = enumeration_value.get('number', None)
+      aliases = enumeration_value.get('aliases')
+      description = enumeration_value.get('description')
+      name = enumeration_value.get('name')
+      number = enumeration_value.get('number')
 
       if not name or number is None:
         if last_name:
@@ -372,14 +372,14 @@ class DataTypeDefinitionsReader:
       raise errors.DefinitionReaderError(definition_name, (
           f'unsupported definition values: {values_string:s}'))
 
-    element_data_type = definition_values.get('element_data_type', None)
+    element_data_type = definition_values.get('element_data_type')
     if not element_data_type:
       raise errors.DefinitionReaderError(definition_name, (
           'missing element data type'))
 
-    elements_data_size = definition_values.get('elements_data_size', None)
-    elements_terminator = definition_values.get('elements_terminator', None)
-    number_of_elements = definition_values.get('number_of_elements', None)
+    elements_data_size = definition_values.get('elements_data_size')
+    elements_terminator = definition_values.get('elements_terminator')
+    number_of_elements = definition_values.get('number_of_elements')
 
     size_values = (elements_data_size, elements_terminator, number_of_elements)
     size_values = [value for value in size_values if value is not None]
@@ -400,9 +400,9 @@ class DataTypeDefinitionsReader:
       raise errors.DefinitionReaderError(definition_name, (
           f'undefined element data type: {element_data_type:s}'))
 
-    aliases = definition_values.get('aliases', None)
-    description = definition_values.get('description', None)
-    urls = definition_values.get('urls', None)
+    aliases = definition_values.get('aliases')
+    description = definition_values.get('description')
+    urls = definition_values.get('urls')
 
     definition_object = data_type_definition_class(
         definition_name, element_data_type_definition, aliases=aliases,
@@ -460,7 +460,7 @@ class DataTypeDefinitionsReader:
         definitions_registry, definition_values, data_type_definition_class,
         definition_name, supported_attributes, is_member=is_member)
 
-    attributes = definition_values.get('attributes', None)
+    attributes = definition_values.get('attributes')
     if attributes:
       size = attributes.get('size', default_size)
       if size != definitions.SIZE_NATIVE:
@@ -535,7 +535,7 @@ class DataTypeDefinitionsReader:
 
     definition_object.metadata = definition_values.get('metadata', {})
 
-    attributes = definition_values.get('attributes', None)
+    attributes = definition_values.get('attributes')
     if attributes:
       unsupported_attributes = set(attributes.keys()).difference(
           self._SUPPORTED_ATTRIBUTES_FORMAT)
@@ -574,8 +574,8 @@ class DataTypeDefinitionsReader:
     """
     layout_elements = []
     for index, layout_element in enumerate(definition_values):
-      data_type = layout_element.get('data_type', None)
-      offset = layout_element.get('offset', None)
+      data_type = layout_element.get('data_type')
+      offset = layout_element.get('offset')
 
       if not data_type:
         raise errors.DefinitionReaderError(definition_name, (
@@ -620,7 +620,7 @@ class DataTypeDefinitionsReader:
         self._SUPPORTED_ATTRIBUTES_INTEGER, is_member=is_member,
         supported_size_values=(1, 2, 4, 8))
 
-    attributes = definition_values.get('attributes', None)
+    attributes = definition_values.get('attributes')
     if attributes:
       format_attribute = attributes.get('format', definitions.FORMAT_SIGNED)
       if format_attribute not in self._INTEGER_FORMAT_ATTRIBUTES:
@@ -680,8 +680,8 @@ class DataTypeDefinitionsReader:
       raise errors.DefinitionReaderError(definition_name, (
           'invalid structure member missing definition values'))
 
-    name = definition_values.get('name', None)
-    type_indicator = definition_values.get('type', None)
+    name = definition_values.get('name')
+    type_indicator = definition_values.get('type')
 
     if not name and type_indicator != definitions.TYPE_INDICATOR_UNION:
       raise errors.DefinitionReaderError(definition_name, (
@@ -689,7 +689,7 @@ class DataTypeDefinitionsReader:
 
     # TODO: detect duplicate names.
 
-    data_type = definition_values.get('data_type', None)
+    data_type = definition_values.get('data_type')
 
     type_values = (data_type, type_indicator)
     type_values = [value for value in type_values if value is not None]
@@ -706,14 +706,14 @@ class DataTypeDefinitionsReader:
           f'invalid structure member: {name:s} data type and type not allowed '
           f'to be set at the same time'))
 
-    condition = definition_values.get('condition', None)
+    condition = definition_values.get('condition')
     if not supports_conditions and condition:
       name = name or '<NAMELESS>'
       raise errors.DefinitionReaderError(definition_name, (
           f'invalid structure member: {name:s} unsupported condition'))
 
-    value = definition_values.get('value', None)
-    values = definition_values.get('values', None)
+    value = definition_values.get('value')
+    values = definition_values.get('values')
 
     if None not in (value, values):
       name = name or '<NAMELESS>'
@@ -738,7 +738,7 @@ class DataTypeDefinitionsReader:
     definition_object = None
 
     if type_indicator is not None:
-      data_type_callback = self._DATA_TYPE_CALLBACKS.get(type_indicator, None)
+      data_type_callback = self._DATA_TYPE_CALLBACKS.get(type_indicator)
       if data_type_callback:
         data_type_callback = getattr(self, data_type_callback, None)
       if not data_type_callback:
@@ -776,8 +776,8 @@ class DataTypeDefinitionsReader:
         raise errors.DefinitionReaderError(definition_name, (
             f'unsupported definition values: {values_string:s}'))
 
-      aliases = definition_values.get('aliases', None)
-      description = definition_values.get('description', None)
+      aliases = definition_values.get('aliases')
+      description = definition_values.get('description')
 
       definition_object = data_types.MemberDataTypeDefinition(
           name, data_type_definition, aliases=aliases, condition=condition,
@@ -813,7 +813,7 @@ class DataTypeDefinitionsReader:
         definitions_registry, definition_values, data_types.PaddingDefinition,
         definition_name, self._SUPPORTED_DEFINITION_VALUES_PADDING)
 
-    alignment_size = definition_values.get('alignment_size', None)
+    alignment_size = definition_values.get('alignment_size')
     if not alignment_size:
       raise errors.DefinitionReaderError(definition_name, (
           'missing alignment_size'))
@@ -921,7 +921,7 @@ class DataTypeDefinitionsReader:
         definitions_registry, definition_values, data_type_definition_class,
         definition_name, supported_definition_values)
 
-    attributes = definition_values.get('attributes', None)
+    attributes = definition_values.get('attributes')
     if attributes:
       unsupported_attributes = set(attributes.keys()).difference(
           supported_attributes)
@@ -1000,7 +1000,7 @@ class DataTypeDefinitionsReader:
         definitions_registry, definition_values, data_types.StringDefinition,
         definition_name, supported_definition_values)
 
-    encoding = definition_values.get('encoding', None)
+    encoding = definition_values.get('encoding')
     if not encoding:
       raise errors.DefinitionReaderError(definition_name, 'missing encoding')
 
@@ -1067,7 +1067,7 @@ class DataTypeDefinitionsReader:
       raise errors.DefinitionReaderError(definition_name, (
           f'unsupported definition values: {values_string:s}'))
 
-    base = definition_values.get('base', None)
+    base = definition_values.get('base')
     if not base:
       raise errors.DefinitionReaderError(definition_name, 'missing base')
 
@@ -1076,15 +1076,15 @@ class DataTypeDefinitionsReader:
       raise errors.DefinitionReaderError(definition_name, (
           f'undefined base: {base:s}'))
 
-    aliases = definition_values.get('aliases', None)
-    description = definition_values.get('description', None)
-    urls = definition_values.get('urls', None)
+    aliases = definition_values.get('aliases')
+    description = definition_values.get('description')
+    urls = definition_values.get('urls')
 
     definition_object = data_types.StructureFamilyDefinition(
         definition_name, base_data_type_definition, aliases=aliases,
         description=description, urls=urls)
 
-    members = definition_values.get('members', None)
+    members = definition_values.get('members')
     if not members:
       raise errors.DefinitionReaderError(definition_name, 'missing members')
 
@@ -1133,7 +1133,7 @@ class DataTypeDefinitionsReader:
       raise errors.DefinitionReaderError(definition_name, (
           f'unsupported definition values: {values_string:s}'))
 
-    base = definition_values.get('base', None)
+    base = definition_values.get('base')
     if not base:
       raise errors.DefinitionReaderError(definition_name, 'missing base')
 
@@ -1142,11 +1142,11 @@ class DataTypeDefinitionsReader:
       raise errors.DefinitionReaderError(definition_name, (
           f'undefined base: {base:s}'))
 
-    identifier = definition_values.get('identifier', None)
+    identifier = definition_values.get('identifier')
     if not identifier:
       raise errors.DefinitionReaderError(definition_name, 'missing identifier')
 
-    default = definition_values.get('default', None)
+    default = definition_values.get('default')
     if not default:
       default_data_type_definition = None
     else:
@@ -1156,16 +1156,16 @@ class DataTypeDefinitionsReader:
         raise errors.DefinitionReaderError(definition_name, (
             f'undefined default: {default:s}'))
 
-    aliases = definition_values.get('aliases', None)
-    description = definition_values.get('description', None)
-    urls = definition_values.get('urls', None)
+    aliases = definition_values.get('aliases')
+    description = definition_values.get('description')
+    urls = definition_values.get('urls')
 
     definition_object = data_types.StructureGroupDefinition(
         definition_name, base_data_type_definition, identifier,
         default_data_type_definition, aliases=aliases, description=description,
         urls=urls)
 
-    members = definition_values.get('members', None)
+    members = definition_values.get('members')
     if not members:
       raise errors.DefinitionReaderError(definition_name, 'missing members')
 
@@ -1264,16 +1264,16 @@ class DataTypeDefinitionsFileReader(DataTypeDefinitionsReader):
     if not definition_values:
       raise errors.DefinitionReaderError(None, 'missing definition values')
 
-    name = definition_values.get('name', None)
+    name = definition_values.get('name')
     if not name:
       raise errors.DefinitionReaderError(None, 'missing name')
 
-    type_indicator = definition_values.get('type', None)
+    type_indicator = definition_values.get('type')
     if not type_indicator:
       raise errors.DefinitionReaderError(name, (
           'invalid definition missing type'))
 
-    data_type_callback = self._DATA_TYPE_CALLBACKS.get(type_indicator, None)
+    data_type_callback = self._DATA_TYPE_CALLBACKS.get(type_indicator)
     if data_type_callback:
       data_type_callback = getattr(self, data_type_callback, None)
     if not data_type_callback:
@@ -1328,7 +1328,7 @@ class YAMLDataTypeDefinitionsFileReader(DataTypeDefinitionsFileReader):
     Returns:
       str: format error location.
     """
-    name = yaml_definition.get('name', None)
+    name = yaml_definition.get('name')
     if name:
       name = name or '<NAMELESS>'
       error_location = f'in: {name:s}'

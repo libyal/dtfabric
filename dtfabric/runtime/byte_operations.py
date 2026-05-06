@@ -70,13 +70,12 @@ class StructOperation(ByteStreamOperation):
       tuple[object, ...]: values copies from the byte stream.
 
     Raises:
-      IOError: if byte stream cannot be read.
       OSError: if byte stream cannot be read.
     """
     try:
       return self._struct.unpack_from(byte_stream)
     except (TypeError, struct.error) as exception:
-      raise IOError(f'Unable to read byte stream with error: {exception!s}')
+      raise OSError(f'Unable to read byte stream with error: {exception!s}')
 
   def WriteTo(self, values):
     """Writes values to a byte stream.
@@ -88,10 +87,9 @@ class StructOperation(ByteStreamOperation):
       bytes: byte stream.
 
     Raises:
-      IOError: if byte stream cannot be written.
       OSError: if byte stream cannot be read.
     """
     try:
       return self._struct.pack(*values)
     except (TypeError, struct.error) as exception:
-      raise IOError(f'Unable to write stream with error: {exception!s}')
+      raise OSError(f'Unable to write stream with error: {exception!s}')
