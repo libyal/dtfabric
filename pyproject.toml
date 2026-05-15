@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dtfabric"
-version = "20260506"
+version = "20260515"
 description = "Data type fabric (dtfabric)"
 maintainers = [
     { name = "Joachim Metz", email = "joachim.metz@gmail.com" },
@@ -28,6 +28,16 @@ validate_definitions = "dtfabric.scripts.validate_definitions:Main"
 Documentation = "https://dtfabric.readthedocs.io/en/latest"
 Homepage = "https://github.com/libyal/dtfabric"
 Repository = "https://github.com/libyal/dtfabric"
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+include = "\\.pyi?$"
+
+[tool.docformatter]
+black = true
+non-cap = ["dtFabric", "str:"]
+non-strict = true
 
 [tool.setuptools]
 package-dir = {"dtfabric" = "dtfabric"}

@@ -14,116 +14,124 @@ from dtfabric import registry
 
 
 class DefinitionsValidator:
-  """dtFabric definitions validator."""
+    """dtFabric definitions validator."""
 
-  def CheckDirectory(self, path, extension='yaml'):
-    """Validates definition files in a directory.
+    def CheckDirectory(self, path, extension="yaml"):
+        """Validates definition files in a directory.
 
-    Args:
-      path (str): path of the definition file.
-      extension (Optional[str]): extension of the filenames to read.
+        Args:
+          path (str): path of the definition file.
+          extension (Optional[str]): extension of the filenames to read.
 
-    Returns:
-      bool: True if the directory contains valid definitions.
-    """
-    result = True
+        Returns:
+          bool: True if the directory contains valid definitions.
+        """
+        result = True
 
-    if extension:
-      glob_spec = os.path.join(path, f'*.{extension:s}')
-    else:
-      glob_spec = os.path.join(path, '*')
+        if extension:
+            glob_spec = os.path.join(path, f"*.{extension:s}")
+        else:
+            glob_spec = os.path.join(path, "*")
 
-    for definition_file in sorted(glob.glob(glob_spec)):
-      if not self.CheckFile(definition_file):
+        for definition_file in sorted(glob.glob(glob_spec)):
+            if not self.CheckFile(definition_file):
+                result = False
+
+        return result
+
+    def CheckFile(self, path):
+        """Validates the definition in a file.
+
+        Args:
+          path (str): path of the definition file.
+
+        Returns:
+          bool: True if the file contains valid definitions.
+        """
+        print(f"Checking: {path:s}")
+
+        definitions_registry = registry.DataTypeDefinitionsRegistry()
+        definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
         result = False
 
-    return result
+        try:
+            definitions_reader.ReadFile(definitions_registry, path)
+            result = True
 
-  def CheckFile(self, path):
-    """Validates the definition in a file.
+        except KeyError as exception:
+            logging.warning(
+                f"Unable to register data type definition in file: {path:s} with "
+                f"error: {exception!s}"
+            )
 
-    Args:
-      path (str): path of the definition file.
+        except errors.FormatError as exception:
+            logging.warning(
+                f"Unable to validate file: {path:s} with error: {exception!s}"
+            )
 
-    Returns:
-      bool: True if the file contains valid definitions.
-    """
-    print(f'Checking: {path:s}')
-
-    definitions_registry = registry.DataTypeDefinitionsRegistry()
-    definitions_reader = reader.YAMLDataTypeDefinitionsFileReader()
-    result = False
-
-    try:
-      definitions_reader.ReadFile(definitions_registry, path)
-      result = True
-
-    except KeyError as exception:
-      logging.warning(
-          f'Unable to register data type definition in file: {path:s} with '
-          f'error: {exception!s}')
-
-    except errors.FormatError as exception:
-      logging.warning(
-          f'Unable to validate file: {path:s} with error: {exception!s}')
-
-    return result
+        return result
 
 
 def Main():
-  """Entry point of console script to validate definitions.
+    """Entry point of console script to validate definitions.
 
-  Returns:
-    int: exit code that is provided to sys.exit().
-  """
-  argument_parser = argparse.ArgumentParser(
-      description='Validates dtFabric format definitions.')
+    Returns:
+      int: exit code that is provided to sys.exit().
+    """
+    argument_parser = argparse.ArgumentParser(
+        description="Validates dtFabric format definitions."
+    )
 
-  argument_parser.add_argument(
-      'source', nargs='?', action='store', metavar='PATH', default=None,
-      help=('path of the file or directory containing the dtFabric format '
-            'definitions.'))
+    argument_parser.add_argument(
+        "source",
+        nargs="?",
+        action="store",
+        metavar="PATH",
+        default=None,
+        help=(
+            "path of the file or directory containing the dtFabric format "
+            "definitions."
+        ),
+    )
 
-  options = argument_parser.parse_args()
+    options = argument_parser.parse_args()
 
-  if not options.source:
-    print('Source value is missing.')
-    print('')
-    argument_parser.print_help()
-    print('')
-    return 1
+    if not options.source:
+        print("Source value is missing.")
+        print("")
+        argument_parser.print_help()
+        print("")
+        return 1
 
-  if not os.path.exists(options.source):
-    print(f'No such file: {options.source:s}')
-    print('')
-    return 1
+    if not os.path.exists(options.source):
+        print(f"No such file: {options.source:s}")
+        print("")
+        return 1
 
-  logging.basicConfig(
-      level=logging.INFO, format='[%(levelname)s] %(message)s')
+    logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
+    source_is_directory = os.path.isdir(options.source)
 
-  source_is_directory = os.path.isdir(options.source)
+    validator = DefinitionsValidator()
 
-  validator = DefinitionsValidator()
+    if source_is_directory:
+        source_description = os.path.join(options.source, "*.yaml")
+    else:
+        source_description = options.source
 
-  if source_is_directory:
-    source_description = os.path.join(options.source, '*.yaml')
-  else:
-    source_description = options.source
+    print(f"Validating dtFabric definitions in: {source_description:s}")
+    if source_is_directory:
+        result = validator.CheckDirectory(options.source)
+    else:
+        result = validator.CheckFile(options.source)
 
-  print(f'Validating dtFabric definitions in: {source_description:s}')
-  if source_is_directory:
-    result = validator.CheckDirectory(options.source)
-  else:
-    result = validator.CheckFile(options.source)
+    if not result:
+        print("FAILURE")
+        return 1
 
-  if not result:
-    print('FAILURE')
-    return 1
-
-  print('SUCCESS')
-  return 0
+    print("SUCCESS")
+    return 0
 
 
-if __name__ == '__main__':
-  sys.exit(Main())
+if __name__ == "__main__":
+    sys.exit(Main())
