@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dtfabric"
-version = "20260515"
+version = "20260601"
 description = "Data type fabric (dtfabric)"
 maintainers = [
     { name = "Joachim Metz", email = "joachim.metz@gmail.com" },
@@ -38,6 +38,14 @@ include = "\\.pyi?$"
 black = true
 non-cap = ["dtFabric", "str:"]
 non-strict = true
+
+[tool.l2tdevtools]
+name = "dtFabric"
+status = "alpha"
+description = """
+dtFabric, or data type fabric, is a project to manage data types and \
+structures, as used in the libyal projects. \
+"""
 
 [tool.setuptools]
 package-dir = {"dtfabric" = "dtfabric"}
