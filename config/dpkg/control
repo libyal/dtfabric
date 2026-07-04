@@ -18,5 +18,4 @@ Package: dtfabric-tools
 Architecture: all
 Depends: python3-dtfabric (>= ${binary:Version}), ${misc:Depends}
 Description: Tools of dtFabric
- dtFabric, or data type fabric, is a project to manage data types and
- structures, as used in the libyal projects.
+ dtFabric, or data type fabric, is a project to manage data types and structures, as used in the libyal projects.
