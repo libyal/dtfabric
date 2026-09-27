@@ -463,7 +463,7 @@ class ConstantDefinitionTest(test_lib.BaseTestCase):
     def testInitialize(self):
         """Tests the __init__ function."""
         data_type_definition = data_types.ConstantDefinition(
-            "const", description="contant"
+            "const", description="constant"
         )
         self.assertIsNotNone(data_type_definition)
 

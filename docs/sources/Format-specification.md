@@ -93,7 +93,7 @@ attributes:
   true_value: 1
 ```
 
-Boolean data type specfic attributes:
+Boolean data type specific attributes:
 
 Attribute name | Attribute type | Required | Description
 --- | --- | --- | ---
@@ -156,11 +156,11 @@ attributes:
   units: bytes
 ```
 
-Integer data type specfic attributes:
+Integer data type specific attributes:
 
 Attribute name | Attribute type | Required | Description
 --- | --- | --- | ---
-format | string | No | Signed or unsiged <br> The default is signed
+format | string | No | Signed or unsigned <br> The default is signed
 
 Currently supported size attribute values are: 1, 2, 4 and 8 bytes.
 
@@ -194,7 +194,7 @@ element_data_type: int32
 number_of_elements: 32
 ```
 
-Sequence data type specfic attributes:
+Sequence data type specific attributes:
 
 Attribute name | Attribute type | Required | Description
 --- | --- | --- | ---
@@ -215,7 +215,7 @@ number_of_elements | integer or string | See note | Integer value or expression 
 
 #### Stream
 
-A stream is a data type to represent a continous sequence of elements such as
+A stream is a data type to represent a continuous sequence of elements such as
 a byte stream.
 
 ```yaml
@@ -225,7 +225,7 @@ element_data_type: byte
 number_of_elements: data_size
 ```
 
-Stream data type specfic attributes:
+Stream data type specific attributes:
 
 Attribute name | Attribute type | Required | Description
 --- | --- | --- | ---
@@ -246,13 +246,13 @@ number_of_elements | integer or string | See note | Integer value or expression 
 
 #### String
 
-A string is a data type to represent a continous sequence of elements with a
+A string is a data type to represent a continuous sequence of elements with a
 known encoding such as an UTF-16 formatted string.
 
 ```yaml
 name: utf16le_string_with_size
 type: string
-ecoding: utf-16-le
+encoding: utf-16-le
 element_data_type: wchar16
 elements_data_size: string_data_size
 ```
@@ -260,12 +260,12 @@ elements_data_size: string_data_size
 ```yaml
 name: utf16le_string_with_terminator
 type: string
-ecoding: utf-16-le
+encoding: utf-16-le
 element_data_type: wchar16
 elements_terminator: "\x00\x00"
 ```
 
-String data type specfic attributes:
+String data type specific attributes:
 
 Attribute name | Attribute type | Required | Description
 --- | --- | --- | ---
@@ -380,7 +380,7 @@ type: padding
 alignment_size: 8
 ```
 
-Padding data type specfic attributes:
+Padding data type specific attributes:
 
 Attribute name | Attribute type | Required | Description
 --- | --- | --- | ---
@@ -414,7 +414,7 @@ urls: ['https://msdn.microsoft.com/en-us/library/bb432193(v=vs.85).aspx']
 value: 13
 ```
 
-Constant data type specfic attributes:
+Constant data type specific attributes:
 
 Attribute name | Attribute type | Required | Description
 --- | --- | --- | ---

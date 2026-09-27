@@ -4,7 +4,6 @@
 import sys
 import unittest
 
-# Change PYTHONPATH to include dtFabric.
 sys.path.insert(0, ".")
 
 

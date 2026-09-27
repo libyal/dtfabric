@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "dtfabric"
-version = "20260709"
+version = "20260927"
 description = "Data type fabric (dtfabric)"
 maintainers = [
     { name = "Joachim Metz", email = "joachim.metz@gmail.com" },
